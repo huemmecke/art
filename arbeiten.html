@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Martin Hümmecke — Arbeiten (Preview)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">Martin Hümmecke</a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="index.html">Startseite</a>
+      <a href="#rote-serie">Rote Serie</a>
+      <a href="#kraftkarton">Kraftkarton</a>
+      <a href="index.html#impressum">Impressum</a>
+    </nav>
+  </header>
+
+  <section class="page-intro">
+    <p class="eyebrow"><span>Katalog</span><span class="rail-tick"></span></p>
+    <h1>Zeichnungen &amp; Drucke</h1>
+  </section>
+
+  <section id="rote-serie" class="section reveal" style="padding-top:6vh">
+    <div class="gallery-head">
+      <h2>Rote Serie</h2>
+      <span class="gallery-count" id="rote-count"></span>
+    </div>
+    <div class="masonry" id="rote-grid"></div>
+  </section>
+
+  <section id="kraftkarton" class="section reveal" style="padding:10vh 5vw">
+    <div class="gallery-head">
+      <h2>Kraftkarton</h2>
+      <span class="gallery-count" id="kk-count"></span>
+    </div>
+    <div class="carousel-wrap">
+      <div class="kk-track" id="kk-track"></div>
+      <button class="carousel-btn prev" id="kk-prev" aria-label="Zurück">‹</button>
+      <button class="carousel-btn next" id="kk-next" aria-label="Weiter">›</button>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="https://www.instagram.com/martin.huemmecke/?hl=de" target="_blank" rel="noopener">Instagram</a>
+      <a href="https://www.tiktok.com/@martin.huemmecke" target="_blank" rel="noopener">TikTok</a>
+      <a href="mailto:mhuemmecke@gmx.de?subject=Art">E-Mail</a>
+    </div>
+    <span class="copy">© 2026 Martin Hümmecke</span>
+  </footer>
+
+  <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Bildansicht, Escape zum Schließen">
+    <img id="lightbox-img" alt="">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Schließen">×</button>
+  </div>
+
+  <script>
+    const ROTE_SERIE = [
+      { src: 'uploads/huemmecke-art/inbox/MH_print_red-warrior01.jpg', alt: 'Rote Serie – Red Warrior 01' },
+      { src: 'uploads/huemmecke-art/inbox/MH_print_red-warrior02.jpg', alt: 'Rote Serie – Red Warrior 02' },
+      { src: 'uploads/huemmecke-art/inbox/MH_print_red-warrior03.jpg', alt: 'Rote Serie – Red Warrior 03' },
+    ];
+
+    const KRAFTKARTON_FILES = [
+      'ART_MH_2024_warrior_01a.jpg',
+      { file: 'MH_artcards-scan_2024_Vol01_harbour01.jpg', framed: 'framed/MH_artcards-scan_2024_Vol01_harbour01_framed.png' },
+      { file: 'MH_artcards-scan_2024_Vol01_harbour02.jpg', framed: 'framed/MH_artcards-scan_2024_Vol01_harbour02_framed.png' },
+      'MH_artcards-scan_2024_Vol01_shipyard01.jpg',
+      'MH_artcards-scan_2024_Vol01_washday01.jpg',
+      'MH_artcards-scan_2024_Vol02_mindofwool.jpg',
+      { file: 'MH_artcards-scan_2024_Vol02_woolhead01.jpg', framed: 'framed/MH_artcards-scan_2024_Vol02_woolhead01_framed.png' },
+      'MH_artcards-scan_2024_Vol02_woolpack01.jpg',
+      'MH_artcards-scan_2024_Vol02_woolpack02.jpg',
+      'MH_artcards-scan_2024_Vol02_woolwalk01.jpg',
+      { file: 'MH_artcards-scan_2024_Vol03_arrowmind.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_arrowmind_framed.png' },
+      { file: 'MH_artcards-scan_2024_Vol03_butterflies.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_butterflies_framed.png' },
+      'MH_artcards-scan_2024_Vol03_confusion.jpg',
+      'MH_artcards-scan_2024_Vol03_elegance.jpg',
+      { file: 'MH_artcards-scan_2024_Vol03_pipemiracle.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_pipemiracle_framed.png' },
+      { file: 'MH_artcards-scan_2024_Vol03_silentfish.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_silentfish_framed.png' },
+      { file: 'MH_artcards-scan_2024_Vol03_spiralmind.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_spiralmind_framed.png' },
+      'MH_artcards-scan_2024_Vol07_smoking-wool.jpg',
+    ];
+
+    function titleFromFile(f) {
+      const name = f.replace(/\.(jpg|png)$/i, '');
+      const last = name.split('_').pop();
+      const words = last.replace(/[0-9]+$/, '').replace(/-/g, ' ');
+      return words.charAt(0).toUpperCase() + words.slice(1);
+    }
+
+    const kraftkarton = KRAFTKARTON_FILES.map((entry) => {
+      const isFramed = typeof entry === 'object';
+      const file = isFramed ? entry.file : entry;
+      return {
+        src: 'uploads/huemmecke-art/inbox/' + (isFramed ? entry.framed : file),
+        alt: 'Kraftkarton – ' + titleFromFile(file) + (isFramed ? ' (gerahmt)' : ''),
+        framed: isFramed,
+      };
+    });
+
+    const allImages = [...ROTE_SERIE, ...kraftkarton];
+
+    document.getElementById('rote-count').textContent = ROTE_SERIE.length + ' Arbeiten';
+    document.getElementById('kk-count').textContent = kraftkarton.length + ' Arbeiten';
+
+    const roteGrid = document.getElementById('rote-grid');
+    ROTE_SERIE.forEach((pic, i) => {
+      const fig = document.createElement('figure');
+      fig.tabIndex = 0;
+      fig.role = 'button';
+      fig.setAttribute('aria-label', pic.alt + ' vergrößern');
+      fig.dataset.idx = String(i);
+      const img = document.createElement('img');
+      img.src = pic.src;
+      img.alt = pic.alt;
+      fig.appendChild(img);
+      roteGrid.appendChild(fig);
+    });
+
+    const track = document.getElementById('kk-track');
+    kraftkarton.forEach((pic, i) => {
+      const fig = document.createElement('figure');
+      fig.className = 'kk-slide' + (pic.framed ? ' is-framed' : '');
+      fig.tabIndex = 0;
+      fig.role = 'button';
+      fig.setAttribute('aria-label', pic.alt + ' vergrößern');
+      fig.dataset.idx = String(i + ROTE_SERIE.length);
+      const img = document.createElement('img');
+      img.src = pic.src;
+      img.alt = pic.alt;
+      fig.appendChild(img);
+      track.appendChild(fig);
+    });
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    function openLightbox(idx) {
+      lightboxImg.src = allImages[idx].src;
+      lightboxImg.alt = allImages[idx].alt;
+      lightbox.hidden = false;
+    }
+    function closeLightbox() {
+      lightbox.hidden = true;
+      lightboxImg.src = '';
+    }
+    document.querySelectorAll('[data-idx]').forEach((el) => {
+      el.addEventListener('click', () => openLightbox(Number(el.dataset.idx)));
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openLightbox(Number(el.dataset.idx));
+        }
+      });
+    });
+    lightbox.addEventListener('click', closeLightbox);
+    document.getElementById('lightbox-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLightbox();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+    });
+
+    document.getElementById('kk-prev').addEventListener('click', () => {
+      track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' });
+    });
+    document.getElementById('kk-next').addEventListener('click', () => {
+      track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
+    });
+
+    const REVEAL_IDS = ['rote-serie', 'kraftkarton'];
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
+    REVEAL_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-visible');
+      else observer.observe(el);
+    });
+    setTimeout(() => REVEAL_IDS.forEach((id) => document.getElementById(id)?.classList.add('is-visible')), 3000);
+  </script>
+</body>
+</html>
