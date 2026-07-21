@@ -330,6 +330,14 @@ h2 {
   break-inside: avoid;
   cursor: zoom-in;
 }
+.masonry figure.is-framed {
+  background: #fff;
+}
+.masonry figure.is-framed img {
+  width: 100%;
+  display: block;
+  object-fit: contain;
+}
 .masonry figure:hover,
 .kk-slide:hover { opacity: 0.9; }
 .masonry figure:focus,

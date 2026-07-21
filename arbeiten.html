@@ -21,7 +21,7 @@
 
   <section class="page-intro">
     <p class="eyebrow"><span>Katalog</span><span class="rail-tick"></span></p>
-    <h1>Zeichnungen &amp; Drucke</h1>
+    <h1>Zeichnungen</h1>
   </section>
 
   <section id="rote-serie" class="section reveal" style="padding-top:6vh">
@@ -59,49 +59,37 @@
   </div>
 
   <script>
+    const FRAMED_BASE = 'uploads/huemmecke-art/inbox/framed/';
+
     const ROTE_SERIE = [
-      { src: 'uploads/huemmecke-art/inbox/MH_print_red-warrior01.jpg', alt: 'Rote Serie – Red Warrior 01' },
-      { src: 'uploads/huemmecke-art/inbox/MH_print_red-warrior02.jpg', alt: 'Rote Serie – Red Warrior 02' },
-      { src: 'uploads/huemmecke-art/inbox/MH_print_red-warrior03.jpg', alt: 'Rote Serie – Red Warrior 03' },
+      { src: FRAMED_BASE + 'MH_print_red-warrior01_framed.png', alt: 'Rote Serie – Red Warrior 01 (gerahmt)' },
+      { src: FRAMED_BASE + 'MH_print_red-warrior03_framed.png', alt: 'Rote Serie – Red Warrior 03 (gerahmt)' },
+      { src: FRAMED_BASE + 'MH_print_fall01_framed.png', alt: 'Rote Serie – Fall 01 (gerahmt)' },
     ];
 
-    const KRAFTKARTON_FILES = [
-      'ART_MH_2024_warrior_01a.jpg',
-      { file: 'MH_artcards-scan_2024_Vol01_harbour01.jpg', framed: 'framed/MH_artcards-scan_2024_Vol01_harbour01_framed.png' },
-      { file: 'MH_artcards-scan_2024_Vol01_harbour02.jpg', framed: 'framed/MH_artcards-scan_2024_Vol01_harbour02_framed.png' },
-      'MH_artcards-scan_2024_Vol01_shipyard01.jpg',
-      'MH_artcards-scan_2024_Vol01_washday01.jpg',
-      'MH_artcards-scan_2024_Vol02_mindofwool.jpg',
-      { file: 'MH_artcards-scan_2024_Vol02_woolhead01.jpg', framed: 'framed/MH_artcards-scan_2024_Vol02_woolhead01_framed.png' },
-      'MH_artcards-scan_2024_Vol02_woolpack01.jpg',
-      'MH_artcards-scan_2024_Vol02_woolpack02.jpg',
-      'MH_artcards-scan_2024_Vol02_woolwalk01.jpg',
-      { file: 'MH_artcards-scan_2024_Vol03_arrowmind.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_arrowmind_framed.png' },
-      { file: 'MH_artcards-scan_2024_Vol03_butterflies.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_butterflies_framed.png' },
-      'MH_artcards-scan_2024_Vol03_confusion.jpg',
-      'MH_artcards-scan_2024_Vol03_elegance.jpg',
-      { file: 'MH_artcards-scan_2024_Vol03_pipemiracle.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_pipemiracle_framed.png' },
-      { file: 'MH_artcards-scan_2024_Vol03_silentfish.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_silentfish_framed.png' },
-      { file: 'MH_artcards-scan_2024_Vol03_spiralmind.jpg', framed: 'framed/MH_artcards-scan_2024_Vol03_spiralmind_framed.png' },
-      'MH_artcards-scan_2024_Vol07_smoking-wool.jpg',
+    const KRAFTKARTON = [
+      { file: 'MH_artcards-scan_2024_Vol01_harbour01_framed.png', title: 'Harbour 01' },
+      { file: 'MH_artcards-scan_2024_Vol01_harbour02_framed.png', title: 'Harbour 02' },
+      { file: 'MH_artcards-scan_2024_Vol01_shipyard01_framed.png', title: 'Shipyard 01' },
+      { file: 'MH_artcards-scan_2024_Vol02_mindofwool_framed.png', title: 'Mind of Wool' },
+      { file: 'MH_artcards-scan_2024_Vol02_woolhead01_framed.png', title: 'Woolhead 01' },
+      { file: 'MH_artcards-scan_2024_Vol02_woolpack02_framed.png', title: 'Woolpack 02' },
+      { file: 'MH_artcards-scan_2024_Vol02_woolwalk01_framed.png', title: 'Woolwalk 01' },
+      { file: 'MH_artcards-scan_2024_Vol03_arrowmind_framed.png', title: 'Arrowmind' },
+      { file: 'MH_artcards-scan_2024_Vol03_butterflies_framed.png', title: 'Butterflies' },
+      { file: 'MH_artcards-scan_2024_Vol03_confusion_framed.png', title: 'Confusion' },
+      { file: 'MH_artcards-scan_2024_Vol03_elegance_framed.png', title: 'Elegance' },
+      { file: 'MH_artcards-scan_2024_Vol03_pipemiracle_framed.png', title: 'Pipemiracle' },
+      { file: 'MH_artcards-scan_2024_Vol03_silentfish_framed.png', title: 'Silentfish' },
+      { file: 'MH_artcards-scan_2024_Vol03_spiralmind_framed.png', title: 'Spiralmind' },
+      { file: 'MH_artcards-scan_2024_Vol07_smoking-wool_framed.png', title: 'Smoking Wool' },
     ];
 
-    function titleFromFile(f) {
-      const name = f.replace(/\.(jpg|png)$/i, '');
-      const last = name.split('_').pop();
-      const words = last.replace(/[0-9]+$/, '').replace(/-/g, ' ');
-      return words.charAt(0).toUpperCase() + words.slice(1);
-    }
-
-    const kraftkarton = KRAFTKARTON_FILES.map((entry) => {
-      const isFramed = typeof entry === 'object';
-      const file = isFramed ? entry.file : entry;
-      return {
-        src: 'uploads/huemmecke-art/inbox/' + (isFramed ? entry.framed : file),
-        alt: 'Kraftkarton – ' + titleFromFile(file) + (isFramed ? ' (gerahmt)' : ''),
-        framed: isFramed,
-      };
-    });
+    const kraftkarton = KRAFTKARTON.map((entry) => ({
+      src: FRAMED_BASE + entry.file,
+      alt: 'Kraftkarton – ' + entry.title + ' (gerahmt)',
+      framed: true,
+    }));
 
     const allImages = [...ROTE_SERIE, ...kraftkarton];
 
@@ -111,6 +99,7 @@
     const roteGrid = document.getElementById('rote-grid');
     ROTE_SERIE.forEach((pic, i) => {
       const fig = document.createElement('figure');
+      fig.className = 'is-framed';
       fig.tabIndex = 0;
       fig.role = 'button';
       fig.setAttribute('aria-label', pic.alt + ' vergrößern');
