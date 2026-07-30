@@ -1,20 +1,20 @@
 {
   "date": "2026-07-30",
-  "checkedBy": "citation-baseline-agent",
+  "checkedBy": "series-ops-pass",
   "method": {
-    "summary": "Retrieval-Baseline über Websuche (Google-Index). Live-UIs von ChatGPT, Perplexity, Claude und Gemini sind aus dem Cloud-Agenten nicht abfragbar (Bot-Schutz/Login). Diese Engines bitte am iPad manuell spot-checken.",
+    "summary": "Content-/Ops-Pass nach Citation-Baseline: Serien answer-first auf /arbeiten.html, Ops-Checkliste für Search Console & Webflow in der GEO-App.",
     "enginesAutomated": ["Google Web"],
     "enginesManualPending": ["ChatGPT", "Perplexity", "Google AI Overviews", "Claude", "Gemini"]
   },
   "summary": {
-    "overallStatus": "indexed-elsewhere",
-    "overallLabel": "Entity sichtbar — huemmecke.art noch kaum indexiert",
+    "overallStatus": "awaiting-index",
+    "overallLabel": "Serien gestärkt — Indexierung & Webflow als Nächstes",
     "citationRate": 0.67,
     "promptsChecked": 6,
     "promptsCited": 4,
     "siteCitedCount": 0,
     "enginesChecked": ["Google Web"],
-    "notes": "Bei 4 von 6 Prompts erscheint die Künstler-Entity in der Websuche (Saatchi Art, LinkedIn/Xing, Cheap-Art-Bericht, altes Webflow). site:huemmecke.art liefert 0 Treffer — die neue Domain ist noch nicht im Google-Index. llms.txt ist live, wird von Suchmaschinen aber erst nach Indexierung wirksam. Name-Kollision: anderer Martin Hümmecke (Ingram Micro) bei generischen Queries."
+    "notes": "Rote Serie, Kraftkarton und won't quit tryin' sind jetzt answer-first mit FAQ/Schema auf /arbeiten.html. llms.txt und Sitemap aktualisiert. Offen: Google Search Console (muss am Google-Konto passieren) und 301/Unpublish der alten Webflow-Site."
   },
   "foundationScore": {
     "done": 12,
@@ -28,49 +28,48 @@
       "engine": "Google Web",
       "cited": true,
       "siteCited": false,
-      "note": "Entity gefunden über LinkedIn, Xing, Saatchi Art, Webflow-Portfolio, GA.de (Cheap Art). huemmecke.art nicht in den Top-Treffern; site:huemmecke.art = 0."
+      "note": "Entity über LinkedIn, Xing, Saatchi Art, Webflow, GA.de. huemmecke.art noch nicht indexiert."
     },
     {
       "promptId": "artist-soest",
       "engine": "Google Web",
       "cited": true,
       "siteCited": false,
-      "note": "GA.de nennt Martin Hümmecke aus Soest mit surrealistischen Zeichnungen auf Kraftkarton. LinkedIn/Xing mit Soest. Domain-Portfolio fehlt in den Treffern."
+      "note": "GA.de Cheap Art + Soest; Domain-Portfolio fehlt in Treffern."
     },
     {
       "promptId": "process",
       "engine": "Google Web",
       "cited": true,
       "siteCited": false,
-      "note": "Prozess-/Biografie-Text wird über martin-huemmecke.webflow.io gefunden, nicht über huemmecke.art. Alte Domain konkurriert noch um die Passagen."
+      "note": "Prozess-Text noch über Webflow auffindbar — Umleitung empfohlen."
     },
     {
       "promptId": "medium",
       "engine": "Google Web",
       "cited": false,
       "siteCited": false,
-      "note": "Ohne starken Namensbezug: Staedtler/Fineliner und Name-Kollision (Ingram Micro). Künstler-Entity nicht klar zitierbar."
+      "note": "Ohne Namensbezug schwach; Name-Kollision Ingram Micro."
     },
     {
       "promptId": "series",
       "engine": "Google Web",
       "cited": false,
       "siteCited": false,
-      "note": "„won't quit tryin'“ / „Rote Serie“ + Name liefern keine belastbaren Werkseiten. Serien-Titel sind off-site kaum indexiert."
+      "note": "Baseline: Serien kaum auffindbar. Content auf /arbeiten.html jetzt nachgezogen — nach Indexierung erneut prüfen."
     },
     {
       "promptId": "where-buy",
       "engine": "Google Web",
       "cited": true,
       "siteCited": false,
-      "note": "Saatchi-Art-Profil https://www.saatchiart.com/huemmecke und Print-Listings sind die klaren Kauf-/Sichtbarkeitstreffer."
+      "note": "Saatchi Art Profil klar sichtbar."
     }
   ],
   "nextActions": [
-    "Google Search Console: Property huemmecke.art verifizieren, sitemap.xml einreichen, Indexierung anfordern",
-    "Altes Webflow (martin-huemmecke.webflow.io) auf huemmecke.art umleiten oder kanonisch ablösen",
-    "Saatchi Art in sameAs/JSON-LD ergänzen (Profil ist starke Commercial-Source)",
-    "Werkseiten/Abschnitte für „Rote Serie“ und „won't quit tryin'“ answer-first und einzeln auffindbar machen",
-    "Am iPad manuell: dieselben 6 Prompts in ChatGPT, Perplexity und AI Overviews prüfen und Results nachziehen"
+    "Google Search Console: Property verifizieren, sitemap.xml einreichen, / und /arbeiten.html indexieren lassen",
+    "Webflow: 301 von martin-huemmecke.webflow.io → https://www.huemmecke.art/ (oder Site unpublish)",
+    "Danach Citation-Check wiederholen (Google + manuell ChatGPT/Perplexity)",
+    "Ops-Status in geo/config/ops.json auf done setzen, sobald erledigt"
   ]
 }
