@@ -1,0 +1,27 @@
+{
+  "date": "2026-07-30",
+  "checkedBy": "baseline-seed",
+  "summary": {
+    "overallStatus": "setup",
+    "overallLabel": "Basis wird aufgebaut",
+    "citationRate": null,
+    "promptsChecked": 0,
+    "promptsCited": 0,
+    "enginesChecked": [],
+    "notes": "Erster Baseline-Stand. Noch keine manuellen Citation-Checks durchgeführt. Foundation-Checklist zeigt die offenen SEO/GEO-Bausteine."
+  },
+  "foundationScore": {
+    "done": 2,
+    "partial": 3,
+    "open": 7,
+    "total": 12
+  },
+  "citations": [],
+  "nextActions": [
+    "Meta-Description, Canonical und Open Graph setzen",
+    "robots.txt, sitemap.xml und llms.txt anlegen",
+    "JSON-LD Person + CreativeWork ergänzen",
+    "Über-mich / Praxis answer-first umbauen",
+    "Prompt-Set einmal manuell gegen ChatGPT, Perplexity und AI Overviews prüfen und Results aktualisieren"
+  ]
+}

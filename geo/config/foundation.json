@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "updated": "2026-07-30",
+  "items": [
+    {
+      "id": "title-meta",
+      "group": "On-Page",
+      "label": "Title & Meta-Description pro Seite",
+      "status": "partial",
+      "note": "Title vorhanden, Meta-Description fehlt"
+    },
+    {
+      "id": "canonical",
+      "group": "On-Page",
+      "label": "Canonical-URL",
+      "status": "open",
+      "note": "Noch nicht gesetzt"
+    },
+    {
+      "id": "open-graph",
+      "group": "On-Page",
+      "label": "Open Graph / Social Meta",
+      "status": "open",
+      "note": "Noch nicht gesetzt"
+    },
+    {
+      "id": "robots",
+      "group": "Crawl",
+      "label": "robots.txt (inkl. AI-Crawler)",
+      "status": "open",
+      "note": "Datei fehlt"
+    },
+    {
+      "id": "sitemap",
+      "group": "Crawl",
+      "label": "sitemap.xml",
+      "status": "open",
+      "note": "Datei fehlt"
+    },
+    {
+      "id": "llms-txt",
+      "group": "GEO",
+      "label": "llms.txt",
+      "status": "open",
+      "note": "Datei fehlt"
+    },
+    {
+      "id": "json-ld-person",
+      "group": "Schema",
+      "label": "JSON-LD Person",
+      "status": "open",
+      "note": "Entity-Schema fehlt"
+    },
+    {
+      "id": "json-ld-creative",
+      "group": "Schema",
+      "label": "JSON-LD CreativeWork / VisualArtwork",
+      "status": "open",
+      "note": "Werk-Schema fehlt"
+    },
+    {
+      "id": "answer-first",
+      "group": "GEO",
+      "label": "Answer-first Abschnitte (Biografie / Praxis)",
+      "status": "partial",
+      "note": "Inhalte da, noch nicht als zitierfähige Capsules strukturiert"
+    },
+    {
+      "id": "entity-consistency",
+      "group": "Entity",
+      "label": "Einheitliche Namens- & Orts-Schreibweise",
+      "status": "done",
+      "note": "Martin Hümmecke konsistent; Ort Soest / Bad Sassendorf dokumentiert"
+    },
+    {
+      "id": "sameAs",
+      "group": "Entity",
+      "label": "sameAs-Profile (Instagram, TikTok, …)",
+      "status": "partial",
+      "note": "Links vorhanden, noch nicht im Schema verknüpft"
+    },
+    {
+      "id": "ssr-static",
+      "group": "Crawl",
+      "label": "Inhalt im HTML (static, crawlbarkeit)",
+      "status": "done",
+      "note": "Statische Site — Haupttext im HTML"
+    }
+  ]
+}
