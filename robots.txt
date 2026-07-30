@@ -1,0 +1,43 @@
+# https://www.huemmecke.art/robots.txt
+User-agent: *
+Allow: /
+Disallow: /geo/
+
+# AI crawlers — GEO Sichtbarkeit
+User-agent: GPTBot
+Allow: /
+Disallow: /geo/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /geo/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /geo/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /geo/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /geo/
+
+User-agent: GoogleOther
+Allow: /
+Disallow: /geo/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /geo/
+
+User-agent: Bytespider
+Allow: /
+Disallow: /geo/
+
+User-agent: CCBot
+Allow: /
+Disallow: /geo/
+
+Sitemap: https://www.huemmecke.art/sitemap.xml

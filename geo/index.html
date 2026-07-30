@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GEO Status — Martin Hümmecke</title>
+  <meta name="description" content="Internes GEO- und SEO-Statusboard. Flatfile-basiert.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-brand">
+      <a class="back" href="../index.html">← Portfolio</a>
+      <h1>GEO Status</h1>
+      <p class="sub">Sichtbarkeit in Suche &amp; AI-Antworten — Flatfile-Tracking</p>
+    </div>
+    <div class="app-meta" id="run-meta" aria-live="polite">
+      <span class="pulse" aria-hidden="true"></span>
+      <span id="run-label">Lade…</span>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section class="hero-status" id="hero-status">
+      <div class="status-pill" id="status-pill">—</div>
+      <p class="status-notes" id="status-notes"></p>
+      <div class="score-row" id="score-row"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="foundation-heading">
+      <div class="panel-head">
+        <h2 id="foundation-heading">Foundation</h2>
+        <p>Technische SEO- &amp; GEO-Bausteine</p>
+      </div>
+      <div class="foundation-groups" id="foundation-groups"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="prompts-heading">
+      <div class="panel-head">
+        <h2 id="prompts-heading">Prompt-Set</h2>
+        <p>Fragen, mit denen Citation-Checks laufen</p>
+      </div>
+      <ul class="prompt-list" id="prompt-list"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="citations-heading">
+      <div class="panel-head">
+        <h2 id="citations-heading">Citation-Results</h2>
+        <p>Letzter Check aus <code>results/latest.json</code></p>
+      </div>
+      <div id="citations-panel"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="actions-heading">
+      <div class="panel-head">
+        <h2 id="actions-heading">Nächste Schritte</h2>
+        <p>Aus dem aktuellen Result-File</p>
+      </div>
+      <ol class="action-list" id="action-list"></ol>
+    </section>
+
+    <section class="panel entity-panel" aria-labelledby="entity-heading">
+      <div class="panel-head">
+        <h2 id="entity-heading">Entity</h2>
+        <p>Marken-/Personenprofil für GEO</p>
+      </div>
+      <div id="entity-panel"></div>
+    </section>
+
+    <section class="panel how-panel">
+      <div class="panel-head">
+        <h2>So aktualisieren</h2>
+        <p>Alles sind Flatfiles im Repo</p>
+      </div>
+      <div class="how-grid">
+        <div>
+          <h3>Config</h3>
+          <ul>
+            <li><code>geo/config/entity.json</code></li>
+            <li><code>geo/config/prompts.json</code></li>
+            <li><code>geo/config/foundation.json</code></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Results</h3>
+          <ul>
+            <li><code>geo/results/YYYY-MM-DD.json</code></li>
+            <li><code>geo/results/latest.json</code></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Cursor</h3>
+          <p>Im Agenten: „Citation-Check für Prompt-Set laufen lassen und <code>latest.json</code> aktualisieren.“</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>Daten: GitHub Flatfiles · kein Backend</span>
+    <a href="../index.html">huemmecke.art</a>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

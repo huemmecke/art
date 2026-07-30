@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "updated": "2026-07-30",
+  "items": [
+    {
+      "id": "title-meta",
+      "group": "On-Page",
+      "label": "Title & Meta-Description pro Seite",
+      "status": "done",
+      "note": "index.html und arbeiten.html mit Title + Description"
+    },
+    {
+      "id": "canonical",
+      "group": "On-Page",
+      "label": "Canonical-URL",
+      "status": "done",
+      "note": "Canonical auf Start und Arbeiten gesetzt"
+    },
+    {
+      "id": "open-graph",
+      "group": "On-Page",
+      "label": "Open Graph / Social Meta",
+      "status": "done",
+      "note": "og: + Twitter Cards mit Bildern"
+    },
+    {
+      "id": "robots",
+      "group": "Crawl",
+      "label": "robots.txt (inkl. AI-Crawler)",
+      "status": "done",
+      "note": "GPTBot, ClaudeBot, Google-Extended, PerplexityBot u. a.; /geo/ ausgeschlossen"
+    },
+    {
+      "id": "sitemap",
+      "group": "Crawl",
+      "label": "sitemap.xml",
+      "status": "done",
+      "note": "Start + Arbeiten; in robots.txt verlinkt"
+    },
+    {
+      "id": "llms-txt",
+      "group": "GEO",
+      "label": "llms.txt",
+      "status": "done",
+      "note": "Entity, Key Answers, Primary Pages"
+    },
+    {
+      "id": "json-ld-person",
+      "group": "Schema",
+      "label": "JSON-LD Person",
+      "status": "done",
+      "note": "Person + WebSite + FAQPage auf der Startseite"
+    },
+    {
+      "id": "json-ld-creative",
+      "group": "Schema",
+      "label": "JSON-LD CreativeWork / VisualArtwork",
+      "status": "done",
+      "note": "CollectionPage + VisualArtwork (Rote Serie, Kraftkarton)"
+    },
+    {
+      "id": "answer-first",
+      "group": "GEO",
+      "label": "Answer-first Abschnitte (Biografie / Praxis)",
+      "status": "done",
+      "note": "H2 als Fragen + Answer Capsules; FAQ-Schema ergänzt"
+    },
+    {
+      "id": "entity-consistency",
+      "group": "Entity",
+      "label": "Einheitliche Namens- & Orts-Schreibweise",
+      "status": "done",
+      "note": "Martin Hümmecke; Soest / Bad Sassendorf"
+    },
+    {
+      "id": "sameAs",
+      "group": "Entity",
+      "label": "sameAs-Profile (Instagram, TikTok, …)",
+      "status": "done",
+      "note": "sameAs in JSON-LD Person und llms.txt"
+    },
+    {
+      "id": "ssr-static",
+      "group": "Crawl",
+      "label": "Inhalt im HTML (static, crawlbarkeit)",
+      "status": "done",
+      "note": "Statische Site — Capsules im HTML"
+    }
+  ]
+}

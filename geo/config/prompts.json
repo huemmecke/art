@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "updated": "2026-07-30",
+  "engines": [
+    "ChatGPT",
+    "Perplexity",
+    "Google AI Overviews",
+    "Claude",
+    "Gemini"
+  ],
+  "prompts": [
+    {
+      "id": "who",
+      "intent": "entity",
+      "text": "Wer ist Martin Hümmecke?"
+    },
+    {
+      "id": "artist-soest",
+      "intent": "local",
+      "text": "Künstler Zeichnung Fineliner Soest oder Bad Sassendorf"
+    },
+    {
+      "id": "process",
+      "intent": "practice",
+      "text": "Wie entstehen die Zeichnungen von Martin Hümmecke?"
+    },
+    {
+      "id": "medium",
+      "intent": "medium",
+      "text": "Kunst auf Kraftkarton Fineliner intuitive Linie"
+    },
+    {
+      "id": "series",
+      "intent": "works",
+      "text": "won't quit tryin' oder Rote Serie Martin Hümmecke"
+    },
+    {
+      "id": "where-buy",
+      "intent": "commercial",
+      "text": "Wo kann man Kunst von Martin Hümmecke kaufen oder sehen?"
+    }
+  ]
+}
