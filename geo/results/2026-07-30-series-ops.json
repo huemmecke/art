@@ -1,0 +1,75 @@
+{
+  "date": "2026-07-30",
+  "checkedBy": "series-ops-pass",
+  "method": {
+    "summary": "Content-/Ops-Pass nach Citation-Baseline: Serien answer-first auf /arbeiten.html, Ops-Checkliste für Search Console & Webflow in der GEO-App.",
+    "enginesAutomated": ["Google Web"],
+    "enginesManualPending": ["ChatGPT", "Perplexity", "Google AI Overviews", "Claude", "Gemini"]
+  },
+  "summary": {
+    "overallStatus": "awaiting-index",
+    "overallLabel": "Serien gestärkt — Indexierung & Webflow als Nächstes",
+    "citationRate": 0.67,
+    "promptsChecked": 6,
+    "promptsCited": 4,
+    "siteCitedCount": 0,
+    "enginesChecked": ["Google Web"],
+    "notes": "Rote Serie, Kraftkarton und won't quit tryin' sind jetzt answer-first mit FAQ/Schema auf /arbeiten.html. llms.txt und Sitemap aktualisiert. Offen: Google Search Console (muss am Google-Konto passieren) und 301/Unpublish der alten Webflow-Site."
+  },
+  "foundationScore": {
+    "done": 12,
+    "partial": 0,
+    "open": 0,
+    "total": 12
+  },
+  "citations": [
+    {
+      "promptId": "who",
+      "engine": "Google Web",
+      "cited": true,
+      "siteCited": false,
+      "note": "Entity über LinkedIn, Xing, Saatchi Art, Webflow, GA.de. huemmecke.art noch nicht indexiert."
+    },
+    {
+      "promptId": "artist-soest",
+      "engine": "Google Web",
+      "cited": true,
+      "siteCited": false,
+      "note": "GA.de Cheap Art + Soest; Domain-Portfolio fehlt in Treffern."
+    },
+    {
+      "promptId": "process",
+      "engine": "Google Web",
+      "cited": true,
+      "siteCited": false,
+      "note": "Prozess-Text noch über Webflow auffindbar — Umleitung empfohlen."
+    },
+    {
+      "promptId": "medium",
+      "engine": "Google Web",
+      "cited": false,
+      "siteCited": false,
+      "note": "Ohne Namensbezug schwach; Name-Kollision Ingram Micro."
+    },
+    {
+      "promptId": "series",
+      "engine": "Google Web",
+      "cited": false,
+      "siteCited": false,
+      "note": "Baseline: Serien kaum auffindbar. Content auf /arbeiten.html jetzt nachgezogen — nach Indexierung erneut prüfen."
+    },
+    {
+      "promptId": "where-buy",
+      "engine": "Google Web",
+      "cited": true,
+      "siteCited": false,
+      "note": "Saatchi Art Profil klar sichtbar."
+    }
+  ],
+  "nextActions": [
+    "Google Search Console: Property verifizieren, sitemap.xml einreichen, / und /arbeiten.html indexieren lassen",
+    "Webflow: 301 von martin-huemmecke.webflow.io → https://www.huemmecke.art/ (oder Site unpublish)",
+    "Danach Citation-Check wiederholen (Google + manuell ChatGPT/Perplexity)",
+    "Ops-Status in geo/config/ops.json auf done setzen, sobald erledigt"
+  ]
+}
