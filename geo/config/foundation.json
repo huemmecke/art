@@ -77,7 +77,7 @@
       "group": "Entity",
       "label": "sameAs-Profile (Instagram, TikTok, …)",
       "status": "done",
-      "note": "sameAs in JSON-LD Person und llms.txt"
+      "note": "sameAs in JSON-LD/llms.txt: Instagram, TikTok, Saatchi Art"
     },
     {
       "id": "ssr-static",
