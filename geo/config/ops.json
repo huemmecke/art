@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "updated": "2026-07-30",
+  "items": [
+    {
+      "id": "gsc-property",
+      "group": "Search Console",
+      "label": "Google Search Console Property für huemmecke.art",
+      "status": "open",
+      "note": "Am iPad/Mac: search.google.com/search-console → Property hinzufügen (Domain oder URL-Präfix)"
+    },
+    {
+      "id": "gsc-sitemap",
+      "group": "Search Console",
+      "label": "sitemap.xml einreichen",
+      "status": "open",
+      "note": "Nach Verifizierung: Sitemaps → https://www.huemmecke.art/sitemap.xml"
+    },
+    {
+      "id": "gsc-inspect",
+      "group": "Search Console",
+      "label": "URL-Prüfung: Startseite + Arbeiten indexieren lassen",
+      "status": "open",
+      "note": "URL-Prüfung für / und /arbeiten.html → Indexierung beantragen"
+    },
+    {
+      "id": "webflow-redirect",
+      "group": "Webflow ablösen",
+      "label": "martin-huemmecke.webflow.io → huemmecke.art umleiten",
+      "status": "open",
+      "note": "In Webflow: Project Settings → Publishing → 301 Redirects, oder Site unpublish + Canonical nur auf huemmecke.art"
+    },
+    {
+      "id": "webflow-unpublish",
+      "group": "Webflow ablösen",
+      "label": "Alte Webflow-Inhalte nicht mehr als Konkurrenz lassen",
+      "status": "open",
+      "note": "Biografie/Essay dort konkurrieren noch um dieselben Passagen"
+    },
+    {
+      "id": "series-content",
+      "group": "Content",
+      "label": "Serien answer-first auf /arbeiten.html",
+      "status": "done",
+      "note": "Rote Serie, Kraftkarton, won't quit tryin' + FAQ/Schema gesetzt"
+    },
+    {
+      "id": "manual-llm-check",
+      "group": "Citation",
+      "label": "Manuelle Checks: ChatGPT, Perplexity, AI Overviews",
+      "status": "open",
+      "note": "6 Prompts aus geo/config/prompts.json am iPad prüfen, Results nachtragen"
+    }
+  ]
+}

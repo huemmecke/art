@@ -305,11 +305,10 @@ code {
   font-weight: 500;
 }
 
-.empty-state {
-  padding: 1rem;
-  border: 1px dashed var(--hairline);
+.ops-summary {
+  margin: 0 0 0.85rem;
   color: var(--ink-soft);
-  line-height: 1.5;
+  font-size: 0.92rem;
 }
 
 .citation-table {

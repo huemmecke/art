@@ -88,6 +88,39 @@ function renderFoundation(foundation) {
     .join("");
 }
 
+function renderOps(ops) {
+  const root = document.getElementById("ops-groups");
+  if (!root) return;
+  const groups = {};
+  for (const item of ops.items || []) {
+    (groups[item.group] ||= []).push(item);
+  }
+  const open = (ops.items || []).filter((i) => i.status === "open").length;
+  const done = (ops.items || []).filter((i) => i.status === "done").length;
+  root.innerHTML =
+    `<p class="ops-summary">${done} erledigt · ${open} offen</p>` +
+    Object.entries(groups)
+      .map(
+        ([group, items]) => `
+      <div class="group">
+        <h3>${group}</h3>
+        <ul class="check-list">
+          ${items
+            .map(
+              (item) => `
+            <li class="check-item">
+              ${badge(item.status)}
+              <strong>${item.label}</strong>
+              <span class="note">${item.note || ""}</span>
+            </li>`
+            )
+            .join("")}
+        </ul>
+      </div>`
+      )
+      .join("");
+}
+
 function citationMap(latest) {
   const map = {};
   for (const row of latest.citations || []) {
@@ -203,14 +236,16 @@ function renderEntity(entity) {
 
 async function main() {
   try {
-    const [entity, prompts, foundation, latest] = await Promise.all([
+    const [entity, prompts, foundation, ops, latest] = await Promise.all([
       loadJSON("config/entity.json"),
       loadJSON("config/prompts.json"),
       loadJSON("config/foundation.json"),
+      loadJSON("config/ops.json"),
       loadJSON("results/latest.json"),
     ]);
     renderHero(latest, foundation);
     renderFoundation(foundation);
+    renderOps(ops);
     renderPrompts(prompts, latest);
     renderCitations(latest, prompts);
     renderActions(latest);

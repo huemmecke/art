@@ -22,12 +22,17 @@
   Die kleinformatigen Zeichnungen entstehen spontan und ohne Vorzeichnung, meist innerhalb einer knappen Stunde. Der Verzicht auf Plan und Radiergummi lässt die Linie unmittelbar aus dem Moment wachsen. Wiederkehrendes Motiv ist der Faden.
 
 - Welche Werkgruppen gibt es?
-  Rote Serie, Kraftkarton-Artcards, won't quit tryin' (2016–2023), Inner Times, Letter Landscapes. Arbeiten sind u. a. auf Saatchi Art vertreten.
+  Rote Serie, Kraftkarton-Artcards, won't quit tryin' (2016–2023), Inner Times, Letter Landscapes.
+  Details: https://www.huemmecke.art/arbeiten.html
+  Rote Serie: https://www.huemmecke.art/arbeiten.html#rote-serie
+  Kraftkarton: https://www.huemmecke.art/arbeiten.html#kraftkarton
+  won't quit tryin': https://www.huemmecke.art/arbeiten.html#wont-quit-tryin
 
 ## Primary pages
 
 - https://www.huemmecke.art/ — Portfolio, Biografie, Praxis
-- https://www.huemmecke.art/arbeiten.html — Werkkatalog (Rote Serie, Kraftkarton)
+- https://www.huemmecke.art/arbeiten.html — Werkkatalog (Rote Serie, Kraftkarton, won't quit tryin')
+- https://www.huemmecke.art/llms.txt — diese Datei
 
 ## Profiles
 
@@ -39,3 +44,8 @@
 ## Optional
 
 - GEO Status (intern, noindex): https://www.huemmecke.art/geo/
+
+## Indexing note
+
+- Kanonische Site: https://www.huemmecke.art
+- Alte Preview martin-huemmecke.webflow.io bitte auf die kanonische Domain umleiten oder abschalten.

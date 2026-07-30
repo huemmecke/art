@@ -373,15 +373,32 @@ h2 {
   max-width: 16ch;
   margin: 0;
 }
+.page-intro .intro-capsule {
+  margin: 1.25rem 0 0;
+  max-width: 54ch;
+  color: var(--ink-soft);
+  font-size: 1.02rem;
+}
+.series-capsule {
+  margin: -0.5rem 0 1.75rem;
+  max-width: 62ch;
+  color: var(--ink-soft);
+}
 .gallery-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 36px;
   border-bottom: 1px solid var(--hairline);
   padding-bottom: 18px;
 }
-.gallery-head h2 { margin: 0; }
+.gallery-head h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+  max-width: 28ch;
+  line-height: 1.25;
+}
 .gallery-count {
   font-size: 11px;
   color: var(--ink-soft);
