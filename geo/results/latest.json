@@ -1,27 +1,26 @@
 {
   "date": "2026-07-30",
-  "checkedBy": "baseline-seed",
+  "checkedBy": "foundation-pass",
   "summary": {
-    "overallStatus": "setup",
-    "overallLabel": "Basis wird aufgebaut",
+    "overallStatus": "ready-for-citations",
+    "overallLabel": "Foundation steht — Citation-Checks als Nächstes",
     "citationRate": null,
     "promptsChecked": 0,
     "promptsCited": 0,
     "enginesChecked": [],
-    "notes": "Erster Baseline-Stand. Noch keine manuellen Citation-Checks durchgeführt. Foundation-Checklist zeigt die offenen SEO/GEO-Bausteine."
+    "notes": "Technische SEO/GEO-Basis ist umgesetzt: Meta, Canonical, Open Graph, robots.txt, sitemap.xml, llms.txt, JSON-LD (Person, FAQ, VisualArtwork) und Answer-first Abschnitte. Noch keine manuellen Citation-Checks gegen AI-Engines."
   },
   "foundationScore": {
-    "done": 2,
-    "partial": 3,
-    "open": 7,
+    "done": 12,
+    "partial": 0,
+    "open": 0,
     "total": 12
   },
   "citations": [],
   "nextActions": [
-    "Meta-Description, Canonical und Open Graph setzen",
-    "robots.txt, sitemap.xml und llms.txt anlegen",
-    "JSON-LD Person + CreativeWork ergänzen",
-    "Über-mich / Praxis answer-first umbauen",
-    "Prompt-Set einmal manuell gegen ChatGPT, Perplexity und AI Overviews prüfen und Results aktualisieren"
+    "Prompt-Set einmal manuell gegen ChatGPT, Perplexity und Google AI Overviews prüfen",
+    "Ergebnisse in geo/results/YYYY-MM-DD.json + latest.json eintragen",
+    "Saatchi-Art- oder Wikipedia-/Medien-Mentions prüfen und sameAs erweitern, falls URLs stabil sind",
+    "Search Console: sitemap.xml einreichen (nach Deploy)"
   ]
 }
