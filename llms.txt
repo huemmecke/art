@@ -43,7 +43,7 @@
 
 ## Optional
 
-- GEO Status (intern, noindex): https://www.huemmecke.art/geo/
+- (intern)
 
 ## Indexing note
 
