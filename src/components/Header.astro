@@ -1,0 +1,20 @@
+---
+interface NavItem {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  logoHref: string;
+  navItems: NavItem[];
+}
+
+const { logoHref, navItems } = Astro.props;
+---
+
+<header class="site-header">
+  <a class="logo" href={logoHref}>Martin Hümmecke</a>
+  <nav class="nav" aria-label="Hauptnavigation">
+    {navItems.map((item) => <a href={item.href}>{item.label}</a>)}
+  </nav>
+</header>

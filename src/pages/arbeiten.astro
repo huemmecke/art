@@ -1,0 +1,231 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { ROTE_SERIE, KRAFTKARTON } from '../data/artworks';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://www.huemmecke.art/arbeiten#page',
+      url: 'https://www.huemmecke.art/arbeiten',
+      name: 'Martin Hümmecke — Arbeiten',
+      description: "Werkkatalog: Rote Serie, Kraftkarton-Artcards, won't quit tryin' (2016–2023), Inner Times und Letter Landscapes.",
+      inLanguage: 'de',
+      isPartOf: { '@id': 'https://www.huemmecke.art/#website' },
+      about: { '@id': 'https://www.huemmecke.art/#person' },
+      creator: { '@id': 'https://www.huemmecke.art/#person' },
+    },
+    {
+      '@type': 'VisualArtwork',
+      '@id': 'https://www.huemmecke.art/arbeiten#rote-serie',
+      name: 'Rote Serie',
+      alternateName: 'Red Series',
+      artform: 'Drawing',
+      artMedium: 'Fineliner, Tusche, Print',
+      creator: { '@id': 'https://www.huemmecke.art/#person' },
+      url: 'https://www.huemmecke.art/arbeiten#rote-serie',
+      description: 'Die Rote Serie von Martin Hümmecke umfasst expressive Zeichnungen und Prints — darunter Red Warrior und Fall — mit starkem Rotanteil und spontaner Linienführung.',
+    },
+    {
+      '@type': 'VisualArtwork',
+      '@id': 'https://www.huemmecke.art/arbeiten#kraftkarton',
+      name: 'Kraftkarton Artcards',
+      artform: 'Drawing',
+      artMedium: 'Fineliner, Tusche, Kraftkarton',
+      creator: { '@id': 'https://www.huemmecke.art/#person' },
+      url: 'https://www.huemmecke.art/arbeiten#kraftkarton',
+      description: 'Kleinformatige Artcards auf Kraftkarton — spontan gezeichnet ohne Vorzeichnung, u. a. Harbour, Mind of Wool, Spiralmind.',
+    },
+    {
+      '@type': 'VisualArtwork',
+      '@id': "https://www.huemmecke.art/arbeiten#wont-quit-tryin",
+      name: "won't quit tryin'",
+      artform: 'Drawing',
+      artMedium: 'Fineliner, Tusche, Kraftkarton',
+      creator: { '@id': 'https://www.huemmecke.art/#person' },
+      url: "https://www.huemmecke.art/arbeiten#wont-quit-tryin",
+      dateCreated: '2016',
+      description: "Langzeitprojekt won't quit tryin' (2016–2023) von Martin Hümmecke: fortlaufende, intuitive Zeichnungen als Praxis der Beharrlichkeit.",
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://www.huemmecke.art/arbeiten#faq',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'Welche Werkgruppen hat Martin Hümmecke?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Zu den Werkgruppen von Martin Hümmecke zählen die Rote Serie, die Kraftkarton-Artcards, das Langzeitprojekt won't quit tryin' (2016–2023) sowie Inner Times und Letter Landscapes. Arbeiten sind unter anderem auf Saatchi Art und unter huemmecke.art/arbeiten zu sehen.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Was ist die Rote Serie von Martin Hümmecke?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Die Rote Serie ist eine Werkgruppe expressiver Zeichnungen und Prints von Martin Hümmecke mit dominantem Rot. Dazu gehören unter anderem Red Warrior und Fall — spontan gezeichnet, ohne Vorzeichnung.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: "Was ist won't quit tryin' von Martin Hümmecke?",
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "won't quit tryin' war ein Langzeitprojekt von Martin Hümmecke (2016–2023): fortlaufende, intuitive Zeichnungen als tägliche bzw. wiederkehrende Praxis — Beharrlichkeit in der Linie.",
+          },
+        },
+      ],
+    },
+    {
+      '@type': 'Person',
+      '@id': 'https://www.huemmecke.art/#person',
+      name: 'Martin Hümmecke',
+      url: 'https://www.huemmecke.art/',
+      sameAs: [
+        'https://www.instagram.com/martin.huemmecke/?hl=de',
+        'https://www.tiktok.com/@martin.huemmecke',
+        'https://www.saatchiart.com/huemmecke',
+      ],
+    },
+  ],
+};
+
+const navItems = [
+  { href: '/', label: 'Startseite' },
+  { href: '#rote-serie', label: 'Rote Serie' },
+  { href: '#kraftkarton', label: 'Kraftkarton' },
+  { href: '#wont-quit-tryin', label: "won't quit tryin'" },
+];
+
+const allImages = [...ROTE_SERIE, ...KRAFTKARTON];
+---
+
+<Layout
+  title="Martin Hümmecke — Arbeiten · Rote Serie, Kraftkarton &amp; won't quit tryin'"
+  description="Werkkatalog von Martin Hümmecke: Rote Serie, Kraftkarton-Artcards und won't quit tryin' (2016–2023). Spontane Fineliner-Zeichnungen ohne Vorzeichnung — Soest/Bad Sassendorf."
+  canonicalPath="/arbeiten"
+  ogImage="https://www.huemmecke.art/uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol01_harbour01_framed.png"
+  jsonLd={jsonLd}
+>
+  <Header logoHref="/" navItems={navItems} />
+
+  <section class="page-intro">
+    <p class="eyebrow"><span>Katalog</span><span class="rail-tick"></span></p>
+    <h1>Zeichnungen</h1>
+    <p class="answer-capsule intro-capsule">Der Werkkatalog von Martin Hümmecke umfasst die Rote Serie, Kraftkarton-Artcards und das Langzeitprojekt won't quit tryin' (2016–2023) sowie weitere Gruppen wie Inner Times und Letter Landscapes. Alle Arbeiten entstehen spontan mit Fineliner und Tusche — ohne Vorzeichnung.</p>
+  </section>
+
+  <section id="rote-serie" class="section reveal" style="padding-top:6vh">
+    <div class="gallery-head">
+      <h2>Was ist die Rote Serie von Martin Hümmecke?</h2>
+      <span class="gallery-count">{ROTE_SERIE.length} Arbeiten</span>
+    </div>
+    <p class="answer-capsule series-capsule">Die Rote Serie ist eine Werkgruppe expressiver Zeichnungen und Prints von Martin Hümmecke mit dominantem Rot. Dazu gehören unter anderem Red Warrior und Fall — spontan gezeichnet, ohne Vorzeichnung, oft als gerahmte Prints gezeigt.</p>
+    <div class="masonry" id="rote-grid">
+      {ROTE_SERIE.map((pic, i) => (
+        <figure class="is-framed" tabindex="0" role="button" aria-label={`${pic.alt} vergrößern`} data-idx={i}>
+          <img src={pic.src} alt={pic.alt} />
+        </figure>
+      ))}
+    </div>
+  </section>
+
+  <section id="kraftkarton" class="section reveal" style="padding:10vh 5vw 6vh">
+    <div class="gallery-head">
+      <h2>Was sind die Kraftkarton-Artcards?</h2>
+      <span class="gallery-count">{KRAFTKARTON.length} Arbeiten</span>
+    </div>
+    <p class="answer-capsule series-capsule">Kraftkarton-Artcards sind kleinformatige Zeichnungen von Martin Hümmecke auf schwerem Kraftkarton. Fineliner und Tusche, spontan und ohne Radiergummi — Motive wie Harbour, Mind of Wool, Spiralmind oder Smoking Wool.</p>
+    <div class="carousel-wrap">
+      <div class="kk-track" id="kk-track">
+        {KRAFTKARTON.map((pic, i) => (
+          <figure class={`kk-slide${pic.framed ? ' is-framed' : ''}`} tabindex="0" role="button" aria-label={`${pic.alt} vergrößern`} data-idx={i + ROTE_SERIE.length}>
+            <img src={pic.src} alt={pic.alt} />
+          </figure>
+        ))}
+      </div>
+      <button class="carousel-btn prev" id="kk-prev" aria-label="Zurück">‹</button>
+      <button class="carousel-btn next" id="kk-next" aria-label="Weiter">›</button>
+    </div>
+  </section>
+
+  <section id="wont-quit-tryin" class="section section-border reveal" style="padding:8vh 5vw 12vh">
+    <div class="catalog-grid">
+      <div class="reveal-rail rail"><span>03</span><span class="rail-tick"></span><span>Werkgruppen</span></div>
+      <div class="reveal-content" style="max-width:66ch">
+        <h2>Was ist won't quit tryin' von Martin Hümmecke?</h2>
+        <div class="body-copy">
+          <p class="answer-capsule">won't quit tryin' war ein Langzeitprojekt von Martin Hümmecke (2016–2023): fortlaufende, intuitive Zeichnungen als Praxis der Beharrlichkeit — Linie für Linie, ohne Plan, über Jahre hinweg.</p>
+          <p>Neben won't quit tryin' entstanden weitere Werkgruppen: <strong>Inner Times</strong> (innere Zeit- und Raumbilder) und <strong>Letter Landscapes</strong> (zeichnerische Landschaften mit Schriftspuren). Verkauf und Einblick sind über <a href="https://www.saatchiart.com/huemmecke" target="_blank" rel="noopener">Saatchi Art</a>, Instagram und auf Anfrage per E-Mail möglich.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+
+  <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Bildansicht, Escape zum Schließen">
+    <img id="lightbox-img" alt="" />
+    <button class="lightbox-close" id="lightbox-close" aria-label="Schließen">×</button>
+  </div>
+
+  <script define:vars={{ allImages }}>
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    function openLightbox(idx) {
+      lightboxImg.src = allImages[idx].src;
+      lightboxImg.alt = allImages[idx].alt;
+      lightbox.hidden = false;
+    }
+    function closeLightbox() {
+      lightbox.hidden = true;
+      lightboxImg.src = '';
+    }
+    document.querySelectorAll('[data-idx]').forEach((el) => {
+      el.addEventListener('click', () => openLightbox(Number(el.dataset.idx)));
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openLightbox(Number(el.dataset.idx));
+        }
+      });
+    });
+    lightbox.addEventListener('click', closeLightbox);
+    document.getElementById('lightbox-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLightbox();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
+    });
+
+    const track = document.getElementById('kk-track');
+    document.getElementById('kk-prev').addEventListener('click', () => {
+      track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' });
+    });
+    document.getElementById('kk-next').addEventListener('click', () => {
+      track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
+    });
+
+    const REVEAL_IDS = ['rote-serie', 'kraftkarton', 'wont-quit-tryin'];
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
+    REVEAL_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('is-visible');
+      else observer.observe(el);
+    });
+    setTimeout(() => REVEAL_IDS.forEach((id) => document.getElementById(id)?.classList.add('is-visible')), 3000);
+  </script>
+</Layout>

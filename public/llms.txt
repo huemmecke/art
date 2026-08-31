@@ -23,15 +23,15 @@
 
 - Welche Werkgruppen gibt es?
   Rote Serie, Kraftkarton-Artcards, won't quit tryin' (2016–2023), Inner Times, Letter Landscapes.
-  Details: https://www.huemmecke.art/arbeiten.html
-  Rote Serie: https://www.huemmecke.art/arbeiten.html#rote-serie
-  Kraftkarton: https://www.huemmecke.art/arbeiten.html#kraftkarton
-  won't quit tryin': https://www.huemmecke.art/arbeiten.html#wont-quit-tryin
+  Details: https://www.huemmecke.art/arbeiten
+  Rote Serie: https://www.huemmecke.art/arbeiten#rote-serie
+  Kraftkarton: https://www.huemmecke.art/arbeiten#kraftkarton
+  won't quit tryin': https://www.huemmecke.art/arbeiten#wont-quit-tryin
 
 ## Primary pages
 
 - https://www.huemmecke.art/ — Portfolio, Biografie, Praxis
-- https://www.huemmecke.art/arbeiten.html — Werkkatalog (Rote Serie, Kraftkarton, won't quit tryin')
+- https://www.huemmecke.art/arbeiten — Werkkatalog (Rote Serie, Kraftkarton, won't quit tryin')
 - https://www.huemmecke.art/llms.txt — diese Datei
 
 ## Profiles

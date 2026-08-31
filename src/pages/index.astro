@@ -1,110 +1,92 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Martin Hümmecke — Zeichnungen · Fineliner auf Kraftkarton</title>
-  <meta name="description" content="Martin Hümmecke ist Künstler aus Soest/Bad Sassendorf. Spontane Zeichnungen mit Fineliner und Tusche auf Kraftkarton — ohne Vorzeichnung. Portfolio, Werkgruppen und Zeitraffervideos.">
-  <link rel="canonical" href="https://www.huemmecke.art/">
-  <meta name="author" content="Martin Hümmecke">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="de_DE">
-  <meta property="og:site_name" content="Martin Hümmecke">
-  <meta property="og:url" content="https://www.huemmecke.art/">
-  <meta property="og:title" content="Martin Hümmecke — Zeichnungen · Fineliner auf Kraftkarton">
-  <meta property="og:description" content="Spontane Zeichnungen ohne Vorzeichnung: Fineliner und Tusche auf Kraftkarton. Portfolio des Künstlers Martin Hümmecke aus Soest/Bad Sassendorf.">
-  <meta property="og:image" content="https://www.huemmecke.art/uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol02_mindofwool_framed.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Martin Hümmecke — Zeichnungen">
-  <meta name="twitter:description" content="Spontane Fineliner-Zeichnungen auf Kraftkarton. Künstler aus Soest/Bad Sassendorf.">
-  <meta name="twitter:image" content="https://www.huemmecke.art/uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol02_mindofwool_framed.png">
-  <link rel="stylesheet" href="styles.css">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Person",
-        "@id": "https://www.huemmecke.art/#person",
-        "name": "Martin Hümmecke",
-        "url": "https://www.huemmecke.art/",
-        "image": "https://www.huemmecke.art/uploads/huemmecke-art/inbox/Mhuemmecke_portrait.jpg",
-        "jobTitle": "Künstler und Grafikdesigner",
-        "description": "Deutscher Künstler aus Soest/Bad Sassendorf. Zeichnet spontan mit Fineliner und Tusche auf Kraftkarton — ohne Vorzeichnung — und dokumentiert den Prozess als Zeitraffervideo auf Instagram und TikTok.",
-        "email": "mailto:mhuemmecke@gmx.de",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Hellweg 71",
-          "addressLocality": "Bad Sassendorf",
-          "postalCode": "59505",
-          "addressCountry": "DE"
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { FRAMED } from '../data/artworks';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': 'https://www.huemmecke.art/#person',
+      name: 'Martin Hümmecke',
+      url: 'https://www.huemmecke.art/',
+      image: 'https://www.huemmecke.art/uploads/huemmecke-art/inbox/Mhuemmecke_portrait.jpg',
+      jobTitle: 'Künstler und Grafikdesigner',
+      description: 'Deutscher Künstler aus Soest/Bad Sassendorf. Zeichnet spontan mit Fineliner und Tusche auf Kraftkarton — ohne Vorzeichnung — und dokumentiert den Prozess als Zeitraffervideo auf Instagram und TikTok.',
+      email: 'mailto:mhuemmecke@gmx.de',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Hellweg 71',
+        addressLocality: 'Bad Sassendorf',
+        postalCode: '59505',
+        addressCountry: 'DE',
+      },
+      sameAs: [
+        'https://www.instagram.com/martin.huemmecke/?hl=de',
+        'https://www.tiktok.com/@martin.huemmecke',
+        'https://www.saatchiart.com/huemmecke',
+      ],
+      knowsAbout: ['Zeichnung', 'Fineliner', 'Kraftkarton', 'intuitive Linie', 'Surrealismus', 'Grafikdesign'],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://www.huemmecke.art/#website',
+      url: 'https://www.huemmecke.art/',
+      name: 'Martin Hümmecke',
+      description: 'Portfolio: spontane Zeichnungen mit Fineliner und Tusche auf Kraftkarton.',
+      inLanguage: 'de',
+      publisher: { '@id': 'https://www.huemmecke.art/#person' },
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://www.huemmecke.art/#faq',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'Wer ist Martin Hümmecke?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Martin Hümmecke ist ein deutscher Künstler aus Soest/Bad Sassendorf. Er zeichnet spontan ohne Vorzeichnung — Fineliner und Tusche auf Kraftkarton — und dokumentiert den Prozess als Zeitraffervideo auf Instagram und TikTok. Seit dem Diplom Visuelle Kommunikation in Münster (1993) arbeitet er als Grafikdesigner und Art Director; die freie Kunst steht wieder im Zentrum seines Werks.',
+          },
         },
-        "sameAs": [
-          "https://www.instagram.com/martin.huemmecke/?hl=de",
-          "https://www.tiktok.com/@martin.huemmecke",
-          "https://www.saatchiart.com/huemmecke"
-        ],
-        "knowsAbout": [
-          "Zeichnung",
-          "Fineliner",
-          "Kraftkarton",
-          "intuitive Linie",
-          "Surrealismus",
-          "Grafikdesign"
-        ]
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://www.huemmecke.art/#website",
-        "url": "https://www.huemmecke.art/",
-        "name": "Martin Hümmecke",
-        "description": "Portfolio: spontane Zeichnungen mit Fineliner und Tusche auf Kraftkarton.",
-        "inLanguage": "de",
-        "publisher": { "@id": "https://www.huemmecke.art/#person" }
-      },
-      {
-        "@type": "FAQPage",
-        "@id": "https://www.huemmecke.art/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Wer ist Martin Hümmecke?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Martin Hümmecke ist ein deutscher Künstler aus Soest/Bad Sassendorf. Er zeichnet spontan ohne Vorzeichnung — Fineliner und Tusche auf Kraftkarton — und dokumentiert den Prozess als Zeitraffervideo auf Instagram und TikTok. Seit dem Diplom Visuelle Kommunikation in Münster (1993) arbeitet er als Grafikdesigner und Art Director; die freie Kunst steht wieder im Zentrum seines Werks."
-            }
+        {
+          '@type': 'Question',
+          name: 'Wie entstehen die Zeichnungen von Martin Hümmecke?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Die kleinformatigen Zeichnungen entstehen spontan und ohne Vorzeichnung, meist innerhalb einer knappen Stunde. Fineliner und Tusche auf Kraftkarton; der Verzicht auf Plan und Radiergummi lässt die Linie unmittelbar aus dem Moment wachsen. Wiederkehrendes Motiv ist der Faden.',
           },
-          {
-            "@type": "Question",
-            "name": "Wie entstehen die Zeichnungen von Martin Hümmecke?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Die kleinformatigen Zeichnungen entstehen spontan und ohne Vorzeichnung, meist innerhalb einer knappen Stunde. Fineliner und Tusche auf Kraftkarton; der Verzicht auf Plan und Radiergummi lässt die Linie unmittelbar aus dem Moment wachsen. Wiederkehrendes Motiv ist der Faden."
-            }
+        },
+        {
+          '@type': 'Question',
+          name: 'Welche Werkgruppen hat Martin Hümmecke?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Zu den Werkgruppen zählen die Rote Serie, Kraftkarton-Artcards, das Projekt won't quit tryin' (2016–2023) sowie Inner Times und Letter Landscapes. Überblick: https://www.huemmecke.art/arbeiten — Arbeiten sind unter anderem auf Saatchi Art vertreten.",
           },
-          {
-            "@type": "Question",
-            "name": "Welche Werkgruppen hat Martin Hümmecke?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Zu den Werkgruppen zählen die Rote Serie, Kraftkarton-Artcards, das Projekt won't quit tryin' (2016–2023) sowie Inner Times und Letter Landscapes. Überblick: https://www.huemmecke.art/arbeiten.html — Arbeiten sind unter anderem auf Saatchi Art vertreten."
-            }
-          }
-        ]
-      }
-    ]
-  }
-  </script>
-</head>
-<body>
-  <header class="site-header">
-    <a class="logo" href="#top">Martin Hümmecke</a>
-    <nav class="nav" aria-label="Hauptnavigation">
-      <a href="arbeiten.html">Arbeiten</a>
-      <a href="#ueber-mich">Über mich</a>
-      <a href="#einblick">Einblick</a>
-    </nav>
-  </header>
+        },
+      ],
+    },
+  ],
+};
+
+const navItems = [
+  { href: '/arbeiten', label: 'Arbeiten' },
+  { href: '#ueber-mich', label: 'Über mich' },
+  { href: '#einblick', label: 'Einblick' },
+];
+---
+
+<Layout
+  title="Martin Hümmecke — Zeichnungen · Fineliner auf Kraftkarton"
+  description="Martin Hümmecke ist Künstler aus Soest/Bad Sassendorf. Spontane Zeichnungen mit Fineliner und Tusche auf Kraftkarton — ohne Vorzeichnung. Portfolio, Werkgruppen und Zeitraffervideos."
+  canonicalPath="/"
+  ogImage="https://www.huemmecke.art/uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol02_mindofwool_framed.png"
+  jsonLd={jsonLd}
+>
+  <Header logoHref="#top" navItems={navItems} />
 
   <section id="top" class="hero">
     <div class="catalog-grid">
@@ -117,7 +99,11 @@
         </div>
         <div class="hero-slider">
           <div class="slider-frame">
-            <div class="slider-stage" id="hero-stage"></div>
+            <div class="slider-stage" id="hero-stage">
+              {FRAMED.map((pic, i) => (
+                <img src={pic.src} alt={pic.alt} class={i === 0 ? 'is-active' : ''} />
+              ))}
+            </div>
           </div>
           <div class="slider-meta">
             <p id="hero-caption"></p>
@@ -133,7 +119,7 @@
       <div class="reveal-rail rail"><span>02</span><span class="rail-tick"></span><span>Über mich</span></div>
       <div class="reveal-content media-row">
         <div class="portrait-slot">
-          <img src="uploads/huemmecke-art/inbox/Mhuemmecke_portrait.jpg" alt="Portrait Martin Hümmecke im Atelier">
+          <img src="/uploads/huemmecke-art/inbox/Mhuemmecke_portrait.jpg" alt="Portrait Martin Hümmecke im Atelier" />
         </div>
         <div class="media-copy">
           <h2>Wer ist Martin Hümmecke?</h2>
@@ -203,11 +189,11 @@
       <div class="reveal-content" style="max-width:640px">
         <h2>Impressum</h2>
         <div class="body-copy">
-          <p><strong>Angaben gemäß § 5 DDG:</strong><br>Martin Hümmecke<br>Hellweg 71<br>59505 Bad Sassendorf<br>Deutschland</p>
+          <p><strong>Angaben gemäß § 5 DDG:</strong><br />Martin Hümmecke<br />Hellweg 71<br />59505 Bad Sassendorf<br />Deutschland</p>
           <p>E-Mail: <a href="mailto:mhuemmecke@gmx.de">mhuemmecke@gmx.de</a></p>
-          <p><strong>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</strong><br>Martin Hümmecke<br>Hellweg 71<br>59505 Bad Sassendorf</p>
-          <p><strong>Tätigkeit:</strong><br>Freischaffender Künstler – Zeichnungen und analoge Kunstwerke. Verkauf vor Ort auf Anfrage.</p>
-          <p><strong>Umsatzsteuer:</strong><br>Gemäß § 19 UStG wird keine Umsatzsteuer erhoben und auch nicht ausgewiesen.</p>
+          <p><strong>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV:</strong><br />Martin Hümmecke<br />Hellweg 71<br />59505 Bad Sassendorf</p>
+          <p><strong>Tätigkeit:</strong><br />Freischaffender Künstler – Zeichnungen und analoge Kunstwerke. Verkauf vor Ort auf Anfrage.</p>
+          <p><strong>Umsatzsteuer:</strong><br />Gemäß § 19 UStG wird keine Umsatzsteuer erhoben und auch nicht ausgewiesen.</p>
         </div>
       </div>
     </div>
@@ -223,7 +209,7 @@
 
           <h3>1. Verantwortlicher</h3>
           <p>Verantwortlich für die Datenverarbeitung auf dieser Website (<a href="https://www.huemmecke.art">www.huemmecke.art</a>) ist:</p>
-          <p>Martin Hümmecke<br>Hellweg 71<br>59505 Bad Sassendorf<br>Deutschland<br>E-Mail: <a href="mailto:mhuemmecke@gmx.de">mhuemmecke@gmx.de</a></p>
+          <p>Martin Hümmecke<br />Hellweg 71<br />59505 Bad Sassendorf<br />Deutschland<br />E-Mail: <a href="mailto:mhuemmecke@gmx.de">mhuemmecke@gmx.de</a></p>
 
           <h3>2. Übersicht</h3>
           <p>Diese Website ist ein statisches Portfolio. Es gibt kein Nutzerkonto, kein Kontaktformular, keinen Newsletter und keinen Onlineshop. Kontakt ist nur über den E-Mail-Link möglich. Es werden keine eigenen Cookies gesetzt und kein eigenes Tracking oder Analyse-Tool (z.&nbsp;B. Google Analytics) eingesetzt. Schriften werden lokal ausgeliefert.</p>
@@ -274,62 +260,26 @@
     </div>
   </section>
 
-  <footer class="site-footer">
-    <div class="footer-links">
-      <a href="https://www.instagram.com/martin.huemmecke/?hl=de" target="_blank" rel="noopener">Instagram</a>
-      <a href="https://www.tiktok.com/@martin.huemmecke" target="_blank" rel="noopener">TikTok</a>
-      <a href="mailto:mhuemmecke@gmx.de?subject=Art">E-Mail</a>
-      <a href="#impressum">Impressum</a>
-      <a href="#datenschutz">Datenschutz</a>
-    </div>
-    <span class="copy">© 2026 Martin Hümmecke</span>
-  </footer>
+  <Footer />
 
-  <script>
-    const FRAMED = [
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol01_harbour01_framed.png', alt: 'Gerahmte Zeichnung – Harbour 01', caption: 'Harbour 01 — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol01_harbour02_framed.png', alt: 'Gerahmte Zeichnung – Harbour 02', caption: 'Harbour 02 — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol01_shipyard01_framed.png', alt: 'Gerahmte Zeichnung – Shipyard 01', caption: 'Shipyard 01 — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol02_mindofwool_framed.png', alt: 'Gerahmte Zeichnung – Mind of Wool', caption: 'Mind of Wool — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol02_woolhead01_framed.png', alt: 'Gerahmte Zeichnung – Woolhead 01', caption: 'Woolhead 01 — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol02_woolpack02_framed.png', alt: 'Gerahmte Zeichnung – Woolpack 02', caption: 'Woolpack 02 — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol02_woolwalk01_framed.png', alt: 'Gerahmte Zeichnung – Woolwalk 01', caption: 'Woolwalk 01 — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol03_arrowmind_framed.png', alt: 'Gerahmte Zeichnung – Arrowmind', caption: 'Arrowmind — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol03_butterflies_framed.png', alt: 'Gerahmte Zeichnung – Butterflies', caption: 'Butterflies — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol03_confusion_framed.png', alt: 'Gerahmte Zeichnung – Confusion', caption: 'Confusion — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol03_elegance_framed.png', alt: 'Gerahmte Zeichnung – Elegance', caption: 'Elegance — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol03_pipemiracle_framed.png', alt: 'Gerahmte Zeichnung – Pipemiracle', caption: 'Pipemiracle — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol03_silentfish_framed.png', alt: 'Gerahmte Zeichnung – Silentfish', caption: 'Silentfish — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol03_spiralmind_framed.png', alt: 'Gerahmte Zeichnung – Spiralmind', caption: 'Spiralmind — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_artcards-scan_2024_Vol07_smoking-wool_framed.png', alt: 'Gerahmte Zeichnung – Smoking Wool', caption: 'Smoking Wool — Kraftkarton, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_print_fall01_framed.png', alt: 'Gerahmte Zeichnung – Fall 01', caption: 'Fall 01 — Print, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_print_red-warrior01_framed.png', alt: 'Gerahmte Zeichnung – Red Warrior 01', caption: 'Red Warrior 01 — Print, gerahmt' },
-      { src: 'uploads/huemmecke-art/inbox/framed/MH_print_red-warrior03_framed.png', alt: 'Gerahmte Zeichnung – Red Warrior 03', caption: 'Red Warrior 03 — Print, gerahmt' },
-    ];
-
+  <script define:vars={{ FRAMED }}>
     const tagline = 'Linien aus dem Unbewussten.';
     const titleEl = document.getElementById('hero-title');
-    tagline.split(' ').forEach((word, i) => {
+    const words = tagline.split(' ');
+    words.forEach((word, i) => {
       const span = document.createElement('span');
       span.className = 'kinetic-word';
       span.style.animationDelay = (i * 0.09) + 's';
-      span.textContent = word + (i < tagline.split(' ').length - 1 ? '\u00a0' : '');
+      span.textContent = word + (i < words.length - 1 ? ' ' : '');
       titleEl.appendChild(span);
     });
 
-    const stage = document.getElementById('hero-stage');
     const captionEl = document.getElementById('hero-caption');
     const posEl = document.getElementById('hero-pos');
+    const stageImages = [...document.getElementById('hero-stage').children];
     let framedIdx = 0;
-    FRAMED.forEach((pic, i) => {
-      const img = document.createElement('img');
-      img.src = pic.src;
-      img.alt = pic.alt;
-      if (i === 0) img.classList.add('is-active');
-      stage.appendChild(img);
-    });
     function updateSlider() {
-      [...stage.children].forEach((img, i) => img.classList.toggle('is-active', i === framedIdx));
+      stageImages.forEach((img, i) => img.classList.toggle('is-active', i === framedIdx));
       captionEl.textContent = FRAMED[framedIdx].caption;
       posEl.textContent = (framedIdx + 1) + ' / ' + FRAMED.length;
     }
@@ -348,8 +298,8 @@
         document.getElementById(id).src = src;
       }
     }
-    loadVideo('einblick-video', 'uploads/martin-huemmecke_art-timelaps_5.mp4');
-    loadVideo('essay-video', 'uploads/martin-huemmecke_art-timelaps_9.mp4');
+    loadVideo('einblick-video', '/uploads/martin-huemmecke_art-timelaps_5.mp4');
+    loadVideo('essay-video', '/uploads/martin-huemmecke_art-timelaps_9.mp4');
 
     const REVEAL_IDS = ['ueber-mich', 'einblick', 'essay', 'impressum', 'datenschutz'];
     const observer = new IntersectionObserver((entries) => {
@@ -368,5 +318,4 @@
     });
     setTimeout(() => REVEAL_IDS.forEach((id) => document.getElementById(id)?.classList.add('is-visible')), 3000);
   </script>
-</body>
-</html>
+</Layout>

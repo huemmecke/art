@@ -4,3 +4,8 @@
 .env.txt
 .env.*
 !.env.example
+
+# Astro / Node
+node_modules/
+dist/
+.astro/
