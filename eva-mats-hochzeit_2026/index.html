@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="/eva-mats-hochzeit_2026/">
+  <title>Eva &amp; Mats – Unsere Hochzeit</title>
+  <meta name="description" content="Fotogalerie der Hochzeit von Eva und Mats am 15. August 2026.">
+  <link rel="icon" href="assets/svg/rings.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#gallery">Zur Fotogalerie</a>
+
+  <div class="page">
+    <article class="sheet">
+      <header class="hero">
+        <img class="ornament ornament--lights" src="assets/svg/lights.svg" alt="">
+        <h1>Eva &amp; Mats</h1>
+        <p class="kicker">Unsere Hochzeit</p>
+        <p class="date">Samstag, 15. August 2026</p>
+        <img class="ornament ornament--rings" src="assets/svg/rings.svg" alt="">
+
+        <div class="featured" id="featured" aria-hidden="true"></div>
+
+        <img class="ornament ornament--couple" src="assets/svg/eva-mats_01.svg" alt="">
+
+        <div class="intro">
+          <p>Liebe Gäste, mit diesen Bildern möchten wir die schönsten Momente unseres Festes mit Euch teilen.</p>
+          <p class="note">Weitere Fotos folgen in den nächsten Tagen.</p>
+        </div>
+      </header>
+
+      <img class="ornament ornament--scene" src="assets/svg/eva-mats_03.svg" alt="">
+
+      <section class="gallery-section" aria-labelledby="gallery-title">
+        <h2 class="section-title" id="gallery-title">Die Fotos</h2>
+        <div class="gallery" id="gallery"></div>
+      </section>
+
+      <footer class="thanks">
+        <h2>Danke, dass Ihr dabei wart!</h2>
+        <p>Wir haben uns so gefreut, mit Euch zu feiern.</p>
+        <img class="ornament ornament--feast" src="assets/svg/eva-mats_04.svg" alt="">
+        <img class="ornament ornament--lights" src="assets/svg/lights.svg" alt="">
+        <img class="ornament ornament--couple" src="assets/svg/eva-mats_02.svg" alt="">
+      </footer>
+    </article>
+  </div>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Foto in Großansicht">
+    <div class="lightbox-frame">
+      <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Schließen">×</button>
+      <button class="lightbox-nav prev" id="lightbox-prev" type="button" aria-label="Vorheriges Foto">‹</button>
+      <img id="lightbox-image" alt="">
+      <button class="lightbox-nav next" id="lightbox-next" type="button" aria-label="Nächstes Foto">›</button>
+    </div>
+  </div>
+
+  <script src="js/photos.js"></script>
+  <script src="js/gallery.js"></script>
+</body>
+</html>
