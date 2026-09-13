@@ -265,8 +265,8 @@ button {
 
 .gallery {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem 0.9rem;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
   align-items: start;
 }
 
@@ -299,18 +299,16 @@ button {
   padding: 0.5rem 0.5rem 1.25rem;
 }
 
-.polaroid:nth-child(8n + 1) { --rot: -1.8deg; }
-.polaroid:nth-child(8n + 2) { --rot: 2.2deg; }
-.polaroid:nth-child(8n + 3) { --rot: -0.8deg; }
-.polaroid:nth-child(8n + 4) { --rot: 1.6deg; }
-.polaroid:nth-child(8n + 5) { --rot: -2.4deg; }
-.polaroid:nth-child(8n + 6) { --rot: 0.9deg; }
-.polaroid:nth-child(8n + 7) { --rot: 2.6deg; }
-.polaroid:nth-child(8n + 8) { --rot: -1.3deg; }
+.gallery .polaroid,
+.gallery .polaroid--landscape,
+.gallery .polaroid--square {
+  padding: 0.38rem;
+  box-shadow: 0 8px 18px rgba(48, 42, 28, 0.12);
+}
 
 .polaroid:hover,
 .polaroid:focus-visible {
-  transform: rotate(0deg) translateY(-6px) scale(1.02);
+  transform: rotate(var(--rot)) translateY(-4px);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 18px 36px rgba(48, 42, 28, 0.22);
@@ -445,9 +443,32 @@ button {
     padding: 0.55rem 0.55rem 1.6rem;
   }
 
+  .gallery .polaroid {
+    padding: 0.55rem 0.55rem 1.6rem;
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.8) inset,
+      0 10px 24px rgba(48, 42, 28, 0.16);
+  }
+
+  .gallery .polaroid--landscape,
+  .gallery .polaroid--square,
   .polaroid--landscape,
   .polaroid--square {
     padding: 0.55rem 0.55rem 1.35rem;
+  }
+
+  .gallery .polaroid:nth-child(8n + 1) { --rot: -1.8deg; }
+  .gallery .polaroid:nth-child(8n + 2) { --rot: 2.2deg; }
+  .gallery .polaroid:nth-child(8n + 3) { --rot: -0.8deg; }
+  .gallery .polaroid:nth-child(8n + 4) { --rot: 1.6deg; }
+  .gallery .polaroid:nth-child(8n + 5) { --rot: -2.4deg; }
+  .gallery .polaroid:nth-child(8n + 6) { --rot: 0.9deg; }
+  .gallery .polaroid:nth-child(8n + 7) { --rot: 2.6deg; }
+  .gallery .polaroid:nth-child(8n + 8) { --rot: -1.3deg; }
+
+  .polaroid:hover,
+  .polaroid:focus-visible {
+    transform: rotate(0deg) translateY(-6px) scale(1.02);
   }
 
   .featured {
