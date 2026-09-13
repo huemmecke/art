@@ -219,10 +219,10 @@ button {
 
 .section-title,
 .thanks h2 {
-  margin: 0 0 2rem;
+  margin: 0 0 1.6rem;
   text-align: center;
   font-family: var(--font-script);
-  font-size: clamp(2.6rem, 6vw, 3.4rem);
+  font-size: clamp(2.05rem, 4.4vw, 2.65rem);
   font-weight: 400;
   line-height: 1.1;
 }
@@ -231,10 +231,10 @@ button {
   margin: 2.8rem 0 0.55rem;
   text-align: center;
   font-family: var(--font-serif);
-  font-size: 1.35rem;
+  font-size: clamp(1.65rem, 3.2vw, 1.95rem);
   font-weight: 500;
   font-style: italic;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 .album-title:first-of-type {
@@ -244,9 +244,9 @@ button {
 .photo-credit {
   margin: 0 0 1.5rem;
   text-align: center;
-  font-size: 0.98rem;
+  font-size: 1.2rem;
   font-style: italic;
-  opacity: 0.78;
+  opacity: 0.82;
 }
 
 .photo-credit a {
@@ -255,8 +255,8 @@ button {
 
 .photo-credit--quiet {
   margin: 3.2rem 0 1.3rem;
-  font-size: 0.92rem;
-  opacity: 0.62;
+  font-size: 1.15rem;
+  opacity: 0.72;
 }
 
 .gallery {
