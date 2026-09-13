@@ -46,7 +46,7 @@ svg {
 
 img.ornament--lights {
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   height: auto;
 }
 
@@ -123,20 +123,18 @@ button {
 
 .ornament--lights {
   display: block;
-  position: relative;
-  left: auto;
-  width: calc(100% + 2 * var(--sheet-pad-x));
-  max-width: none;
-  margin: 0 0 1.6rem calc(-1 * var(--sheet-pad-x));
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto 1.6rem;
 }
 
 .hero > .ornament--lights {
-  margin-top: calc(-1 * var(--sheet-pad-top));
+  margin-top: 0;
   margin-bottom: 1.8rem;
 }
 
 .thanks .ornament--lights {
-  margin: 2.6rem 0 1.2rem calc(-1 * var(--sheet-pad-x));
+  margin: 2.6rem auto 1.2rem;
 }
 
 .hero {
