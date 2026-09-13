@@ -228,7 +228,7 @@ button {
 }
 
 .album-title {
-  margin: 2.8rem 0 1.6rem;
+  margin: 2.8rem 0 0.55rem;
   text-align: center;
   font-family: var(--font-serif);
   font-size: 1.35rem;
@@ -241,16 +241,36 @@ button {
   margin-top: 0.4rem;
 }
 
+.photo-credit {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  font-size: 0.98rem;
+  font-style: italic;
+  opacity: 0.78;
+}
+
+.photo-credit a {
+  color: inherit;
+}
+
+.photo-credit--quiet {
+  margin: 3.2rem 0 1.3rem;
+  font-size: 0.92rem;
+  opacity: 0.62;
+}
+
 .gallery {
-  columns: 2;
-  column-gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 0.9rem;
+  align-items: start;
 }
 
 .polaroid {
   --rot: 0deg;
   display: block;
   width: 100%;
-  margin: 0 0 1.15rem;
+  margin: 0;
   padding: 0.5rem 0.5rem 1.5rem;
   break-inside: avoid;
   background: var(--paper);
@@ -401,12 +421,11 @@ button {
   }
 
   .gallery {
-    columns: 4;
-    column-gap: 1.25rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem 1.1rem;
   }
 
   .polaroid {
-    margin-bottom: 1.35rem;
     padding: 0.55rem 0.55rem 1.6rem;
   }
 
@@ -447,11 +466,7 @@ button {
   }
 
   .gallery {
-    column-gap: 1.45rem;
-  }
-
-  .polaroid {
-    margin-bottom: 1.5rem;
+    gap: 1.45rem 1.2rem;
   }
 }
 

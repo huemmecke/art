@@ -11,6 +11,7 @@ const albums = window.GALLERY_ALBUMS || {};
 const photos = [
   ...(Array.isArray(albums.standesamt) ? albums.standesamt : []),
   ...(Array.isArray(albums.hochzeit) ? albums.hochzeit : []),
+  ...(Array.isArray(albums.uli) ? albums.uli : []),
 ];
 
 let currentIndex = 0;
@@ -96,6 +97,7 @@ function onKeydown(event) {
 renderFeatured();
 renderAlbum("standesamt", "gallery-standesamt");
 renderAlbum("hochzeit", "gallery-hochzeit");
+renderAlbum("uli", "gallery-uli");
 
 closeBtn.addEventListener("click", closeLightbox);
 prevBtn.addEventListener("click", () => showOffset(-1));
