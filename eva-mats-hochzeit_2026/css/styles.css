@@ -338,10 +338,10 @@ button {
   position: fixed;
   inset: 0;
   z-index: 50;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-  background: rgba(14, 46, 24, 0.72);
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: #0a1c10;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.22s ease, visibility 0.22s ease;
@@ -354,27 +354,29 @@ button {
 
 .lightbox-frame {
   position: relative;
-  width: fit-content;
-  max-width: min(92vw, 56rem);
-  max-height: 90vh;
-  padding: 0.85rem 0.85rem 2.4rem;
-  background: var(--paper);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .lightbox-frame img {
+  position: absolute;
+  inset: 0;
   display: block;
-  width: auto;
-  height: auto;
-  max-width: min(88vw, 54rem);
-  max-height: calc(90vh - 4.4rem);
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  background: var(--cream-deep);
+  background: transparent;
 }
 
 .lightbox-close,
 .lightbox-nav {
   position: absolute;
+  z-index: 1;
   border: 0;
   background: var(--cream);
   color: var(--ink);
@@ -382,8 +384,8 @@ button {
 }
 
 .lightbox-close {
-  top: 0.7rem;
-  right: 0.7rem;
+  top: max(0.6rem, env(safe-area-inset-top, 0px));
+  right: max(0.6rem, env(safe-area-inset-right, 0px));
   width: 2.4rem;
   height: 2.4rem;
   border-radius: 999px;
@@ -400,8 +402,8 @@ button {
   transform: translateY(-50%);
 }
 
-.lightbox-nav.prev { left: 0.5rem; }
-.lightbox-nav.next { right: 0.5rem; }
+.lightbox-nav.prev { left: max(0.4rem, env(safe-area-inset-left, 0px)); }
+.lightbox-nav.next { right: max(0.4rem, env(safe-area-inset-right, 0px)); }
 
 .lightbox-close:hover,
 .lightbox-nav:hover,
@@ -480,6 +482,39 @@ button {
   .featured .polaroid:first-child,
   .featured .polaroid:last-child {
     width: 14.5rem;
+  }
+
+  .lightbox {
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    overflow: visible;
+    background: rgba(14, 46, 24, 0.72);
+  }
+
+  .lightbox-frame {
+    width: fit-content;
+    height: auto;
+    max-width: min(92vw, 56rem);
+    max-height: 90vh;
+    padding: 0.85rem 0.85rem 2.4rem;
+    background: var(--paper);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  }
+
+  .lightbox-frame img {
+    position: static;
+    inset: auto;
+    width: auto;
+    height: auto;
+    max-width: min(88vw, 54rem);
+    max-height: calc(90vh - 4.4rem);
+    background: var(--cream-deep);
+  }
+
+  .lightbox-close {
+    top: 0.7rem;
+    right: 0.7rem;
   }
 
   .lightbox-nav {
