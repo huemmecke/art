@@ -242,6 +242,10 @@ button {
 }
 
 .photo-credit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
   margin: 0 0 1.5rem;
   text-align: center;
   font-size: 1.2rem;
@@ -418,6 +422,18 @@ button {
     --sheet-pad-x: 2.8rem;
     --sheet-pad-top: 1.6rem;
     padding-bottom: 5rem;
+  }
+
+  .photo-credit {
+    display: block;
+  }
+
+  .photo-credit__label::after {
+    content: ": ";
+  }
+
+  .photo-credit__name + a::before {
+    content: " · ";
   }
 
   .gallery {
