@@ -233,29 +233,35 @@ button {
 
 .layout-toggle {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 0.9rem;
-  margin: 0 0 1.8rem;
-  font-size: 0.98rem;
+  align-items: center;
+  gap: 0.55rem 0.65rem;
+  margin: 0 0 2rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+}
+
+.layout-toggle__label {
+  width: 100%;
+  margin-bottom: 0.1rem;
   font-style: italic;
-  letter-spacing: 0.03em;
-  opacity: 0.7;
+  opacity: 0.72;
+  text-align: center;
 }
 
 .layout-toggle button {
-  padding: 0;
-  border: 0;
+  padding: 0.28rem 0.9rem 0.32rem;
+  border: 1px solid rgba(14, 90, 40, 0.35);
+  border-radius: 999px;
   background: transparent;
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.22em;
 }
 
 .layout-toggle button[aria-pressed="true"] {
-  text-decoration: none;
-  font-style: normal;
-  opacity: 1;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream);
 }
 
 .album-title {
@@ -385,6 +391,8 @@ button {
 
 .lightbox-frame {
   position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   width: 100%;
   height: 100%;
   max-width: none;
@@ -395,11 +403,11 @@ button {
 }
 
 .lightbox-frame img {
-  position: absolute;
-  inset: 0;
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
+  min-height: 0;
   object-fit: contain;
   background: transparent;
 }
@@ -425,7 +433,7 @@ button {
 }
 
 .lightbox-nav {
-  top: 50%;
+  top: 46%;
   width: 2.6rem;
   height: 2.6rem;
   border-radius: 999px;
@@ -437,18 +445,17 @@ button {
 .lightbox-nav.next { right: max(0.4rem, env(safe-area-inset-right, 0px)); }
 
 .lightbox-caption {
-  position: absolute;
-  left: 0.8rem;
-  right: 0.8rem;
-  bottom: max(0.7rem, env(safe-area-inset-bottom, 0px));
+  position: relative;
   z-index: 1;
   margin: 0;
+  padding: 0.7rem 1rem max(0.95rem, env(safe-area-inset-bottom, 0px));
   text-align: center;
-  font-size: 0.82rem;
-  font-style: italic;
-  letter-spacing: 0.04em;
-  color: rgba(250, 243, 214, 0.72);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  font-size: 1.08rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--cream);
+  background: #0a1c10;
   pointer-events: none;
 }
 
@@ -540,11 +547,13 @@ button {
   }
 
   .lightbox-frame {
+    display: grid;
+    grid-template-rows: auto auto;
     width: fit-content;
     height: auto;
     max-width: min(92vw, 56rem);
     max-height: 90vh;
-    padding: 0.85rem 0.85rem 2.4rem;
+    padding: 0.85rem 0.85rem 0.55rem;
     background: var(--paper);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
   }
@@ -555,7 +564,7 @@ button {
     width: auto;
     height: auto;
     max-width: min(88vw, 54rem);
-    max-height: calc(90vh - 4.4rem);
+    max-height: calc(90vh - 5.4rem);
     background: var(--cream-deep);
   }
 
@@ -565,6 +574,7 @@ button {
   }
 
   .lightbox-nav {
+    top: 50%;
     width: 2.9rem;
     height: 2.9rem;
   }
@@ -573,15 +583,10 @@ button {
   .lightbox-nav.next { right: -0.4rem; }
 
   .lightbox-caption {
-    position: static;
-    left: auto;
-    right: auto;
-    bottom: auto;
-    padding: 0.7rem 0.2rem 0.05rem;
+    padding: 0.7rem 0.35rem 0.2rem;
     color: var(--ink);
-    text-shadow: none;
-    font-size: 0.92rem;
-    opacity: 0.58;
+    background: transparent;
+    font-size: 1.12rem;
   }
 }
 
@@ -651,6 +656,8 @@ html[data-layout="plain"] .lightbox.is-open {
 }
 
 html[data-layout="plain"] .lightbox-frame {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   width: 100%;
   height: 100%;
   max-width: none;
@@ -661,8 +668,8 @@ html[data-layout="plain"] .lightbox-frame {
 }
 
 html[data-layout="plain"] .lightbox-frame img {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
   width: 100%;
   height: 100%;
   max-width: none;
@@ -671,14 +678,14 @@ html[data-layout="plain"] .lightbox-frame img {
 }
 
 html[data-layout="plain"] .lightbox-caption {
-  position: absolute;
-  left: 0.8rem;
-  right: 0.8rem;
-  bottom: max(0.7rem, env(safe-area-inset-bottom, 0px));
-  padding: 0;
-  color: rgba(250, 243, 214, 0.72);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
-  font-size: 0.82rem;
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  padding: 0.7rem 1rem max(0.95rem, env(safe-area-inset-bottom, 0px));
+  color: var(--cream);
+  background: #0a1c10;
+  font-size: 1.08rem;
   opacity: 1;
 }
 
