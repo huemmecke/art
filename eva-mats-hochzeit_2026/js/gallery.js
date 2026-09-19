@@ -3,9 +3,11 @@ const FEATURED_IDS = ["sa-033", "sa-003"];
 const featuredEl = document.getElementById("featured");
 const lightbox = document.getElementById("lightbox");
 const lightboxImage = document.getElementById("lightbox-image");
+const lightboxCaption = document.getElementById("lightbox-caption");
 const closeBtn = document.getElementById("lightbox-close");
 const prevBtn = document.getElementById("lightbox-prev");
 const nextBtn = document.getElementById("lightbox-next");
+const displayNames = window.GALLERY_NAMES || {};
 
 const albums = window.GALLERY_ALBUMS || {};
 const photos = [
@@ -15,6 +17,11 @@ const photos = [
 ];
 
 let currentIndex = 0;
+
+function displayName(photo) {
+  if (!photo) return "";
+  return displayNames[photo.id] || photo.source || "";
+}
 
 function createPolaroid(photo, index) {
   const button = document.createElement("button");
@@ -61,11 +68,18 @@ function renderAlbum(albumName, elementId) {
   });
 }
 
-function openLightbox(index) {
+function showLightboxPhoto(index) {
   currentIndex = index;
   const photo = photos[index];
+  const name = displayName(photo);
   lightboxImage.src = photo.full;
   lightboxImage.alt = photo.alt;
+  lightboxCaption.textContent = name;
+  lightboxCaption.hidden = !name;
+}
+
+function openLightbox(index) {
+  showLightboxPhoto(index);
   lightbox.classList.add("is-open");
   lightbox.setAttribute("aria-hidden", "false");
   closeBtn.focus();
@@ -76,15 +90,13 @@ function closeLightbox() {
   lightbox.classList.remove("is-open");
   lightbox.setAttribute("aria-hidden", "true");
   lightboxImage.removeAttribute("src");
+  lightboxCaption.textContent = "";
   document.body.style.overflow = "";
 }
 
 function showOffset(offset) {
   if (!photos.length) return;
-  currentIndex = (currentIndex + offset + photos.length) % photos.length;
-  const photo = photos[currentIndex];
-  lightboxImage.src = photo.full;
-  lightboxImage.alt = photo.alt;
+  showLightboxPhoto((currentIndex + offset + photos.length) % photos.length);
 }
 
 function onKeydown(event) {
@@ -94,10 +106,29 @@ function onKeydown(event) {
   if (event.key === "ArrowLeft") showOffset(-1);
 }
 
+function currentLayout() {
+  return document.documentElement.dataset.layout === "plain" ? "plain" : "polaroid";
+}
+
+function setLayout(layout, persistUrl = false) {
+  const next = layout === "plain" ? "plain" : "polaroid";
+  document.documentElement.dataset.layout = next;
+  localStorage.setItem("gallery-layout", next);
+  if (persistUrl) {
+    const url = new URL(location.href);
+    url.searchParams.set("layout", next);
+    history.replaceState({}, "", url);
+  }
+  document.querySelectorAll("[data-layout-choice]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.layoutChoice === next));
+  });
+}
+
 renderFeatured();
 renderAlbum("standesamt", "gallery-standesamt");
 renderAlbum("hochzeit", "gallery-hochzeit");
 renderAlbum("uli", "gallery-uli");
+setLayout(currentLayout(), new URLSearchParams(location.search).has("layout"));
 
 closeBtn.addEventListener("click", closeLightbox);
 prevBtn.addEventListener("click", () => showOffset(-1));
@@ -106,6 +137,9 @@ lightbox.addEventListener("click", (event) => {
   if (event.target === lightbox) closeLightbox();
 });
 document.addEventListener("keydown", onKeydown);
+document.querySelectorAll("[data-layout-choice]").forEach((button) => {
+  button.addEventListener("click", () => setLayout(button.dataset.layoutChoice, true));
+});
 
 let touchStartX = 0;
 lightbox.addEventListener("touchstart", (event) => {
