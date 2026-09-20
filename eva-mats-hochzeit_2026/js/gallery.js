@@ -1,4 +1,4 @@
-const FEATURED_IDS = ["sa-033", "sa-003"];
+const FEATURED_IDS = ["sa-003", "sa-002"];
 
 const featuredEl = document.getElementById("featured");
 const lightbox = document.getElementById("lightbox");
