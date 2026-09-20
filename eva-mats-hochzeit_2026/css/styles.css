@@ -167,30 +167,30 @@ button {
   letter-spacing: 0.02em;
 }
 
-.featured {
+#featured {
   position: relative;
   display: grid;
   place-items: center;
-  margin: 3rem auto 2.2rem;
-  max-width: 22rem;
+  margin: 2.6rem auto 2.2rem;
+  max-width: 38rem;
 }
 
-.featured .polaroid,
-.featured .polaroid--landscape,
-.featured .polaroid--square {
-  width: min(82%, 18.5rem);
+#featured .polaroid,
+#featured .polaroid--landscape,
+#featured .polaroid--square {
+  width: min(96%, 36rem);
   margin: 0;
-  padding: 0.48rem;
+  padding: 0.55rem;
   background: #fff;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.95) inset,
     0 12px 28px rgba(48, 42, 28, 0.16);
-  transform: rotate(-4.2deg);
+  transform: rotate(-3.4deg);
 }
 
-.featured .polaroid:hover,
-.featured .polaroid:focus-visible {
-  transform: rotate(-1.6deg) translateY(-4px);
+#featured .polaroid:hover,
+#featured .polaroid:focus-visible {
+  transform: rotate(-1.2deg) translateY(-4px);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.95) inset,
     0 16px 32px rgba(48, 42, 28, 0.2);
@@ -526,20 +526,20 @@ button {
     transform: rotate(0deg) translateY(-6px) scale(1.02);
   }
 
-  .featured {
-    max-width: 26rem;
-    margin: 3.4rem auto 2.4rem;
+  #featured {
+    max-width: 44rem;
+    margin: 3.2rem auto 2.6rem;
   }
 
-  .featured .polaroid,
-  .featured .polaroid--landscape,
-  .featured .polaroid--square {
-    width: 20.5rem;
-    padding: 0.55rem;
+  #featured .polaroid,
+  #featured .polaroid--landscape,
+  #featured .polaroid--square {
+    width: 40rem;
+    padding: 0.65rem;
   }
 
-  .featured .polaroid:hover,
-  .featured .polaroid:focus-visible {
+  #featured .polaroid:hover,
+  #featured .polaroid:focus-visible {
     transform: rotate(-1.6deg) translateY(-4px) scale(1.02);
   }
 
@@ -609,25 +609,35 @@ button {
   .gallery {
     gap: 1.45rem 1.2rem;
   }
+
+  #featured {
+    max-width: 48rem;
+  }
+
+  #featured .polaroid,
+  #featured .polaroid--landscape,
+  #featured .polaroid--square {
+    width: 44rem;
+  }
 }
 
-html[data-layout="plain"] .featured {
-  max-width: 22rem;
+html[data-layout="plain"] #featured {
+  max-width: 38rem;
 }
 
-html[data-layout="plain"] .featured .polaroid,
-html[data-layout="plain"] .featured .polaroid:first-child,
-html[data-layout="plain"] .featured .polaroid:last-child,
-html[data-layout="plain"] .featured .polaroid--square {
+html[data-layout="plain"] #featured .polaroid,
+html[data-layout="plain"] #featured .polaroid:first-child,
+html[data-layout="plain"] #featured .polaroid:last-child,
+html[data-layout="plain"] #featured .polaroid--square {
   position: static;
   justify-self: center;
-  width: min(82%, 18.5rem);
-  padding: 0.48rem;
+  width: min(96%, 36rem);
+  padding: 0.55rem;
   background: #fff;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.95) inset,
     0 12px 28px rgba(48, 42, 28, 0.16);
-  transform: rotate(-4.2deg);
+  transform: rotate(-3.4deg);
 }
 
 html[data-layout="plain"] .gallery {
@@ -645,8 +655,8 @@ html[data-layout="plain"] .gallery .polaroid:nth-child(n) {
   transform: none;
 }
 
-html[data-layout="plain"] .polaroid:hover,
-html[data-layout="plain"] .polaroid:focus-visible {
+html[data-layout="plain"] .gallery .polaroid:hover,
+html[data-layout="plain"] .gallery .polaroid:focus-visible {
   transform: none;
   box-shadow: none;
 }
@@ -702,19 +712,30 @@ html[data-layout="plain"] .lightbox-nav.next {
 }
 
 @media (min-width: 640px) {
-  html[data-layout="plain"] .featured {
-    max-width: 26rem;
-    margin: 3.4rem auto 2.4rem;
+  html[data-layout="plain"] #featured {
+    max-width: 44rem;
+    margin: 3.2rem auto 2.6rem;
   }
 
-  html[data-layout="plain"] .featured .polaroid,
-  html[data-layout="plain"] .featured .polaroid--square {
-    width: 20.5rem;
-    padding: 0.55rem;
+  html[data-layout="plain"] #featured .polaroid,
+  html[data-layout="plain"] #featured .polaroid--square {
+    width: 40rem;
+    padding: 0.65rem;
   }
 
   html[data-layout="plain"] .gallery {
     gap: 0.55rem;
+  }
+}
+
+@media (min-width: 980px) {
+  html[data-layout="plain"] #featured {
+    max-width: 48rem;
+  }
+
+  html[data-layout="plain"] #featured .polaroid,
+  html[data-layout="plain"] #featured .polaroid--square {
+    width: 44rem;
   }
 }
 

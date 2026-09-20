@@ -1,4 +1,4 @@
-const FEATURED_IDS = ["hz-033"];
+const FEATURED_IDS = ["hz-151"];
 
 const featuredEl = document.getElementById("featured");
 const lightbox = document.getElementById("lightbox");
