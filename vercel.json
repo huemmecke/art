@@ -6,6 +6,11 @@
       "permanent": true
     },
     {
+      "source": "/eva-mats-hochzeit_2026/",
+      "destination": "/eva-mats/",
+      "permanent": true
+    },
+    {
       "source": "/eva-mats-hochzeit_2026/:path*",
       "destination": "/eva-mats/:path*",
       "permanent": true
