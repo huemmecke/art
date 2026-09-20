@@ -166,17 +166,6 @@ window.GALLERY_ALBUMS = {
       "source": "MKA_0051.jpg"
     },
     {
-      "id": "sa-016",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-016.jpg",
-      "thumb": "images/standesamt/thumbs/sa-016.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 913,
-      "height": 913,
-      "source": "MKA_0057.jpg"
-    },
-    {
       "id": "sa-017",
       "album": "standesamt",
       "full": "images/standesamt/full/sa-017.jpg",
@@ -243,17 +232,6 @@ window.GALLERY_ALBUMS = {
       "source": "MKA_0089.jpg"
     },
     {
-      "id": "sa-023",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-023.jpg",
-      "thumb": "images/standesamt/thumbs/sa-023.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_0094.jpg"
-    },
-    {
       "id": "sa-024",
       "album": "standesamt",
       "full": "images/standesamt/full/sa-024.jpg",
@@ -309,17 +287,6 @@ window.GALLERY_ALBUMS = {
       "source": "MKA_0129.jpg"
     },
     {
-      "id": "sa-029",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-029.jpg",
-      "thumb": "images/standesamt/thumbs/sa-029.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_0137.jpg"
-    },
-    {
       "id": "sa-030",
       "album": "standesamt",
       "full": "images/standesamt/full/sa-030.jpg",
@@ -329,17 +296,6 @@ window.GALLERY_ALBUMS = {
       "width": 964,
       "height": 964,
       "source": "MKA_0139.jpg"
-    },
-    {
-      "id": "sa-031",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-031.jpg",
-      "thumb": "images/standesamt/thumbs/sa-031.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 851,
-      "height": 851,
-      "source": "MKA_0142.jpg"
     },
     {
       "id": "sa-032",
@@ -461,17 +417,6 @@ window.GALLERY_ALBUMS = {
       "width": 964,
       "height": 964,
       "source": "MKA_0179.jpg"
-    },
-    {
-      "id": "sa-043",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-043.jpg",
-      "thumb": "images/standesamt/thumbs/sa-043.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_0181.jpg"
     },
     {
       "id": "sa-044",
@@ -914,17 +859,6 @@ window.GALLERY_ALBUMS = {
       "source": "MKA_0503.jpg"
     },
     {
-      "id": "sa-084",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-084.jpg",
-      "thumb": "images/standesamt/thumbs/sa-084.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_0510.jpg"
-    },
-    {
       "id": "sa-085",
       "album": "standesamt",
       "full": "images/standesamt/full/sa-085.jpg",
@@ -1343,17 +1277,6 @@ window.GALLERY_ALBUMS = {
       "source": "MKA_0881.jpg"
     },
     {
-      "id": "sa-123",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-123.jpg",
-      "thumb": "images/standesamt/thumbs/sa-123.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_0884.jpg"
-    },
-    {
       "id": "sa-124",
       "album": "standesamt",
       "full": "images/standesamt/full/sa-124.jpg",
@@ -1374,17 +1297,6 @@ window.GALLERY_ALBUMS = {
       "width": 887,
       "height": 887,
       "source": "MKA_0913.jpg"
-    },
-    {
-      "id": "sa-126",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-126.jpg",
-      "thumb": "images/standesamt/thumbs/sa-126.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 845,
-      "height": 845,
-      "source": "MKA_0918.jpg"
     },
     {
       "id": "sa-127",
@@ -1517,17 +1429,6 @@ window.GALLERY_ALBUMS = {
       "width": 874,
       "height": 874,
       "source": "MKA_1003.jpg"
-    },
-    {
-      "id": "sa-139",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-139.jpg",
-      "thumb": "images/standesamt/thumbs/sa-139.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 872,
-      "height": 872,
-      "source": "MKA_1005.jpg"
     },
     {
       "id": "sa-140",
@@ -1772,17 +1673,6 @@ window.GALLERY_ALBUMS = {
       "source": "MKA_1115.jpg"
     },
     {
-      "id": "sa-162",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-162.jpg",
-      "thumb": "images/standesamt/thumbs/sa-162.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_1124.jpg"
-    },
-    {
       "id": "sa-163",
       "album": "standesamt",
       "full": "images/standesamt/full/sa-163.jpg",
@@ -1803,17 +1693,6 @@ window.GALLERY_ALBUMS = {
       "width": 964,
       "height": 964,
       "source": "MKA_1134.jpg"
-    },
-    {
-      "id": "sa-165",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-165.jpg",
-      "thumb": "images/standesamt/thumbs/sa-165.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_1135.jpg"
     },
     {
       "id": "sa-166",
@@ -1847,17 +1726,6 @@ window.GALLERY_ALBUMS = {
       "width": 832,
       "height": 832,
       "source": "MKA_1145.jpg"
-    },
-    {
-      "id": "sa-169",
-      "album": "standesamt",
-      "full": "images/standesamt/full/sa-169.jpg",
-      "thumb": "images/standesamt/thumbs/sa-169.jpg",
-      "alt": "Foto vom Standesamt von Eva und Mats",
-      "orientation": "square",
-      "width": 964,
-      "height": 964,
-      "source": "MKA_1149.jpg"
     },
     {
       "id": "sa-170",
@@ -2148,17 +2016,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0033.jpg"
     },
     {
-      "id": "hz-009",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-009.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-009.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1134,
-      "height": 907,
-      "source": "MIKA0041.jpg"
-    },
-    {
       "id": "hz-010",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-010.jpg",
@@ -2236,17 +2093,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0077.jpg"
     },
     {
-      "id": "hz-017",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-017.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-017.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0079.jpg"
-    },
-    {
       "id": "hz-018",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-018.jpg",
@@ -2313,17 +2159,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0107.jpg"
     },
     {
-      "id": "hz-024",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-024.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-024.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0114.jpg"
-    },
-    {
       "id": "hz-025",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-025.jpg",
@@ -2346,17 +2181,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0126.jpg"
     },
     {
-      "id": "hz-027",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-027.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-027.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0134.jpg"
-    },
-    {
       "id": "hz-028",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-028.jpg",
@@ -2377,17 +2201,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA0140.jpg"
-    },
-    {
-      "id": "hz-030",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-030.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-030.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0142.jpg"
     },
     {
       "id": "hz-031",
@@ -2830,17 +2643,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0307.jpg"
     },
     {
-      "id": "hz-071",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-071.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-071.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0313.jpg"
-    },
-    {
       "id": "hz-072",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-072.jpg",
@@ -2905,17 +2707,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA0363.jpg"
-    },
-    {
-      "id": "hz-078",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-078.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-078.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0369.jpg"
     },
     {
       "id": "hz-079",
@@ -3180,17 +2971,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA0465.jpg"
-    },
-    {
-      "id": "hz-103",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-103.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-103.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0468.jpg"
     },
     {
       "id": "hz-104",
@@ -3798,17 +3578,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0660.jpg"
     },
     {
-      "id": "hz-159",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-159.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-159.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0662.jpg"
-    },
-    {
       "id": "hz-160",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-160.jpg",
@@ -4060,28 +3829,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA0753.jpg"
-    },
-    {
-      "id": "hz-183",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-183.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-183.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0756.jpg"
-    },
-    {
-      "id": "hz-184",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-184.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-184.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0757.jpg"
     },
     {
       "id": "hz-185",
@@ -4502,17 +4249,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0932.jpg"
     },
     {
-      "id": "hz-223",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-223.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-223.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0934.jpg"
-    },
-    {
       "id": "hz-224",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-224.jpg",
@@ -4533,17 +4269,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA0938.jpg"
-    },
-    {
-      "id": "hz-226",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-226.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-226.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0942.jpg"
     },
     {
       "id": "hz-227",
@@ -4612,17 +4337,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0970.jpg"
     },
     {
-      "id": "hz-233",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-233.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-233.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0972.jpg"
-    },
-    {
       "id": "hz-234",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-234.jpg",
@@ -4634,17 +4348,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0975.jpg"
     },
     {
-      "id": "hz-235",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-235.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-235.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0977.jpg"
-    },
-    {
       "id": "hz-236",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-236.jpg",
@@ -4654,17 +4357,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA0978.jpg"
-    },
-    {
-      "id": "hz-237",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-237.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-237.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0983.jpg"
     },
     {
       "id": "hz-238",
@@ -4700,28 +4392,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0990.jpg"
     },
     {
-      "id": "hz-241",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-241.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-241.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0994.jpg"
-    },
-    {
-      "id": "hz-242",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-242.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-242.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0997.jpg"
-    },
-    {
       "id": "hz-243",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-243.jpg",
@@ -4731,17 +4401,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA1000.jpg"
-    },
-    {
-      "id": "hz-244",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-244.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-244.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA1005.jpg"
     },
     {
       "id": "hz-245",
@@ -4863,17 +4522,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA1063.jpg"
-    },
-    {
-      "id": "hz-256",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-256.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-256.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA1076.jpg"
     },
     {
       "id": "hz-257",
@@ -5362,17 +5010,6 @@ window.GALLERY_ALBUMS = {
       "source": "DSC_6799.jpg"
     },
     {
-      "id": "uli-035",
-      "album": "uli",
-      "full": "images/uli/full/uli-035.jpg",
-      "thumb": "images/uli/thumbs/uli-035.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1651,
-      "height": 1321,
-      "source": "DSC_6800.jpg"
-    },
-    {
       "id": "uli-036",
       "album": "uli",
       "full": "images/uli/full/uli-036.jpg",
@@ -5437,17 +5074,6 @@ window.GALLERY_ALBUMS = {
       "width": 1321,
       "height": 1651,
       "source": "DSC_6846.jpg"
-    },
-    {
-      "id": "uli-042",
-      "album": "uli",
-      "full": "images/uli/full/uli-042.jpg",
-      "thumb": "images/uli/thumbs/uli-042.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "portrait",
-      "width": 1321,
-      "height": 1651,
-      "source": "DSC_6849.jpg"
     },
     {
       "id": "uli-043",
@@ -5868,17 +5494,6 @@ window.GALLERY_ALBUMS = {
       "source": "DSC_6996.jpg"
     },
     {
-      "id": "uli-081",
-      "album": "uli",
-      "full": "images/uli/full/uli-081.jpg",
-      "thumb": "images/uli/thumbs/uli-081.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1651,
-      "height": 1321,
-      "source": "DSC_6999.jpg"
-    },
-    {
       "id": "uli-082",
       "album": "uli",
       "full": "images/uli/full/uli-082.jpg",
@@ -6110,17 +5725,6 @@ window.GALLERY_ALBUMS = {
       "source": "DSC_7081.jpg"
     },
     {
-      "id": "uli-103",
-      "album": "uli",
-      "full": "images/uli/full/uli-103.jpg",
-      "thumb": "images/uli/thumbs/uli-103.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1440,
-      "height": 1152,
-      "source": "DSC_7083.jpg"
-    },
-    {
       "id": "uli-104",
       "album": "uli",
       "full": "images/uli/full/uli-104.jpg",
@@ -6141,17 +5745,6 @@ window.GALLERY_ALBUMS = {
       "width": 1433,
       "height": 1146,
       "source": "DSC_7090.jpg"
-    },
-    {
-      "id": "uli-106",
-      "album": "uli",
-      "full": "images/uli/full/uli-106.jpg",
-      "thumb": "images/uli/thumbs/uli-106.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1651,
-      "height": 1321,
-      "source": "DSC_7097.jpg"
     },
     {
       "id": "uli-107",
@@ -6196,17 +5789,6 @@ window.GALLERY_ALBUMS = {
       "width": 1651,
       "height": 1321,
       "source": "DSC_7111.jpg"
-    },
-    {
-      "id": "uli-111",
-      "album": "uli",
-      "full": "images/uli/full/uli-111.jpg",
-      "thumb": "images/uli/thumbs/uli-111.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1651,
-      "height": 1321,
-      "source": "DSC_7114.jpg"
     },
     {
       "id": "uli-112",
@@ -6264,17 +5846,6 @@ window.GALLERY_ALBUMS = {
       "source": "DSC_7160.jpg"
     },
     {
-      "id": "uli-117",
-      "album": "uli",
-      "full": "images/uli/full/uli-117.jpg",
-      "thumb": "images/uli/thumbs/uli-117.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1538,
-      "height": 1230,
-      "source": "DSC_7163.jpg"
-    },
-    {
       "id": "uli-118",
       "album": "uli",
       "full": "images/uli/full/uli-118.jpg",
@@ -6306,17 +5877,6 @@ window.GALLERY_ALBUMS = {
       "width": 1651,
       "height": 1321,
       "source": "DSC_7172.jpg"
-    },
-    {
-      "id": "uli-121",
-      "album": "uli",
-      "full": "images/uli/full/uli-121.jpg",
-      "thumb": "images/uli/thumbs/uli-121.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1556,
-      "height": 1245,
-      "source": "DSC_7174.jpg"
     },
     {
       "id": "uli-122",
@@ -6385,17 +5945,6 @@ window.GALLERY_ALBUMS = {
       "source": "DSC_7206.jpg"
     },
     {
-      "id": "uli-128",
-      "album": "uli",
-      "full": "images/uli/full/uli-128.jpg",
-      "thumb": "images/uli/thumbs/uli-128.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1651,
-      "height": 1321,
-      "source": "DSC_7215.jpg"
-    },
-    {
       "id": "uli-129",
       "album": "uli",
       "full": "images/uli/full/uli-129.jpg",
@@ -6416,17 +5965,6 @@ window.GALLERY_ALBUMS = {
       "width": 1651,
       "height": 1321,
       "source": "DSC_7221.jpg"
-    },
-    {
-      "id": "uli-131",
-      "album": "uli",
-      "full": "images/uli/full/uli-131.jpg",
-      "thumb": "images/uli/thumbs/uli-131.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1651,
-      "height": 1321,
-      "source": "DSC_7226.jpg"
     },
     {
       "id": "uli-132",
@@ -6493,17 +6031,6 @@ window.GALLERY_ALBUMS = {
       "width": 1651,
       "height": 1321,
       "source": "DSC_7256.jpg"
-    },
-    {
-      "id": "uli-138",
-      "album": "uli",
-      "full": "images/uli/full/uli-138.jpg",
-      "thumb": "images/uli/thumbs/uli-138.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "landscape",
-      "width": 1651,
-      "height": 1321,
-      "source": "DSC_7260.jpg"
     },
     {
       "id": "uli-139",
