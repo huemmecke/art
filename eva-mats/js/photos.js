@@ -3369,17 +3369,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0608.jpg"
     },
     {
-      "id": "hz-140",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-140.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-140.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0609.jpg"
-    },
-    {
       "id": "hz-141",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-141.jpg",
@@ -3820,17 +3809,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0750.jpg"
     },
     {
-      "id": "hz-182",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-182.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-182.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0753.jpg"
-    },
-    {
       "id": "hz-185",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-185.jpg",
@@ -4183,17 +4161,6 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA0908.jpg"
     },
     {
-      "id": "hz-217",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-217.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-217.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0911.jpg"
-    },
-    {
       "id": "hz-218",
       "album": "hochzeit",
       "full": "images/hochzeit/full/hz-218.jpg",
@@ -4225,17 +4192,6 @@ window.GALLERY_ALBUMS = {
       "width": 1134,
       "height": 1134,
       "source": "MIKA0914.jpg"
-    },
-    {
-      "id": "hz-221",
-      "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-221.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-221.jpg",
-      "alt": "Foto von der Hochzeit von Eva und Mats",
-      "orientation": "square",
-      "width": 1134,
-      "height": 1134,
-      "source": "MIKA0926.jpg"
     },
     {
       "id": "hz-222",
@@ -4491,15 +4447,15 @@ window.GALLERY_ALBUMS = {
       "source": "MIKA1039.jpg"
     },
     {
-      "id": "hz-253",
+      "id": "hz-221",
       "album": "hochzeit",
-      "full": "images/hochzeit/full/hz-253.jpg",
-      "thumb": "images/hochzeit/thumbs/hz-253.jpg",
+      "full": "images/hochzeit/full/hz-221.jpg",
+      "thumb": "images/hochzeit/thumbs/hz-221.jpg",
       "alt": "Foto von der Hochzeit von Eva und Mats",
       "orientation": "square",
       "width": 1134,
       "height": 1134,
-      "source": "MIKA1048.jpg"
+      "source": "MIKA0926.jpg"
     },
     {
       "id": "hz-254",

@@ -210,6 +210,10 @@ button {
   margin-top: 1.05rem;
 }
 
+br.break-desktop {
+  display: none;
+}
+
 .note {
   margin: 0.9rem 0 0;
   font-style: normal;
@@ -442,6 +446,10 @@ button {
 }
 
 @media (min-width: 640px) {
+  br.break-desktop {
+    display: revert;
+  }
+
   .page {
     padding: 2.8rem 2rem 4.2rem;
   }
