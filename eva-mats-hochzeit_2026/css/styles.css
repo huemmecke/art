@@ -206,6 +206,10 @@ button {
   margin: 0;
 }
 
+.intro p + p {
+  margin-top: 1.05rem;
+}
+
 .note {
   margin: 0.9rem 0 0;
   font-style: normal;
@@ -230,39 +234,6 @@ button {
   margin-bottom: 0.45rem;
 }
 
-.layout-toggle {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.55rem 0.65rem;
-  margin: 0 0 2rem;
-  font-size: 1.05rem;
-  letter-spacing: 0.02em;
-}
-
-.layout-toggle__label {
-  width: 100%;
-  margin-bottom: 0.1rem;
-  font-style: italic;
-  opacity: 0.72;
-  text-align: center;
-}
-
-.layout-toggle button {
-  padding: 0.28rem 0.9rem 0.32rem;
-  border: 1px solid rgba(14, 90, 40, 0.35);
-  border-radius: 999px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.layout-toggle button[aria-pressed="true"] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--cream);
-}
-
 .album-title {
   margin: 2.8rem 0 0.55rem;
   text-align: center;
@@ -274,7 +245,7 @@ button {
 }
 
 .album-title:first-of-type {
-  margin-top: 0.4rem;
+  margin-top: 1.6rem;
 }
 
 .photo-credit {
@@ -291,6 +262,10 @@ button {
 
 .photo-credit a {
   color: inherit;
+}
+
+.photo-credit__sep {
+  display: none;
 }
 
 .photo-credit--quiet {
@@ -485,8 +460,9 @@ button {
     content: ": ";
   }
 
-  .photo-credit__name + a::before {
-    content: " · ";
+  .photo-credit__sep {
+    display: inline;
+    margin: 0 0.35em;
   }
 
   .gallery {

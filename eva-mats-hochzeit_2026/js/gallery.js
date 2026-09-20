@@ -106,29 +106,10 @@ function onKeydown(event) {
   if (event.key === "ArrowLeft") showOffset(-1);
 }
 
-function currentLayout() {
-  return document.documentElement.dataset.layout === "plain" ? "plain" : "polaroid";
-}
-
-function setLayout(layout, persistUrl = false) {
-  const next = layout === "plain" ? "plain" : "polaroid";
-  document.documentElement.dataset.layout = next;
-  localStorage.setItem("gallery-layout", next);
-  if (persistUrl) {
-    const url = new URL(location.href);
-    url.searchParams.set("layout", next);
-    history.replaceState({}, "", url);
-  }
-  document.querySelectorAll("[data-layout-choice]").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.layoutChoice === next));
-  });
-}
-
 renderFeatured();
 renderAlbum("standesamt", "gallery-standesamt");
 renderAlbum("hochzeit", "gallery-hochzeit");
 renderAlbum("uli", "gallery-uli");
-setLayout(currentLayout(), new URLSearchParams(location.search).has("layout"));
 
 closeBtn.addEventListener("click", closeLightbox);
 prevBtn.addEventListener("click", () => showOffset(-1));
@@ -137,9 +118,6 @@ lightbox.addEventListener("click", (event) => {
   if (event.target === lightbox) closeLightbox();
 });
 document.addEventListener("keydown", onKeydown);
-document.querySelectorAll("[data-layout-choice]").forEach((button) => {
-  button.addEventListener("click", () => setLayout(button.dataset.layoutChoice, true));
-});
 
 let touchStartX = 0;
 lightbox.addEventListener("touchstart", (event) => {
