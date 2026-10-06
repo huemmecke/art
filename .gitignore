@@ -1,0 +1,8 @@
+.DS_Store
+.vercel
+.env
+.env.txt
+.env.*
+!.env.example
+
+eva-mats/

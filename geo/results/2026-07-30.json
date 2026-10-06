@@ -1,0 +1,26 @@
+{
+  "date": "2026-07-30",
+  "checkedBy": "foundation-pass",
+  "summary": {
+    "overallStatus": "ready-for-citations",
+    "overallLabel": "Foundation steht — Citation-Checks als Nächstes",
+    "citationRate": null,
+    "promptsChecked": 0,
+    "promptsCited": 0,
+    "enginesChecked": [],
+    "notes": "Technische SEO/GEO-Basis ist umgesetzt: Meta, Canonical, Open Graph, robots.txt, sitemap.xml, llms.txt, JSON-LD (Person, FAQ, VisualArtwork) und Answer-first Abschnitte. Noch keine manuellen Citation-Checks gegen AI-Engines."
+  },
+  "foundationScore": {
+    "done": 12,
+    "partial": 0,
+    "open": 0,
+    "total": 12
+  },
+  "citations": [],
+  "nextActions": [
+    "Prompt-Set einmal manuell gegen ChatGPT, Perplexity und Google AI Overviews prüfen",
+    "Ergebnisse in geo/results/YYYY-MM-DD.json + latest.json eintragen",
+    "Saatchi-Art- oder Wikipedia-/Medien-Mentions prüfen und sameAs erweitern, falls URLs stabil sind",
+    "Search Console: sitemap.xml einreichen (nach Deploy)"
+  ]
+}
