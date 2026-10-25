@@ -396,11 +396,13 @@
       };
     }
 
-    function setControls( partial ) {
-      Object.assign(state, partial);
-      if (partial.rooms) {
-        for (const k of Object.keys(partial.rooms)) {
-          Object.assign(state.rooms[k], partial.rooms[k]);
+    function setControls(partial) {
+      const { rooms: roomPatch, ...rest } = partial || {};
+      Object.assign(state, rest);
+      if (roomPatch) {
+        for (const k of Object.keys(roomPatch)) {
+          if (!state.rooms[k]) state.rooms[k] = { tSet: 20, loadW: 1000, tRoom: 20 };
+          Object.assign(state.rooms[k], roomPatch[k]);
         }
       }
     }
