@@ -1986,8 +1986,18 @@ body.learn-mode {
   font-family: var(--font);
 }
 
-.house-diagram {
-  max-height: 520px;
+.house-diagram,
+.plant-diagram {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(18,25,32,0.55), rgba(10,14,18,0.75));
+  border: 1px solid rgba(143, 163, 181, 0.18);
+}
+
+.plant {
+  display: block;
 }
 
 a.rail-tool {
