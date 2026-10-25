@@ -301,7 +301,6 @@
     $("#burner-power-hud").textContent = `${pctGas} % Gas`;
     $("#boiler-temp").textContent = s.boilerT.toFixed(1);
     $("#boiler-set").textContent = s.flowSet.toFixed(1);
-    $("#boiler-svg-temp").textContent = `${s.boilerT.toFixed(0)}°`;
     $("#starts-hour").textContent = String(s.startsHour);
     $("#vol-boiler").textContent = String(Math.round(s.boilerVolumeL));
     $("#vol-circuit").textContent = String(Math.round(s.circuitVolumeL));
@@ -309,6 +308,20 @@
 
     const boilerBody = $("#boiler-body");
     if (boilerBody) boilerBody.style.fill = spectrumColor(s.boilerT);
+
+    // Sensorpunkte: Brenner/Kessel, Pumpe (VL), Rücklauf in Therme
+    $("#boiler-svg-temp").textContent = `${s.boilerT.toFixed(1)} °C`;
+    $("#pump-temp").textContent = `${s.boilerT.toFixed(1)} °C`;
+    $("#boiler-return-temp").textContent = `${s.returnHeaderT.toFixed(1)} °C`;
+    $("#manifold-temp").textContent = `${s.boilerT.toFixed(0)} °C`;
+
+    const pumpChip = $("#pump-chip");
+    const returnChip = $("#return-chip");
+    if (pumpChip) pumpChip.style.stroke = spectrumColor(s.boilerT);
+    if (returnChip) returnChip.style.stroke = spectrumColor(s.returnHeaderT);
+    $("#pump-temp").style.fill = spectrumColor(s.boilerT);
+    $("#boiler-return-temp").style.fill = spectrumColor(s.returnHeaderT);
+    $("#boiler-svg-temp").style.fill = spectrumColor(Math.min(s.boilerT + 5, 75));
 
     const lo = 20;
     const hi = 80;
@@ -330,14 +343,21 @@
     flameGroup.classList.toggle("igniting", igniting);
     $("#flame-label").textContent = plain.flame;
 
+    const pumpGroup = $("#pump-group");
     const pump = $("#pump-disc");
     if (pump) pump.classList.toggle("spinning", s.totalLh > 40);
+    if (pumpGroup) pumpGroup.classList.toggle("spinning", s.totalLh > 40);
+    if (pump) pump.style.fill = spectrumColor(s.boilerT - 2, 20, 70);
 
     // Hauptleitungen
     $("#pipe-supply-main").style.stroke = spectrumColor(s.boilerT);
+    const pipeBoilerPump = $("#pipe-boiler-to-pump");
+    const pipePumpManifold = $("#pipe-pump-to-manifold");
+    if (pipeBoilerPump) pipeBoilerPump.style.stroke = spectrumColor(s.boilerT);
+    if (pipePumpManifold) pipePumpManifold.style.stroke = spectrumColor(s.boilerT);
     $("#pipe-return-main").style.stroke = spectrumColor(s.returnHeaderT);
     const manifold = $("#manifold-body");
-    if (manifold) manifold.style.fill = spectrumColor((s.boilerT + s.returnHeaderT) / 2, 20, 70);
+    if (manifold) manifold.style.fill = spectrumColor(s.boilerT, 20, 70);
 
     for (const id of ["living", "bath", "bed"]) {
       const room = s.rooms[id];

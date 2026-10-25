@@ -524,10 +524,38 @@ h1 {
   stroke-width: 2;
 }
 
-.pump.spinning {
-  animation: pump-spin 0.9s linear infinite;
-  transform-origin: 12px 12px;
-  transform-box: fill-box;
+.pump-blade {
+  fill: #9bb0c2;
+  transform-origin: 18px 22px;
+}
+
+.pump.spinning + .pump-blade,
+#pump-group.spinning .pump-blade {
+  animation: pump-spin 0.85s linear infinite;
+}
+
+.probe-chip {
+  fill: rgba(10, 16, 22, 0.92);
+  stroke: rgba(255,255,255,0.22);
+  stroke-width: 1.2;
+}
+
+.probe-label {
+  fill: #9bb0c2;
+  font-size: 9px;
+  font-family: var(--font);
+}
+
+.probe-temp,
+.tiny-temp {
+  fill: #f4f7fb;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.tiny-temp {
+  font-size: 11px;
 }
 
 .manifold {
