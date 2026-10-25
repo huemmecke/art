@@ -1289,3 +1289,91 @@ body.focus-mode {
     height: calc(100dvh - 0px);
   }
 }
+
+.live-chip-pred {
+  display: block;
+  font-size: 0.68rem;
+  color: #9fe7c4;
+  font-family: var(--mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 16rem;
+}
+
+.live-chip[data-takt="warn"] .live-chip-pred { color: #f0b429; }
+.live-chip[data-takt="bad"] .live-chip-pred { color: #ef5d5d; }
+
+.takt-pred {
+  border: 1px solid rgba(62, 207, 142, 0.35);
+  background: rgba(62, 207, 142, 0.08);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.takt-pred[data-level="warn"] {
+  border-color: rgba(240, 180, 41, 0.45);
+  background: rgba(240, 180, 41, 0.08);
+}
+
+.takt-pred[data-level="bad"] {
+  border-color: rgba(239, 93, 93, 0.45);
+  background: rgba(239, 93, 93, 0.08);
+}
+
+.takt-pred-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.takt-pred-head strong {
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.takt-pred-head span {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.takt-pred-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.takt-pred-metrics div {
+  background: rgba(12, 17, 22, 0.55);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.4rem 0.45rem;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.takt-pred-metrics span {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.takt-pred-metrics em {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+@media (max-width: 560px) {
+  .takt-pred-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+}

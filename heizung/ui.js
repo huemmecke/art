@@ -393,6 +393,38 @@
     if (statusExplain) statusExplain.textContent = plain.explain;
     $("#fire-power-val").textContent = `${pctGas} %`;
 
+    const pred = s.cyclingPred;
+    function fmtSec(sec) {
+      if (sec == null || !Number.isFinite(sec)) return "—";
+      if (sec < 90) return `${Math.round(sec)} s`;
+      return `${(sec / 60).toFixed(1)} min`;
+    }
+    function applyPred(prefix) {
+      if (!pred) return;
+      const card = $(prefix === "" ? "#takt-pred-card" : "#takt-pred-card-cycles");
+      if (card) card.dataset.level = pred.level || "ok";
+      setText(prefix === "" ? "#takt-pred-label" : "#takt-pred-label-cycles", pred.label || "—");
+      setText(
+        prefix === "" ? "#takt-pred-starts" : "#takt-pred-starts-cycles",
+        pred.kind === "cycling" ? pred.startsPerHour.toFixed(1) : "≈ 0"
+      );
+      setText(prefix === "" ? "#takt-pred-ton" : "#takt-pred-ton-cycles", fmtSec(pred.tonSec));
+      setText(prefix === "" ? "#takt-pred-toff" : "#takt-pred-toff-cycles", fmtSec(pred.toffSec));
+      setText(prefix === "" ? "#takt-pred-period" : "#takt-pred-period-cycles", fmtSec(pred.periodSec));
+      setText(prefix === "" ? "#takt-pred-detail" : "#takt-pred-detail-cycles", pred.detail || "—");
+    }
+    applyPred("");
+    applyPred("-cycles");
+
+    const chipPred = $("#takt-pred-chip");
+    if (chipPred && pred) {
+      banner.dataset.takt = pred.level || "ok";
+      chipPred.textContent =
+        pred.kind === "cycling"
+          ? `Prognose ≈ ${pred.startsPerHour.toFixed(1)} Starts/h · ${pred.label}`
+          : `Prognose: ${pred.label}`;
+    }
+
     $("#burner-state").textContent = plain.short;
     $("#hud-burner").dataset.state = plain.state;
     $("#burner-power-hud").textContent = `${pctGas} % Gas`;

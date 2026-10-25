@@ -474,6 +474,91 @@
       state.boilerT = clamp(afterMix + dTBurn - dTLoss, state.outdoor + 1, 88);
     }
 
+    /**
+     * Prognose der Taktung aus aktueller Last, Hysterese und Kesselmasse.
+     * ton/toff ≈ (m·cp·Band) / P_netto  — Lernmodell, keine Herstellerkurve.
+     */
+    function predictCycling(hyd, onAt, offAt, flowSet) {
+      const b = brand();
+      const hyst = hysteresisK();
+      const band = Math.max(offAt - onAt, 0.5);
+      const extractKw = Math.max(hyd.heatExtractKw || 0, 0.05);
+      const lossKw = Math.max(0, (flowSet - state.outdoor) * 0.01);
+      const loadKw = extractKw + lossKw;
+      const capJperK = BOILER_VOLUME_L * CP; // J/K
+      const energyBandJ = capJperK * band;
+
+      const minKw = b.modulating ? state.burnerPowerKw * b.minMod : state.burnerPowerKw;
+      const maxKw = state.burnerPowerKw;
+
+      // Modulation kann Last treffen → kaum Takten
+      if (b.modulating && loadKw >= minKw * 0.9 && loadKw <= maxKw * 1.05) {
+        const modPct = clamp((loadKw / maxKw) * 100, b.minMod * 100, 100);
+        return {
+          kind: "hold",
+          level: "ok",
+          startsPerHour: 0,
+          tonSec: null,
+          toffSec: null,
+          periodSec: null,
+          loadKw,
+          bandK: band,
+          label: "kaum Takten",
+          detail: `Last ≈ ${loadKw.toFixed(1)} kW liegt im Modulationsbereich (${minKw.toFixed(1)}–${maxKw.toFixed(1)} kW) → Dauerbetrieb bei ~${modPct.toFixed(0)} %, prognostiziert ≈ 0 Starts/h.`,
+        };
+      }
+
+      // Überlast: auch Vollast reicht nicht → läuft durch (oder nie aus)
+      if (loadKw > maxKw * 1.08) {
+        return {
+          kind: "overload",
+          level: "warn",
+          startsPerHour: 0,
+          tonSec: null,
+          toffSec: null,
+          periodSec: null,
+          loadKw,
+          bandK: band,
+          label: "Dauerfeuer",
+          detail: `Last ${loadKw.toFixed(1)} kW > Brenner ${maxKw.toFixed(1)} kW — Kessel erreicht Ausschaltpunkt kaum, prognostiziert Dauerfeuer (0 Starts/h, Unterversorgung).`,
+        };
+      }
+
+      // Klassisches Ein/Aus-Takten (oder Modulation unter Min → wie Ein/Aus)
+      const fireKw = b.modulating ? Math.max(minKw, Math.min(maxKw, loadKw * 1.35)) : maxKw;
+      const netHeatKw = Math.max(fireKw - loadKw, 0.05);
+      const coolKw = Math.max(loadKw, 0.05);
+      let tonSec = energyBandJ / (netHeatKw * 1000);
+      let toffSec = energyBandJ / (coolKw * 1000);
+      tonSec = Math.max(tonSec, b.minRun || 0);
+      toffSec = Math.max(toffSec, b.lockout || 0);
+      const periodSec = tonSec + toffSec;
+      const startsPerHour = clamp(3600 / Math.max(periodSec, 1), 0, 60);
+
+      let level = "ok";
+      let label = "selten";
+      if (startsPerHour >= 6) {
+        level = "bad";
+        label = "starkes Takten";
+      } else if (startsPerHour >= 3) {
+        level = "warn";
+        label = "grenzwertig";
+      }
+
+      return {
+        kind: "cycling",
+        level,
+        startsPerHour,
+        tonSec,
+        toffSec,
+        periodSec,
+        loadKw,
+        bandK: band,
+        label,
+        detail: `Band ${band.toFixed(1)} K · Last ${loadKw.toFixed(1)} kW → An ~${Math.round(tonSec)} s / Aus ~${Math.round(toffSec)} s → Zyklus ~${Math.round(periodSec)} s ≈ ${startsPerHour.toFixed(1)} Starts/h (${label}).`,
+      };
+    }
+
     function buildTips(hyd, onAt, offAt, flowSet) {
       const tips = [];
       const starts = state.burner.starts.length;
@@ -514,10 +599,16 @@
         });
       }
 
+      const pred = predictCycling(hyd, onAt, offAt, flowSet);
+      tips.push({
+        level: pred.level,
+        text: `Takt-Prognose: ${pred.detail}`,
+      });
+
       if (starts >= 6) {
-        tips.push({ level: "bad", text: `${starts} Starts/h — Takten! Hysterese/Leistung/Kurve prüfen.` });
+        tips.push({ level: "bad", text: `Gemessen ${starts} Starts/h — Takten! Hysterese/Leistung/Kurve prüfen.` });
       } else if (starts >= 3) {
-        tips.push({ level: "warn", text: `${starts} Starts/h — Grenzbereich.` });
+        tips.push({ level: "warn", text: `Gemessen ${starts} Starts/h — Grenzbereich.` });
       }
 
       // Unterdimensionierter HK
@@ -528,7 +619,7 @@
         });
       }
 
-      state.tips = tips.slice(0, 5);
+      state.tips = tips.slice(0, 6);
     }
 
     function step(realDt) {
@@ -539,15 +630,19 @@
       const { onAt, offAt } = updateBurner(dt, flowSet);
       updateBoiler(dt, hyd.totalLh);
       buildTips(hyd, onAt, offAt, flowSet);
-      return snapshot(hyd, onAt, offAt, flowSet);
+      return snapshot(hyd, onAt, offAt, flowSet, predictCycling(hyd, onAt, offAt, flowSet));
     }
 
-    function snapshot(hyd, onAt, offAt, flowSet) {
+    function snapshot(hyd, onAt, offAt, flowSet, cyclingPred) {
       const br = state.burner;
       let modeLabel = "AUS";
       if (br.mode === "igniting") modeLabel = "ZÜNDET";
       else if (br.mode === "on")
         modeLabel = brand().modulating && br.powerFrac < 0.95 ? "MODULIERT" : "BRENNT";
+
+      const pred =
+        cyclingPred ||
+        predictCycling(hyd || { heatExtractKw: 0, flows: {} }, onAt, offAt, flowSet);
 
       return {
         outdoor: state.outdoor,
@@ -572,6 +667,7 @@
         burnerMode: modeLabel,
         burnerFrac: br.powerFrac,
         startsHour: br.starts.length,
+        cyclingPred: pred,
         cycleLog: br.cycleLog.slice(),
         simTime: state.simTime,
         physicsNote: state.physicsNote,

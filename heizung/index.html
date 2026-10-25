@@ -143,6 +143,7 @@
         <span class="live-chip-text">
           <strong id="fire-title">Brenner AUS</strong>
           <em id="fire-power-val">0 %</em>
+          <span class="live-chip-pred" id="takt-pred-chip">Takt-Prognose: —</span>
         </span>
       </button>
 
@@ -214,11 +215,26 @@
               <span class="hud-sub">Rücklauf <span id="return-temp">36</span> °C</span>
             </div>
             <div class="hud-card">
-              <span class="hud-label">Starts / h</span>
+              <span class="hud-label">Gemessen Starts / h</span>
               <strong id="starts-hour">0</strong>
               <span class="hud-sub" id="hyst-readout">Hysterese ±2 K</span>
             </div>
           </div>
+
+          <div class="takt-pred" id="takt-pred-card" data-level="ok">
+            <div class="takt-pred-head">
+              <strong>Takt-Prognose</strong>
+              <span id="takt-pred-label">—</span>
+            </div>
+            <div class="takt-pred-metrics">
+              <div><span>Starts/h</span><em id="takt-pred-starts">—</em></div>
+              <div><span>An-Zeit</span><em id="takt-pred-ton">—</em></div>
+              <div><span>Aus-Zeit</span><em id="takt-pred-toff">—</em></div>
+              <div><span>Zyklus</span><em id="takt-pred-period">—</em></div>
+            </div>
+            <p class="hint" id="takt-pred-detail">—</p>
+          </div>
+
           <p class="hint" id="status-explain">—</p>
           <div class="hysteresis-band" aria-hidden="true">
             <div class="hyst-track">
@@ -362,9 +378,23 @@
           <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
         </header>
         <div class="modal-body">
+          <div class="takt-pred" id="takt-pred-card-cycles" data-level="ok">
+            <div class="takt-pred-head">
+              <strong>Aktuelle Takt-Prognose</strong>
+              <span id="takt-pred-label-cycles">—</span>
+            </div>
+            <div class="takt-pred-metrics">
+              <div><span>progn. Starts/h</span><em id="takt-pred-starts-cycles">—</em></div>
+              <div><span>An</span><em id="takt-pred-ton-cycles">—</em></div>
+              <div><span>Aus</span><em id="takt-pred-toff-cycles">—</em></div>
+              <div><span>Zyklus</span><em id="takt-pred-period-cycles">—</em></div>
+            </div>
+            <p class="hint" id="takt-pred-detail-cycles">—</p>
+          </div>
+
           <div class="cycle-strip">
             <div class="cycle-head">
-              <strong>Brennerzyklen</strong>
+              <strong>Gemessenes Protokoll</strong>
               <span id="cycle-caption">Zeitachse → rechts = jetzt</span>
             </div>
             <p class="cycle-explain" id="cycle-explain">
