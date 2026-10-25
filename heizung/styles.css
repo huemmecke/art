@@ -2115,9 +2115,14 @@ body.infographic-mode {
   top: auto;
 }
 
-.below-graphic {
+.scenario-explain.below-graphic {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 0.75rem;
+}
+
+.below-graphic .live-insights {
+  margin-top: 0;
 }
 
 .explain-head {
