@@ -469,6 +469,20 @@
     }
   }
 
+  const hatch = $("#revision-hatch");
+  const hatchBtn = $("#hatch-toggle");
+  const hatchBody = $("#hatch-body");
+  if (hatchBtn && hatchBody) {
+    hatchBtn.addEventListener("click", () => {
+      const open = hatch.classList.toggle("is-open");
+      hatchBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      hatchBody.hidden = !open;
+      hatchBtn.querySelector(".hatch-title").textContent = open
+        ? "Revisionsklappe schließen"
+        : "Revisionsklappe öffnen";
+    });
+  }
+
   bindControls();
   pushControlsFromSim();
   readControlsIntoSim();

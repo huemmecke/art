@@ -278,13 +278,13 @@
           </div>
         </section>
 
-        <details class="hatch" id="revision-hatch">
-          <summary>
+        <section class="hatch" id="revision-hatch">
+          <button type="button" class="hatch-toggle" id="hatch-toggle" aria-expanded="false" aria-controls="hatch-body">
             <span class="hatch-title">Revisionsklappe öffnen</span>
             <span class="hatch-sub">Alle Parameter · Heizkörper Art/Größe · Darcy/Exponenten</span>
-          </summary>
+          </button>
 
-          <div class="hatch-body">
+          <div class="hatch-body" id="hatch-body" hidden>
             <p class="physics-badge" id="physics-badge">Physik: EN-442-Exponent + Darcy-Weisbach</p>
 
             <section class="ctrl-block">
@@ -366,7 +366,7 @@
               </div>
             </section>
           </div>
-        </details>
+        </section>
 
         <p class="disclaimer">Lernmodell mit Praxisformeln (EN-442-ähnlich, Darcy) — keine Auslegung nach DIN EN 12831 / keine Planungsfreigabe.</p>
       </aside>
