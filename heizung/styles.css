@@ -134,6 +134,78 @@ h1 {
   z-index: 1;
 }
 
+.spectrum-legend {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 0.55rem;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.spectrum-bar {
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: linear-gradient(
+    90deg,
+    #3b1c8c 0%,
+    #1d4ed8 18%,
+    #06b6d4 36%,
+    #22c55e 52%,
+    #eab308 70%,
+    #f97316 85%,
+    #ef4444 100%
+  );
+}
+
+.spectrum-legend em {
+  font-style: normal;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.cycle-strip {
+  position: relative;
+  z-index: 1;
+  background: rgba(12, 17, 22, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem 0.45rem;
+}
+
+.cycle-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.cycle-head strong {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.cycle-head span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+
+#cycle-canvas {
+  width: 100%;
+  height: 56px;
+  display: block;
+  border-radius: 8px;
+  background: #0a1016;
+}
+
 .hud-card {
   background: rgba(12, 17, 22, 0.7);
   border: 1px solid var(--line);
@@ -277,18 +349,49 @@ h1 {
 }
 
 .boiler-label,
-.boiler-temp-svg {
+.boiler-temp-svg,
+.boiler-vol {
   fill: var(--text);
   font-family: var(--mono);
   font-size: 11px;
 }
 
 .boiler-temp-svg { font-size: 13px; font-weight: 600; }
+.boiler-vol { font-size: 9px; fill: #f0b429; }
+
+.pump {
+  fill: #243140;
+  stroke: #8fa3b5;
+  stroke-width: 2;
+}
+
+.pump.spinning {
+  animation: pump-spin 0.9s linear infinite;
+  transform-origin: 12px 12px;
+  transform-box: fill-box;
+}
 
 .manifold {
   fill: #2c3a48;
   stroke: #7f96ab;
   stroke-width: 1.5;
+}
+
+.rad-vl,
+.rad-rl {
+  fill: #f4f7fb;
+  font-size: 9px;
+  font-family: var(--mono);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(0,0,0,0.55);
+  stroke-width: 2.5px;
+}
+
+.tiny {
+  fill: var(--muted);
+  font-size: 10px;
+  font-family: var(--font);
 }
 
 .pipe {
@@ -313,14 +416,17 @@ h1 {
 }
 
 .radiator {
-  fill: #314352;
-  stroke: #9bb0c2;
-  stroke-width: 2;
-  transition: fill 0.3s ease, filter 0.3s ease;
+  stroke: rgba(255,255,255,0.35);
+  stroke-width: 1.5;
+  transition: filter 0.3s ease;
 }
 
 .radiator.hot {
   filter: url(#glow);
+}
+
+@keyframes pump-spin {
+  to { transform: rotate(360deg); }
 }
 
 .room-stats .stat-name {

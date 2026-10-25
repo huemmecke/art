@@ -1,6 +1,8 @@
 /**
  * Didaktisches Heizkreislauf-Modell (kein DIN-Auslegungstool).
- * Zeigt Zusammenhänge: Heizkurve, Hysterese/Taktung, Hydraulik, Abgleich.
+ *
+ * Kernlehrsatz: Die Gastherme erhitzt nur den kleinen Kesselinhalt.
+ * Die Pumpe trägt dieses warme Wasser portionenweise in den Kreislauf.
  */
 (function () {
   "use strict";
@@ -64,10 +66,14 @@
   };
 
   const ROOMS = {
-    living: { id: "living", label: "Wohnzimmer", lengthFactor: 0.55, baseKvOpen: 1.0 },
-    bath: { id: "bath", label: "Bad", lengthFactor: 1.0, baseKvOpen: 1.0 },
-    bed: { id: "bed", label: "Schlafzimmer", lengthFactor: 1.85, baseKvOpen: 1.0 },
+    living: { id: "living", label: "Wohnzimmer", lengthFactor: 0.55, baseKvOpen: 1.0, pipeVolL: 4 },
+    bath: { id: "bath", label: "Bad", lengthFactor: 1.0, baseKvOpen: 1.0, pipeVolL: 8 },
+    bed: { id: "bed", label: "Schlafzimmer", lengthFactor: 1.85, baseKvOpen: 1.0, pipeVolL: 14 },
   };
+
+  /** Liter Kesselwasser — bewusst klein gegen den Kreislauf */
+  const BOILER_VOLUME_L = 7;
+  const RETURN_HEADER_L = 12;
 
   function clamp(v, a, b) {
     return Math.max(a, Math.min(b, v));
@@ -78,12 +84,26 @@
   }
 
   function heatingCurveFlowSet(outdoor, slope, shift) {
-    // Einfache Heizkurve: bei 20 °C außen → ~20 °C Vorlauf, bei -15 °C → hoch
     const designOutdoor = -12;
     const designFlow = 20 + slope * (20 - designOutdoor) * 1.55;
     const t = (20 - outdoor) / (20 - designOutdoor);
     const raw = 20 + t * (designFlow - 20);
     return clamp(raw + shift, 25, 75);
+  }
+
+  function createRoomState(tSet, loadW, tRoom) {
+    return {
+      tSet,
+      loadW,
+      tRoom,
+      flowLh: 0,
+      emitterW: 0,
+      tIn: tRoom + 8,
+      tOut: tRoom + 4,
+      spread: 4,
+      pipeSupplyT: tRoom + 6,
+      pipeReturnT: tRoom + 3,
+    };
   }
 
   function createSim(initial) {
@@ -93,27 +113,34 @@
       shift: initial.shift ?? 0,
       diameterMm: initial.diameterMm ?? 15,
       lengthMul: initial.lengthMul ?? 1,
-      balance: initial.balance ?? 20, // 0..100
+      balance: initial.balance ?? 20,
       burnerPowerKw: initial.burnerPowerKw ?? 18,
       brandId: initial.brandId ?? "viessmann",
       hystOverride: initial.hystOverride ?? null,
       rooms: {
-        living: { tSet: 21, loadW: 1800, tRoom: 19.5 },
-        bath: { tSet: 24, loadW: 900, tRoom: 21 },
-        bed: { tSet: 18, loadW: 1400, tRoom: 17.5 },
+        living: createRoomState(21, 1800, 19.5),
+        bath: createRoomState(24, 900, 21),
+        bed: createRoomState(18, 1400, 17.5),
       },
+      /** Nur der kleine Kesselinhalt — nicht der ganze Kreislauf */
       boilerT: 42,
+      returnHeaderT: 36,
+      boilerVolumeL: BOILER_VOLUME_L,
+      circuitVolumeL: 0,
       burner: {
-        mode: "off", // off | igniting | on
+        mode: "off",
         powerFrac: 0,
         igniteLeft: 0,
         runTime: 0,
         lockLeft: 0,
         starts: [],
+        /** Zyklus-Historie für die Zeitachse [{t, on, power}] */
+        cycleLog: [],
       },
       tips: [],
       simTime: 0,
-      dtScale: 18, // 1s realtime ≈ 18s Anlagenzeit — spürbare Dynamik
+      dtScale: 18,
+      lastBurnerOn: false,
     };
 
     function brand() {
@@ -129,10 +156,21 @@
       return heatingCurveFlowSet(state.outdoor, state.slope, state.shift);
     }
 
+    function circuitVolumeLiters() {
+      const d = state.diameterMm / 1000;
+      const area = Math.PI * (d / 2) ** 2;
+      let pipeL = 0;
+      for (const meta of Object.values(ROOMS)) {
+        const lengthM = 8 * meta.lengthFactor * state.lengthMul;
+        pipeL += area * lengthM * 1000; // m³ → L
+        pipeL += meta.pipeVolL * state.lengthMul;
+      }
+      return pipeL + RETURN_HEADER_L + 18; // + Heizkörperwasser grob
+    }
+
     function pipeResistance(lengthFactor) {
       const d = state.diameterMm / 15;
       const L = lengthFactor * state.lengthMul;
-      // Δp ~ L / d^5 grob (Laminar/Faustformel für Lehre)
       return (L / Math.pow(Math.max(d, 0.55), 4.5)) * 1.15;
     }
 
@@ -140,26 +178,27 @@
       const meta = ROOMS[roomKey];
       const room = state.rooms[roomKey];
       const bal = state.balance / 100;
-
-      // Ohne Abgleich: kurze Stränge haben viel höheren Durchflussanteil
       const natural = 1 / pipeResistance(meta.lengthFactor);
-      // Mit Abgleich: Voreinstellung drosselt kurze Stränge
-      const targetShare = 1 / 3;
-      const openShare = natural;
-      const sharesSumApprox = Object.keys(ROOMS).reduce((s, k) => s + 1 / pipeResistance(ROOMS[k].lengthFactor), 0);
-      const naturalNorm = openShare / sharesSumApprox;
-      const balancedKv = targetShare / Math.max(naturalNorm, 0.05);
+      const sharesSumApprox = Object.keys(ROOMS).reduce(
+        (s, k) => s + 1 / pipeResistance(ROOMS[k].lengthFactor),
+        0
+      );
+      const naturalNorm = natural / sharesSumApprox;
+      const balancedKv = 1 / 3 / Math.max(naturalNorm, 0.05);
       const kv = lerp(1.0, balancedKv, bal) * meta.baseKvOpen;
-
-      // Thermostat: P-Band ~2 K
       const err = room.tSet - room.tRoom;
       const thermoOpen = clamp(err / 2 + 0.35, 0.02, 1);
-
       const resistance = pipeResistance(meta.lengthFactor) / Math.max(kv * thermoOpen, 0.03);
       return 1 / resistance;
     }
 
+    /**
+     * Wärmetransport: Pumpe schiebt Kesselwasser in die Rohre.
+     * Langer Strang = mehr Totzeit, Wärme kommt später an.
+     */
     function hydraulics(dt) {
+      state.circuitVolumeL = circuitVolumeLiters();
+
       const cond = {};
       let sum = 0;
       for (const k of Object.keys(ROOMS)) {
@@ -167,7 +206,6 @@
         sum += cond[k];
       }
 
-      // Pumpenvolumenstrom sinkt mit Gesamtwiderstand / dünnen Rohren
       const avgRes =
         Object.keys(ROOMS).reduce((s, k) => s + pipeResistance(ROOMS[k].lengthFactor), 0) / 3;
       const pumpMaxLh = 900;
@@ -178,38 +216,77 @@
         flows[k] = sum > 0 ? (cond[k] / sum) * totalLh : 0;
       }
 
-      const boilerT = state.boilerT;
       const outdoor = state.outdoor;
+      const cp = 4180;
       let returnMix = 0;
       let flowWeight = 0;
       let heatExtractKw = 0;
 
       for (const k of Object.keys(ROOMS)) {
+        const meta = ROOMS[k];
         const room = state.rooms[k];
-        const mDot = flows[k] / 3600; // kg/s ≈ L/s
-        const cp = 4180;
-        // Heizkörper: Leistung ~ Massenstrom * Spreizung, begrenzt durch Übertemperatur
-        const deltaDrive = Math.max(boilerT - room.tRoom, 0);
-        const emitterW = Math.min(
-          mDot * cp * Math.min(deltaDrive * 0.55, 18),
-          deltaDrive * 120 + flows[k] * 1.8
+        const flowLh = flows[k];
+        const mDot = flowLh / 3600;
+
+        // Transportverzögerung Vorlauf: Rohvolumen / Volumenstrom
+        const supplyVol = meta.pipeVolL * state.lengthMul * (15 / Math.max(state.diameterMm, 10));
+        const tauSupply = clamp((supplyVol / Math.max(flowLh, 20)) * 3600, 8, 180);
+        const alphaS = 1 - Math.exp(-dt / tauSupply);
+        room.pipeSupplyT = lerp(room.pipeSupplyT, state.boilerT, alphaS);
+        room.tIn = room.pipeSupplyT;
+
+        // Heizkörper: Wärmeabgabe aus mittlerer Übertemperatur + Massenstrom
+        const meanWater = (room.tIn + room.tOut) / 2;
+        const deltaDrive = Math.max(meanWater - room.tRoom, 0);
+        const maxSpread = clamp(room.tIn - room.tRoom - 1, 1, 25);
+        let emitterW = Math.min(
+          mDot * cp * maxSpread,
+          deltaDrive * (95 + flowLh * 0.9)
         );
-        const netW = emitterW - room.loadW * Math.max((room.tRoom - outdoor) / Math.max(room.tSet - outdoor, 4), 0.25);
-        // Raumkapazität ~ 0.05 K pro 100 W · Minute
-        const dT = (netW / 100) * 0.035 * (dt / 60);
-        room.tRoom = clamp(room.tRoom + dT, outdoor + 0.5, 32);
+        if (flowLh < 15) emitterW *= flowLh / 15;
 
-        const returnT = boilerT - Math.min(15, emitterW / Math.max(mDot * cp, 1));
-        returnMix += returnT * flows[k];
-        flowWeight += flows[k];
+        // Spreizung aus Q = m·cp·ΔT
+        const spread =
+          mDot > 0.00005 ? clamp(emitterW / (mDot * cp), 0.5, maxSpread) : Math.min(2, maxSpread);
+        room.tOut = room.tIn - spread;
+        room.spread = spread;
+
+        // Rücklauf-Rohr laggt etwas
+        const tauRet = tauSupply * 0.85;
+        const alphaR = 1 - Math.exp(-dt / tauRet);
+        room.pipeReturnT = lerp(room.pipeReturnT, room.tOut, alphaR);
+
+        const lossFactor = Math.max((room.tRoom - outdoor) / Math.max(room.tSet - outdoor, 4), 0.2);
+        const netW = emitterW - room.loadW * lossFactor;
+        room.tRoom = clamp(room.tRoom + (netW / 100) * 0.035 * (dt / 60), outdoor + 0.5, 34);
+
+        returnMix += room.pipeReturnT * flowLh;
+        flowWeight += flowLh;
         heatExtractKw += emitterW / 1000;
-
-        room.flowLh = flows[k];
+        room.flowLh = flowLh;
         room.emitterW = emitterW;
       }
 
-      const tReturn = flowWeight > 0 ? returnMix / flowWeight : boilerT - 5;
-      return { totalLh, flows, tReturn, heatExtractKw };
+      const tReturnMix = flowWeight > 0 ? returnMix / flowWeight : state.returnHeaderT;
+      // Rücklaufsammler mischt, ehe Wasser zurück in den kleinen Kessel geht
+      const tauHeader = clamp((RETURN_HEADER_L / Math.max(totalLh, 40)) * 3600, 5, 90);
+      const alphaH = 1 - Math.exp(-dt / tauHeader);
+      state.returnHeaderT = lerp(state.returnHeaderT, tReturnMix, alphaH);
+
+      return { totalLh, flows, tReturn: state.returnHeaderT, heatExtractKw };
+    }
+
+    function logCycle(on, power) {
+      const log = state.burner.cycleLog;
+      const last = log[log.length - 1];
+      if (!last || last.on !== on || Math.abs((last.power || 0) - power) > 0.08) {
+        log.push({ t: state.simTime, on, power });
+      } else {
+        last.power = power;
+        last.tEnd = state.simTime;
+      }
+      // behalte ~15 min Simulationszeit
+      while (log.length > 2 && state.simTime - log[0].t > 900) log.shift();
     }
 
     function updateBurner(dt, flowSet, heatExtractKw) {
@@ -219,13 +296,13 @@
       const offAt = flowSet + hyst / 2;
       const br = state.burner;
 
-      // Starts in letzter Simulationsstunde
       br.starts = br.starts.filter((t) => state.simTime - t < 3600);
-
       if (br.lockLeft > 0) br.lockLeft = Math.max(0, br.lockLeft - dt);
+
       if (br.mode === "igniting") {
         br.igniteLeft -= dt;
         br.powerFrac = 0;
+        logCycle(false, 0);
         if (br.igniteLeft <= 0) {
           br.mode = "on";
           br.runTime = 0;
@@ -239,27 +316,26 @@
         let want;
         if (b.modulating) {
           const band = Math.max(hyst, 1);
-          // unter Soll → mehr Leistung
           const err = flowSet - state.boilerT;
           want = clamp(0.35 + err / band, b.minMod, 1);
         } else {
           want = 1;
         }
         br.powerFrac = lerp(br.powerFrac, want, clamp(b.ramp * (dt / 10), 0.05, 1));
+        logCycle(true, br.powerFrac);
 
-        const canStop = br.runTime >= b.minRun;
-        if (canStop && state.boilerT >= offAt) {
+        if (br.runTime >= b.minRun && state.boilerT >= offAt) {
           br.mode = "off";
           br.powerFrac = 0;
           br.lockLeft = b.lockout;
+          logCycle(false, 0);
         }
         return { onAt, offAt };
       }
 
-      // off
       br.powerFrac = 0;
-      const needHeat = state.boilerT <= onAt || (heatExtractKw > 0.4 && state.boilerT < flowSet - 0.3);
-      if (needHeat && br.lockLeft <= 0 && state.boilerT <= onAt + 0.2) {
+      logCycle(false, 0);
+      if (state.boilerT <= onAt && br.lockLeft <= 0) {
         br.mode = "igniting";
         br.igniteLeft = b.ignition;
         br.starts.push(state.simTime);
@@ -267,59 +343,83 @@
       return { onAt, offAt };
     }
 
-    function updateBoiler(dt, heatExtractKw) {
-      const capacityKPerKwMin = 0.55; // kleine Wassermasse → sichtbare Dynamik
+    /**
+     * Nur der kleine Kesselinhalt wird vom Brenner erhitzt.
+     * Rücklaufwasser verdünnt ihn — Pumpe tauscht Volumen aus.
+     */
+    function updateBoiler(dt, totalLh, heatExtractKw) {
       const inputKw = state.burner.powerFrac * state.burnerPowerKw;
-      const lossKw = Math.max(0, (state.boilerT - state.outdoor) * 0.012);
-      const net = inputKw - heatExtractKw - lossKw;
-      state.boilerT = clamp(state.boilerT + net * capacityKPerKwMin * (dt / 60), state.outdoor + 1, 88);
+      const lossKw = Math.max(0, (state.boilerT - state.outdoor) * 0.01);
+
+      // Volumenstrom durch den Kessel mischt Rücklauf ein
+      const mixFrac = clamp((totalLh * (dt / 3600)) / BOILER_VOLUME_L, 0, 0.45);
+      const afterMix = state.boilerT * (1 - mixFrac) + state.returnHeaderT * mixFrac;
+
+      // Brennerleistung auf kleine Wassermasse → schnelle ΔT
+      // Q = m·cp·ΔT → ΔT = Q·dt / (m·cp); m = 7 kg
+      const massKg = BOILER_VOLUME_L;
+      const dTBurn = (inputKw * 1000 * dt) / (massKg * 4180);
+      const dTLoss = (lossKw * 1000 * dt) / (massKg * 4180);
+
+      state.boilerT = clamp(afterMix + dTBurn - dTLoss, state.outdoor + 1, 88);
+      void heatExtractKw; // Abgabe passiert an den Heizkörpern, nicht „aus dem Kessel abgezogen“
     }
 
     function buildTips(hyd, onAt, offAt, flowSet) {
       const tips = [];
       const starts = state.burner.starts.length;
       const flows = hyd.flows;
-      const short = flows.living;
-      const long = flows.bed;
+      const volRatio = state.circuitVolumeL / BOILER_VOLUME_L;
+
+      tips.push({
+        level: "ok",
+        text: `Therme erhitzt nur ~${BOILER_VOLUME_L} L Kesselwasser — Kreislauf ≈ ${state.circuitVolumeL.toFixed(0)} L (≈${volRatio.toFixed(0)}×). Die Pumpe trägt die Wärme portionenweise hinaus.`,
+      });
 
       if (state.burner.mode === "igniting") {
-        tips.push({ level: "warn", text: "Brenner zündet … Vorlauf noch nicht aktiv." });
+        tips.push({ level: "warn", text: "Brenner zündet … erst der Kessel wird heiß, Rohre noch kälter." });
       } else if (state.burner.mode === "on") {
         const pct = Math.round(state.burner.powerFrac * 100);
+        const lagBed = state.boilerT - state.rooms.bed.tIn;
         tips.push({
           level: "ok",
           text: brand().modulating
-            ? `Brenner moduliert bei ${pct} % — hält das Hysterese-Band um ${flowSet.toFixed(0)} °C.`
-            : `Brenner läuft Vollast, bis Ausschaltpunkt ${offAt.toFixed(1)} °C erreicht ist.`,
+            ? `Brenner ${pct} %: Kessel ${state.boilerT.toFixed(0)} °C. Langer Strang hinkt um ${Math.max(0, lagBed).toFixed(1)} K hinterher.`
+            : `Brenner Vollast bis ${offAt.toFixed(1)} °C — Wärmewelle wandert erst danach durch die Rohre.`,
         });
       } else {
         tips.push({
           level: "ok",
-          text: `Brenner aus. Schaltet erst unter ${onAt.toFixed(1)} °C wieder ein (Hysterese).`,
+          text: `Brenner aus (unter ${onAt.toFixed(1)} °C wieder an). Restwärme im Kreislauf kühlt über die Heizkörper ab.`,
+        });
+      }
+
+      // Spreizung-Tipp
+      const spLiving = state.rooms.living.spread;
+      const spBed = state.rooms.bed.spread;
+      if (spLiving < 4 && flows.living > flows.bed * 1.4) {
+        tips.push({
+          level: "warn",
+          text: `Wohnzimmer-Spreizung nur ${spLiving.toFixed(1)} K (viel Durchfluss) — Schlafzimmer ${spBed.toFixed(1)} K. Typisch ohne Abgleich.`,
         });
       }
 
       if (starts >= 6) {
         tips.push({
           level: "bad",
-          text: `${starts} Starts in der letzten Stunde — Takten! Hysterese verbreitern, Mindestlaufzeit/Kurve prüfen.`,
+          text: `${starts} Starts/h — Takten! Kleiner Kesselinhalt + enge Hysterese = viele Zyklen.`,
         });
       } else if (starts >= 3) {
         tips.push({
           level: "warn",
-          text: `${starts} Starts/h — Grenzbereich. Schmale Hysterese oder zu große Leistung begünstigt Takten.`,
+          text: `${starts} Starts/h — Grenzbereich. Zyklusband unten beobachten.`,
         });
       }
 
-      if (state.balance < 40 && short > long * 1.6) {
+      if (state.balance < 40 && flows.living > flows.bed * 1.6) {
         tips.push({
           level: "bad",
-          text: "Kurzer Strang (Wohnzimmer) stiehlt Durchfluss — Schlafzimmer bleibt unterversorgt. Abgleich erhöhen!",
-        });
-      } else if (state.balance > 75) {
-        tips.push({
-          level: "ok",
-          text: "Hydraulischer Abgleich wirkt: Massenstrom besser verteilt.",
+          text: "Kurzer Strang stiehlt Durchfluss — Wärme kommt im Schlafzimmer spät/wenig an.",
         });
       }
 
@@ -330,22 +430,7 @@
         });
       }
 
-      const coldLong = state.rooms.bed.tRoom < state.rooms.bed.tSet - 1.2;
-      if (coldLong && flows.bed < flows.living * 0.7) {
-        tips.push({
-          level: "warn",
-          text: "Schlafzimmer: zu wenig Volumenstrom — Thermostat auf, Abgleich oder Durchmesser prüfen.",
-        });
-      }
-
-      if (Math.abs(state.shift) >= 4) {
-        tips.push({
-          level: "warn",
-          text: `Parallelverschiebung ${state.shift > 0 ? "+" : ""}${state.shift} K verschiebt die ganze Heizkurve — Vorlauf-Soll jetzt ${flowSet.toFixed(0)} °C.`,
-        });
-      }
-
-      state.tips = tips.slice(0, 4);
+      state.tips = tips.slice(0, 5);
     }
 
     function step(realDt) {
@@ -355,7 +440,7 @@
       const flowSet = flowSetpoint();
       const hyd = hydraulics(dt);
       const { onAt, offAt } = updateBurner(dt, flowSet, hyd.heatExtractKw);
-      updateBoiler(dt, hyd.heatExtractKw);
+      updateBoiler(dt, hyd.totalLh, hyd.heatExtractKw);
       buildTips(hyd, onAt, offAt, flowSet);
 
       return snapshot(hyd, onAt, offAt, flowSet);
@@ -365,7 +450,8 @@
       const br = state.burner;
       let modeLabel = "AUS";
       if (br.mode === "igniting") modeLabel = "ZÜNDET";
-      else if (br.mode === "on") modeLabel = brand().modulating && br.powerFrac < 0.95 ? "MODULIERT" : "BRENNT";
+      else if (br.mode === "on")
+        modeLabel = brand().modulating && br.powerFrac < 0.95 ? "MODULIERT" : "BRENNT";
 
       return {
         outdoor: state.outdoor,
@@ -382,9 +468,14 @@
         onAt,
         offAt,
         boilerT: state.boilerT,
+        returnHeaderT: state.returnHeaderT,
+        boilerVolumeL: BOILER_VOLUME_L,
+        circuitVolumeL: state.circuitVolumeL || circuitVolumeLiters(),
         burnerMode: modeLabel,
         burnerFrac: br.powerFrac,
         startsHour: br.starts.length,
+        cycleLog: br.cycleLog.slice(),
+        simTime: state.simTime,
         rooms: {
           living: { ...state.rooms.living },
           bath: { ...state.rooms.bath },
@@ -401,9 +492,31 @@
       Object.assign(state, rest);
       if (roomPatch) {
         for (const k of Object.keys(roomPatch)) {
-          if (!state.rooms[k]) state.rooms[k] = { tSet: 20, loadW: 1000, tRoom: 20 };
+          if (!state.rooms[k]) state.rooms[k] = createRoomState(20, 1000, 20);
           Object.assign(state.rooms[k], roomPatch[k]);
         }
+      }
+    }
+
+    function resetBurnerAndTemps() {
+      state.boilerT = 42;
+      state.returnHeaderT = 36;
+      state.burner = {
+        mode: "off",
+        powerFrac: 0,
+        igniteLeft: 0,
+        runTime: 0,
+        lockLeft: 0,
+        starts: [],
+        cycleLog: [],
+      };
+      for (const k of Object.keys(state.rooms)) {
+        const r = state.rooms[k];
+        r.pipeSupplyT = r.tRoom + 6;
+        r.pipeReturnT = r.tRoom + 3;
+        r.tIn = r.pipeSupplyT;
+        r.tOut = r.pipeReturnT;
+        r.spread = 3;
       }
     }
 
@@ -419,6 +532,7 @@
           balance: 70,
         });
         state.boilerT = flowSetpoint();
+        state.burner.cycleLog = [];
       } else if (id === "kalt-lang") {
         setControls({
           brandId: "viessmann",
@@ -462,15 +576,7 @@
             bed: { tSet: 18, loadW: 1400 },
           },
         });
-        state.boilerT = 42;
-        state.burner = {
-          mode: "off",
-          powerFrac: 0,
-          igniteLeft: 0,
-          runTime: 0,
-          lockLeft: 0,
-          starts: [],
-        };
+        resetBurnerAndTemps();
       }
     }
 
@@ -496,5 +602,5 @@
     };
   }
 
-  window.HeizungSim = { createSim, BRANDS, ROOMS, heatingCurveFlowSet };
+  window.HeizungSim = { createSim, BRANDS, ROOMS, heatingCurveFlowSet, BOILER_VOLUME_L };
 })();

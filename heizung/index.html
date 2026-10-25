@@ -20,7 +20,7 @@
           <h1>Heizkreislauf-Trainer</h1>
         </div>
       </div>
-      <p class="tagline">Dreh an den Parametern — sieh, was der Brenner und der Kreislauf tun.</p>
+      <p class="tagline">Die Therme erhitzt nur den kleinen Kesselinhalt — die Pumpe trägt die Wärme in den Kreislauf. Dreh an den Parametern und sieh Spreizung, Spektrum und Brennerzyklen.</p>
     </header>
 
     <main class="stage">
@@ -32,20 +32,27 @@
             <span class="hud-sub" id="burner-power-hud">0 %</span>
           </div>
           <div class="hud-card" id="hud-boiler">
-            <span class="hud-label">Kessel</span>
+            <span class="hud-label">Kessel (nur ~7 L)</span>
             <strong><span id="boiler-temp">40.0</span> °C</strong>
             <span class="hud-sub">Soll <span id="boiler-set">45.0</span> °C</span>
+          </div>
+          <div class="hud-card" id="hud-volumes">
+            <span class="hud-label">Volumen</span>
+            <strong><span id="vol-boiler">7</span> L → <span id="vol-circuit">80</span> L</strong>
+            <span class="hud-sub">Rücklauf <span id="return-temp">36</span> °C</span>
           </div>
           <div class="hud-card">
             <span class="hud-label">Starts / h</span>
             <strong id="starts-hour">0</strong>
             <span class="hud-sub" id="hyst-readout">Hysterese ±2 K</span>
           </div>
-          <div class="hud-card">
-            <span class="hud-label">Außen</span>
-            <strong><span id="outdoor-readout">0</span> °C</strong>
-            <span class="hud-sub">Vorlauf-Soll <span id="flow-set">45</span> °C</span>
-          </div>
+        </div>
+
+        <div class="spectrum-legend" aria-hidden="true">
+          <span>20 °C</span>
+          <div class="spectrum-bar"></div>
+          <span>75 °C</span>
+          <em>Spektrum = Wassertemperatur</em>
         </div>
 
         <div class="hysteresis-band" aria-hidden="true">
@@ -57,9 +64,17 @@
           </div>
           <div class="hyst-labels">
             <span>kalt</span>
-            <span>Hysterese-Band</span>
+            <span>Hysterese-Band (Kessel)</span>
             <span>heiß</span>
           </div>
+        </div>
+
+        <div class="cycle-strip" aria-label="Brennerzyklen">
+          <div class="cycle-head">
+            <strong>Brennerzyklen</strong>
+            <span id="cycle-caption">letzte ~15 min Anlagenzeit</span>
+          </div>
+          <canvas id="cycle-canvas" width="900" height="56"></canvas>
         </div>
 
         <svg class="house" viewBox="0 0 920 560" role="img" aria-label="Hausgrundriss mit Heizkreislauf">
@@ -72,6 +87,18 @@
               <feGaussianBlur stdDeviation="2.5" result="b"/>
               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
+            <linearGradient id="radGrad-living" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e24a2b"/>
+              <stop offset="100%" stop-color="#2a6f9e"/>
+            </linearGradient>
+            <linearGradient id="radGrad-bath" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e24a2b"/>
+              <stop offset="100%" stop-color="#2a6f9e"/>
+            </linearGradient>
+            <linearGradient id="radGrad-bed" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e24a2b"/>
+              <stop offset="100%" stop-color="#2a6f9e"/>
+            </linearGradient>
           </defs>
 
           <!-- Building shell -->
@@ -92,54 +119,67 @@
           <rect class="heat-fill" id="heat-bath" x="586" y="90" width="278" height="180" rx="12"/>
           <rect class="heat-fill" id="heat-bed" x="290" y="310" width="574" height="190" rx="12"/>
 
-          <!-- Boiler -->
+          <!-- Boiler: small heated pocket -->
           <g id="boiler-group" transform="translate(100,140)">
-            <rect class="boiler-body" x="0" y="0" width="90" height="110" rx="10"/>
+            <rect class="boiler-body" id="boiler-body" x="0" y="0" width="90" height="110" rx="10"/>
             <rect class="boiler-flame" id="boiler-flame" x="18" y="55" width="54" height="36" rx="8"/>
-            <text class="boiler-label" x="45" y="28" text-anchor="middle">KESSEL</text>
-            <text class="boiler-temp-svg" id="boiler-svg-temp" x="45" y="48" text-anchor="middle">40°</text>
+            <text class="boiler-label" x="45" y="22" text-anchor="middle">THERME</text>
+            <text class="boiler-temp-svg" id="boiler-svg-temp" x="45" y="42" text-anchor="middle">40°</text>
+            <text class="boiler-vol" x="45" y="100" text-anchor="middle">nur ~7 L heiß</text>
+          </g>
+
+          <!-- Pump -->
+          <g id="pump-group" transform="translate(198,168)">
+            <circle class="pump" id="pump-disc" cx="12" cy="12" r="14"/>
+            <text class="tiny" x="12" y="40" text-anchor="middle">Pumpe</text>
           </g>
 
           <!-- Manifold -->
-          <g transform="translate(210,155)">
-            <rect class="manifold" x="0" y="0" width="36" height="80" rx="6"/>
+          <g transform="translate(230,155)">
+            <rect class="manifold" id="manifold-body" x="0" y="0" width="36" height="80" rx="6"/>
             <text class="tiny" x="18" y="96" text-anchor="middle">Verteiler</text>
           </g>
 
           <!-- Pipes: supply (hot) and return (cool) -->
-          <path id="pipe-supply-main" class="pipe supply" d="M190 175 H228"/>
-          <path id="pipe-return-main" class="pipe return" d="M190 210 H228"/>
+          <path id="pipe-supply-main" class="pipe supply" d="M190 180 H230"/>
+          <path id="pipe-return-main" class="pipe return" d="M190 215 H230"/>
 
           <!-- Living: short circuit -->
-          <path id="pipe-living-s" class="pipe supply flowable" d="M246 170 H360 V200"/>
-          <path id="pipe-living-r" class="pipe return flowable" d="M360 220 V250 H246 V210"/>
-          <circle class="radiator" id="rad-living" cx="360" cy="210" r="18"/>
+          <path id="pipe-living-s" class="pipe supply flowable" d="M266 170 H360 V188"/>
+          <path id="pipe-living-r" class="pipe return flowable" d="M360 248 V260 H266 V215"/>
+          <rect class="radiator" id="rad-living" x="338" y="188" width="44" height="60" rx="6" fill="url(#radGrad-living)"/>
+          <text class="rad-vl" id="vl-living" x="360" y="206" text-anchor="middle">VL —</text>
+          <text class="rad-rl" id="rl-living" x="360" y="236" text-anchor="middle">RL —</text>
 
           <!-- Bath: medium -->
-          <path id="pipe-bath-s" class="pipe supply flowable" d="M246 165 H700 V200"/>
-          <path id="pipe-bath-r" class="pipe return flowable" d="M700 220 V255 H246 V205"/>
-          <circle class="radiator" id="rad-bath" cx="700" cy="210" r="18"/>
+          <path id="pipe-bath-s" class="pipe supply flowable" d="M266 165 H700 V188"/>
+          <path id="pipe-bath-r" class="pipe return flowable" d="M700 248 V265 H266 V210"/>
+          <rect class="radiator" id="rad-bath" x="678" y="188" width="44" height="60" rx="6" fill="url(#radGrad-bath)"/>
+          <text class="rad-vl" id="vl-bath" x="700" y="206" text-anchor="middle">VL —</text>
+          <text class="rad-rl" id="rl-bath" x="700" y="236" text-anchor="middle">RL —</text>
 
           <!-- Bed: long circuit -->
-          <path id="pipe-bed-s" class="pipe supply flowable" d="M246 175 H270 V400 H520"/>
-          <path id="pipe-bed-r" class="pipe return flowable" d="M520 420 H250 V215"/>
-          <circle class="radiator" id="rad-bed" cx="520" cy="410" r="18"/>
+          <path id="pipe-bed-s" class="pipe supply flowable" d="M266 175 H280 V388 H500"/>
+          <path id="pipe-bed-r" class="pipe return flowable" d="M500 460 H260 V220"/>
+          <rect class="radiator" id="rad-bed" x="478" y="388" width="44" height="72" rx="6" fill="url(#radGrad-bed)"/>
+          <text class="rad-vl" id="vl-bed" x="500" y="410" text-anchor="middle">VL —</text>
+          <text class="rad-rl" id="rl-bed" x="500" y="444" text-anchor="middle">RL —</text>
 
           <!-- Room readouts -->
           <g class="room-stats" id="stats-living" transform="translate(305,115)">
             <text class="stat-name" x="0" y="0">Wohnzimmer · kurz</text>
-            <text class="stat-temp" id="temp-living" x="0" y="28">20.0 °C</text>
-            <text class="stat-flow" id="flow-living" x="0" y="50">0 L/h</text>
+            <text class="stat-temp" id="temp-living" x="0" y="26">20.0 °C</text>
+            <text class="stat-flow" id="flow-living" x="0" y="46">ΔT — · 0 L/h</text>
           </g>
           <g class="room-stats" id="stats-bath" transform="translate(600,115)">
             <text class="stat-name" x="0" y="0">Bad · mittel</text>
-            <text class="stat-temp" id="temp-bath" x="0" y="28">20.0 °C</text>
-            <text class="stat-flow" id="flow-bath" x="0" y="50">0 L/h</text>
+            <text class="stat-temp" id="temp-bath" x="0" y="26">20.0 °C</text>
+            <text class="stat-flow" id="flow-bath" x="0" y="46">ΔT — · 0 L/h</text>
           </g>
           <g class="room-stats" id="stats-bed" transform="translate(305,335)">
             <text class="stat-name" x="0" y="0">Schlafzimmer · lang</text>
-            <text class="stat-temp" id="temp-bed" x="0" y="28">20.0 °C</text>
-            <text class="stat-flow" id="flow-bed" x="0" y="50">0 L/h</text>
+            <text class="stat-temp" id="temp-bed" x="0" y="26">20.0 °C</text>
+            <text class="stat-flow" id="flow-bed" x="0" y="46">ΔT — · 0 L/h</text>
           </g>
 
           <!-- Callout bubbles -->
