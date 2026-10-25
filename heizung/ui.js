@@ -18,6 +18,98 @@
 
   let lastBurnerMode = null;
   let taktFlashTimer = 0;
+  let activeScenarioId = "taktend";
+
+  const SCENARIOS = {
+    taktend: {
+      title: "Takten provozieren",
+      lead: "Kleine Heizlast trifft auf die Mindestleistung der Therme — sie kann nicht weiter drosseln und taktet.",
+      what:
+        "Außen relativ mild, Räume fast am Soll: der Wärmeabfluss ist kleiner als die kleinste sinnvolle Brennerleistung (Pmin). Die Therme fährt kurz an, das Kesselwasser läuft ins Hysterese-Band, dann sperrt sie wieder.",
+      links: [
+        "Heizlast < Pmin → überschüssige Energie bleibt im kleinen Kesselwasser (~7 L).",
+        "Enges Hysterese-Band → Einschalt- und Ausschaltpunkt liegen nah beieinander → kurze Zyklen.",
+        "Viele Starts/h belasten Zündung und Wärmetauscher — deshalb Band vergrößern, Kurve absenken oder Speichervolumen nutzen.",
+      ],
+      watch:
+        "Brenner-Chip und Zyklusprotokoll: orange/gelb Balken sollten eng hintereinander liegen. Vergleiche Prognose Starts/h mit dem gemessenen Wert.",
+    },
+    "kalt-lang": {
+      title: "Langer Strang kalt",
+      lead: "Viel Rohrvolumen und hoher Widerstand — der entfernte Raum bekommt Wärme später und mit mehr Verlust.",
+      what:
+        "Schlechter Abgleich, dünnere Rohre und langer Weg: der Massenstrom zum Schlafzimmer bricht ein. VL kühlt unterwegs ab, ΔT und Leistung am Heizkörper sinken, Ist bleibt unter Soll.",
+      links: [
+        "Länge × Widerstand → weniger Liter/h am entfernten Strang.",
+        "Rohrvolumen speichert Wärme unterwegs — kurze Stränge reagieren schneller.",
+        "Wohnzimmer (kurz) kann „stehlen“, wenn Ventile dort weit offen sind.",
+      ],
+      watch:
+        "Vergleiche Durchfluss und ΔT von Wohnzimmer vs. Schlafzimmer. Der lange Strang sollte kühleren RL und weniger L/h zeigen.",
+    },
+    abgleich: {
+      title: "Abgleich retten",
+      lead: "Ventile und Widerstände so setzen, dass jeder Strang seinen fairen Anteil am Volumenstrom bekommt.",
+      what:
+        "Mit hohem Abgleichwert werden kurze Stränge gedrosselt und lange freigegeben. Die Pumpe verteilt den Förderstrom nach den eingestellten Widerständen — nicht nach „wer zuerst kommt“.",
+      links: [
+        "Abgleich ≠ Thermostat: Thermostat regelt Raumtemperatur, Abgleich setzt den Basis-Durchfluss.",
+        "Ohne Abgleich: kurze, dicke Wege bekommen zu viel, lange zu wenig.",
+        "Ziel: alle Räume erreichen Soll bei ähnlicher Spreizung, ohne dass einer überversorgt wird.",
+      ],
+      watch:
+        "Stell den Abgleich-Schieber und beobachte, wie sich L/h und Ist-Temperaturen angleichen.",
+    },
+    fussboden: {
+      title: "Fußbodenheizung",
+      lead: "Große Fläche, niedrige Vorlauftemperatur — die Heizkurve liegt flach, die Spreizung ist klein.",
+      what:
+        "FBH braucht viel mildes Wasser statt wenig heißes. Steigung und Parallelverschiebung der Kurve sind abgesenkt; die Heizkörperkennlinie (n ≈ 1,1) reagiert weicher auf ΔTm.",
+      links: [
+        "Niedrige VL → weniger Verluste in den Rohren, aber Trägheit der Estrichmasse.",
+        "Kleine Spreizung (oft 5–8 K) bei hohem Massenstrom.",
+        "Mischung mit Radiatoren: Bad oft weiterhin höherer VL-Bedarf.",
+      ],
+      watch:
+        "VL-Temperatur und ΔT bleiben moderat. Räume brauchen länger, bis Ist den Soll erreicht — das ist physikalisch erwartet.",
+    },
+    reset: {
+      title: "Standardanlage",
+      lead: "Ausgeglichener Startpunkt: typische Radiatoren, mittlere Kurve, offener Abgleich als Lernbasis.",
+      what:
+        "Drei Räume mit unterschiedlichen Stranglängen. Du siehst den Grundkreislauf Therme → Pumpe → VL → HK → RL und kannst von hier gezielt Störungen einbauen.",
+      links: [
+        "Kesselwasser ist nur ~7 L — die Trägheit steckt vor allem in Rohren und Räumen.",
+        "Modulieren heißt: Flamme an, aber Gasanteil unter 100 %.",
+        "Jedes Szenario ändert genau die Hebel, die in der Praxis den Fehler verursachen.",
+      ],
+      watch:
+        "Nutze Bedienen/Revision, um einzelne Hebel zu drehen, und lies parallel die Live-Hinweise.",
+    },
+  };
+
+  function showScenario(id) {
+    const meta = SCENARIOS[id] || SCENARIOS.reset;
+    activeScenarioId = id in SCENARIOS ? id : "reset";
+    const title = $("#scenario-title");
+    const lead = $("#scenario-lead");
+    const what = $("#scenario-what");
+    const watch = $("#scenario-watch");
+    const links = $("#scenario-links");
+    if (title) title.textContent = meta.title;
+    if (lead) lead.textContent = meta.lead;
+    if (what) what.textContent = meta.what;
+    if (watch) watch.textContent = meta.watch;
+    if (links) {
+      links.innerHTML = meta.links.map((t) => `<li>${t}</li>`).join("");
+    }
+    $$(".scenario-pick").forEach((btn) => {
+      const on = btn.dataset.scenario === activeScenarioId;
+      btn.classList.toggle("is-active", on);
+      if (on) btn.setAttribute("aria-current", "true");
+      else btn.removeAttribute("aria-current");
+    });
+  }
 
   // Heizkörper-Typen in jede Raum-Select füllen
   $$(".room-ctrl .rad-type").forEach((sel) => {
@@ -235,7 +327,9 @@
 
     $$("[data-scenario]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        sim.applyScenario(btn.dataset.scenario);
+        const id = btn.dataset.scenario;
+        sim.applyScenario(id);
+        showScenario(id);
         pushControlsFromSim();
         readControlsIntoSim();
       });
@@ -726,14 +820,16 @@
     if (e.key === "Escape" && activeModal) closeModal();
   });
 
-  // Szenario wählen → Modal schließen, Wirkung sofort sehen
+  // Szenario aus Modal (falls vorhanden) → schließen
   $$("[data-scenario]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      setTimeout(() => closeModal(), 80);
+      if (activeModal) setTimeout(() => closeModal(), 80);
     });
   });
 
   bindControls();
+  showScenario(activeScenarioId);
+  sim.applyScenario(activeScenarioId);
   pushControlsFromSim();
   readControlsIntoSim();
   refreshRoomLabels();

@@ -3,19 +3,99 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Heizkreislauf-Trainer — interaktive Infografik</title>
-  <meta name="description" content="Dreh an Vorlauf, Hysterese, Abgleich und Brennerprofil — und sieh, was im Heizkreislauf passiert. Lernsimulation für Azubis Heizungsstechnik.">
+  <title>Heizkreislauf-Trainer — Szenarien</title>
+  <meta name="description" content="Lernsimulation für Azubis Heizungsstechnik: Szenarien mit erklärten Zusammenhängen im Heizkreislauf.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="focus-mode">
-  <div class="app app-focus">
-    <main class="stage-focus" aria-label="Haus und Heizkreislauf">
-      <div class="house-stage">
-        <!-- Nur Schema: Technik, Schacht, Heizkörper, Rohre — keine Messwerte im SVG -->
-        <svg class="house house-hero" viewBox="0 0 1000 560" role="img" aria-label="Schematisches Haus mit Heizkreislauf">
+<body class="learn-mode">
+  <div class="app app-learn">
+    <header class="learn-top">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <p class="brand-kicker">Heizkreislauf-Trainer</p>
+          <h1>Szenarien verstehen</h1>
+        </div>
+      </div>
+      <button type="button" class="live-chip" id="fire-banner" data-state="AUS" data-open-modal="modal-status" aria-live="polite">
+        <span class="fire-icon" aria-hidden="true"></span>
+        <span class="live-chip-text">
+          <strong id="fire-title">Brenner AUS</strong>
+          <em id="fire-power-val">0 %</em>
+          <span class="live-chip-pred" id="takt-pred-chip">Takt-Prognose: —</span>
+        </span>
+      </button>
+      <div id="takt-toast" class="takt-toast" hidden role="status" aria-live="assertive"></div>
+      <p class="fire-explain-sr" id="fire-explain" hidden>Kein Gas — Kessel kühlt bzw. hält nur Restwärme.</p>
+    </header>
+
+    <div class="learn-grid">
+      <aside class="scenario-rail" aria-label="Szenarien wählen">
+        <p class="rail-label">Lernpfad</p>
+        <nav class="scenario-nav">
+          <button type="button" class="scenario-pick is-active" data-scenario="taktend" aria-current="true">
+            <strong>Takten provozieren</strong>
+            <span>Kleine Last unter Pmin → AN/AUS</span>
+          </button>
+          <button type="button" class="scenario-pick" data-scenario="kalt-lang">
+            <strong>Langer Strang kalt</strong>
+            <span>Widerstand + Volumen → Wärme kommt spät</span>
+          </button>
+          <button type="button" class="scenario-pick" data-scenario="abgleich">
+            <strong>Abgleich retten</strong>
+            <span>Durchflüsse fair teilen</span>
+          </button>
+          <button type="button" class="scenario-pick" data-scenario="fussboden">
+            <strong>Fußbodenheizung</strong>
+            <span>Niedrige VL-Temperatur, große Fläche</span>
+          </button>
+          <button type="button" class="scenario-pick" data-scenario="reset">
+            <strong>Standardanlage</strong>
+            <span>Ausgeglichener Ausgangspunkt</span>
+          </button>
+        </nav>
+
+        <div class="rail-tools">
+          <p class="rail-label">Werkzeuge</p>
+          <button type="button" class="rail-tool" data-open-modal="modal-controls">Bedienen</button>
+          <button type="button" class="rail-tool" data-open-modal="modal-revision">Revision</button>
+          <button type="button" class="rail-tool" data-open-modal="modal-cycles">Zyklen</button>
+          <button type="button" class="rail-tool" data-open-modal="modal-legend">Legende</button>
+          <button type="button" class="rail-tool" data-open-modal="modal-status">Status</button>
+        </div>
+      </aside>
+
+      <main class="scenario-stage" aria-label="Aktives Szenario">
+        <header class="scenario-hero">
+          <p class="scenario-eyebrow">Aktives Szenario</p>
+          <h2 id="scenario-title">Takten provozieren</h2>
+          <p class="scenario-lead" id="scenario-lead">Die Therme kann ihre Mindestleistung nicht abführen und schaltet im Band an und aus.</p>
+        </header>
+
+        <section class="scenario-explain" aria-label="Zusammenhänge">
+          <article class="explain-card">
+            <h3>Was passiert?</h3>
+            <p id="scenario-what">—</p>
+          </article>
+          <article class="explain-card">
+            <h3>Zusammenhänge</h3>
+            <ul id="scenario-links"></ul>
+          </article>
+          <article class="explain-card">
+            <h3>Worauf achten?</h3>
+            <p id="scenario-watch">—</p>
+          </article>
+        </section>
+
+        <section class="scenario-visual" aria-label="Anlage im Überblick">
+          <div class="visual-head">
+            <h3>Anlage im Überblick</h3>
+            <p>Schema nur zur Orientierung — die Messwerte stehen darunter und rechts.</p>
+          </div>
+          <svg class="house house-diagram" viewBox="0 0 1000 560" role="img" aria-label="Schematisches Haus mit Heizkreislauf">
           <defs>
             <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#1c2833"/>
@@ -133,93 +213,47 @@
 
           <g id="callouts"></g>
         </svg>
-
-        <!-- Messwerte getrennt unter dem Schema — nie über Rohren -->
-        <section class="room-board" aria-label="Raumwerte">
-          <article class="room-card" data-room="living">
-            <header class="room-card-head">
-              <h3>Wohnzimmer</h3>
-              <span class="room-tag">kurzer Strang</span>
-            </header>
-            <p class="room-temps" id="temp-living">Ist 20.0 · Soll 21.0</p>
-            <p class="room-valve" id="valve-living">Ventil — % · Thermostat — %</p>
-            <p class="room-flow" id="flow-living">ΔT — · 0 L/h</p>
-            <p class="room-power" id="power-living">HK — W · Verlust — W</p>
-          </article>
-          <article class="room-card" data-room="bath">
-            <header class="room-card-head">
-              <h3>Bad</h3>
-              <span class="room-tag">mittlerer Strang</span>
-            </header>
-            <p class="room-temps" id="temp-bath">Ist 20.0 · Soll 24.0</p>
-            <p class="room-valve" id="valve-bath">Ventil — % · Thermostat — %</p>
-            <p class="room-flow" id="flow-bath">ΔT — · 0 L/h</p>
-            <p class="room-power" id="power-bath">HK — W · Verlust — W</p>
-          </article>
-          <article class="room-card" data-room="bed">
-            <header class="room-card-head">
-              <h3>Schlafzimmer</h3>
-              <span class="room-tag">langer Strang</span>
-            </header>
-            <p class="room-temps" id="temp-bed">Ist 20.0 · Soll 18.0</p>
-            <p class="room-valve" id="valve-bed">Ventil — % · Thermostat — %</p>
-            <p class="room-flow" id="flow-bed">ΔT — · 0 L/h</p>
-            <p class="room-power" id="power-bed">HK — W · Verlust — W</p>
-          </article>
+          <section class="room-board" aria-label="Raumwerte">
+            <article class="room-card" data-room="living">
+              <header class="room-card-head">
+                <h3>Wohnzimmer</h3>
+                <span class="room-tag">kurzer Strang</span>
+              </header>
+              <p class="room-temps" id="temp-living">Ist 20.0 · Soll 21.0</p>
+              <p class="room-valve" id="valve-living">Ventil — % · Thermostat — %</p>
+              <p class="room-flow" id="flow-living">ΔT — · 0 L/h</p>
+              <p class="room-power" id="power-living">HK — W · Verlust — W</p>
+            </article>
+            <article class="room-card" data-room="bath">
+              <header class="room-card-head">
+                <h3>Bad</h3>
+                <span class="room-tag">mittlerer Strang</span>
+              </header>
+              <p class="room-temps" id="temp-bath">Ist 20.0 · Soll 24.0</p>
+              <p class="room-valve" id="valve-bath">Ventil — % · Thermostat — %</p>
+              <p class="room-flow" id="flow-bath">ΔT — · 0 L/h</p>
+              <p class="room-power" id="power-bath">HK — W · Verlust — W</p>
+            </article>
+            <article class="room-card" data-room="bed">
+              <header class="room-card-head">
+                <h3>Schlafzimmer</h3>
+                <span class="room-tag">langer Strang</span>
+              </header>
+              <p class="room-temps" id="temp-bed">Ist 20.0 · Soll 18.0</p>
+              <p class="room-valve" id="valve-bed">Ventil — % · Thermostat — %</p>
+              <p class="room-flow" id="flow-bed">ΔT — · 0 L/h</p>
+              <p class="room-power" id="power-bed">HK — W · Verlust — W</p>
+            </article>
+          </section>
         </section>
-      </div>
 
-      <!-- Kompakter Live-Status (öffnet Status-Modal) -->
-      <button type="button" class="live-chip" id="fire-banner" data-state="AUS" data-open-modal="modal-status" aria-live="polite">
-        <span class="fire-icon" aria-hidden="true"></span>
-        <span class="live-chip-text">
-          <strong id="fire-title">Brenner AUS</strong>
-          <em id="fire-power-val">0 %</em>
-          <span class="live-chip-pred" id="takt-pred-chip">Takt-Prognose: —</span>
-        </span>
-      </button>
-      <div id="takt-toast" class="takt-toast" hidden role="status" aria-live="assertive"></div>
-
-      <p class="fire-explain-sr" id="fire-explain" hidden>Kein Gas — Kessel kühlt bzw. hält nur Restwärme.</p>
-
-      <!-- Icon-Leiste -->
-      <nav class="icon-dock" aria-label="Werkzeuge">
-        <button type="button" class="dock-btn" data-open-modal="modal-status" title="Status">
-          <span class="dock-glyph" aria-hidden="true">●</span>
-          <span>Status</span>
-        </button>
-        <button type="button" class="dock-btn" data-open-modal="modal-controls" title="Bedienen">
-          <span class="dock-glyph" aria-hidden="true">☰</span>
-          <span>Bedienen</span>
-        </button>
-        <button type="button" class="dock-btn" data-open-modal="modal-revision" title="Revisionsklappe">
-          <span class="dock-glyph" aria-hidden="true">⚙</span>
-          <span>Revision</span>
-        </button>
-        <button type="button" class="dock-btn" data-open-modal="modal-cycles" title="Brennerzyklen">
-          <span class="dock-glyph" aria-hidden="true">▦</span>
-          <span>Zyklen</span>
-        </button>
-        <button type="button" class="dock-btn" data-open-modal="modal-tips" title="Was passiert?">
-          <span class="dock-glyph" aria-hidden="true">?</span>
-          <span>Tipps</span>
-        </button>
-        <button type="button" class="dock-btn" data-open-modal="modal-scenarios" title="Szenarien">
-          <span class="dock-glyph" aria-hidden="true">▶</span>
-          <span>Szenarien</span>
-        </button>
-        <button type="button" class="dock-btn" data-open-modal="modal-legend" title="Legende">
-          <span class="dock-glyph" aria-hidden="true">◈</span>
-          <span>Legende</span>
-        </button>
-      </nav>
-
-      <div class="spectrum-mini" aria-hidden="true">
-        <span>20°</span>
-        <div class="spectrum-bar"></div>
-        <span>75°</span>
-      </div>
-    </main>
+        <aside class="live-insights" aria-live="polite">
+          <h3>Live aus der Anlage</h3>
+          <p class="insights-hint">Diese Hinweise ändern sich mit dem laufenden Betrieb — sie verbinden Messung und Theorie.</p>
+          <ul id="tips-list"></ul>
+        </aside>
+      </main>
+    </div>
 
     <!-- ===== MODALS ===== -->
     <div class="modal-root" id="modal-root" hidden>
@@ -448,36 +482,6 @@
           </div>
         </div>
       </div>
-
-      <div class="modal" id="modal-tips" role="dialog" aria-modal="true" aria-labelledby="tips-heading" hidden>
-        <header class="modal-head">
-          <h2 id="tips-heading">Was passiert gerade?</h2>
-          <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
-        </header>
-        <div class="modal-body">
-          <aside class="live-tips" aria-live="polite">
-            <ul id="tips-list"></ul>
-          </aside>
-        </div>
-      </div>
-
-      <div class="modal" id="modal-scenarios" role="dialog" aria-modal="true" aria-labelledby="scenarios-heading" hidden>
-        <header class="modal-head">
-          <h2 id="scenarios-heading">Szenarien</h2>
-          <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
-        </header>
-        <div class="modal-body">
-          <p class="scenario-hint">Sofort AN/AUS sehen: <strong>Takten provozieren</strong> (Vitodens 100 unter Pmin).</p>
-          <div class="scenario-row">
-            <button type="button" class="scenario-hot" data-scenario="taktend">Takten provozieren</button>
-            <button type="button" data-scenario="kalt-lang">Langer Strang kalt</button>
-            <button type="button" data-scenario="abgleich">Abgleich retten</button>
-            <button type="button" data-scenario="fussboden">Fußbodenheizung</button>
-            <button type="button" data-scenario="reset">Standard</button>
-          </div>
-        </div>
-      </div>
-
       <div class="modal" id="modal-legend" role="dialog" aria-modal="true" aria-labelledby="legend-heading" hidden>
         <header class="modal-head">
           <h2 id="legend-heading">Legende</h2>
@@ -502,6 +506,8 @@
         </div>
       </div>
     </div>
+  </div>
+  
   </div>
   <script src="sim.js"></script>
   <script src="ui.js"></script>
