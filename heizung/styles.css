@@ -453,14 +453,48 @@ h1 {
 
 .shell {
   fill: url(#floorGrad);
-  stroke: var(--line);
-  stroke-width: 2;
+  stroke: rgba(143, 163, 181, 0.45);
+  stroke-width: 2.5;
+}
+
+.roof {
+  stroke: rgba(143, 163, 181, 0.35);
+  stroke-width: 1.5;
+}
+
+.house-label {
+  fill: var(--muted);
+  font-size: 12px;
+  font-family: var(--font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chase {
+  fill: rgba(8, 12, 16, 0.55);
+  stroke: rgba(143, 163, 181, 0.2);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.chase-label {
+  fill: rgba(143, 163, 181, 0.45);
+  font-size: 10px;
+  font-family: var(--font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .room {
-  fill: rgba(255,255,255,0.025);
-  stroke: rgba(143, 163, 181, 0.28);
+  fill: rgba(255,255,255,0.03);
+  stroke: rgba(143, 163, 181, 0.32);
   stroke-width: 1.5;
+}
+
+.stats-bg {
+  fill: rgba(10, 16, 22, 0.88);
+  stroke: rgba(143, 163, 181, 0.22);
+  stroke-width: 1;
 }
 
 .heat-fill {
@@ -609,36 +643,32 @@ h1 {
 
 .pipe {
   fill: none;
-  stroke-width: 2.25;
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.72;
+  opacity: 0.85;
 }
 
-.pipe.supply { stroke: #c45a32; }
-.pipe.return { stroke: #5a87a8; stroke-width: 1.75; opacity: 0.65; }
+.pipe.supply { stroke: #d4652f; }
+.pipe.return { stroke: #4f8fb5; stroke-width: 2.5; opacity: 0.75; }
 
-/* Feine Strömung: dünne Punkte statt klobiger Striche */
+/* Feine Strömung — dünne Punkte auf durchgezogenem Rohr */
 .pipe.flowable {
-  stroke-dasharray: 1.5 7;
-  stroke-width: 2;
+  stroke-dasharray: 2 9;
+  stroke-width: 2.75;
   animation: flow 1.8s linear infinite;
   animation-play-state: paused;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .pipe.return.flowable {
-  stroke-dasharray: 1.2 8;
-  stroke-width: 1.6;
+  stroke-dasharray: 1.5 10;
+  stroke-width: 2.25;
 }
 
 .pipe.flowable.running {
   animation-play-state: running;
-  opacity: 0.9;
-}
-
-.pipe.supply.flowable.running {
-  filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.35));
+  opacity: 0.95;
 }
 
 .radiator {
@@ -677,8 +707,12 @@ h1 {
 
 .room-stats .stat-flow {
   fill: #7f96ab;
-  font-size: 11px;
+  font-size: 10px;
   font-family: var(--mono);
+}
+
+.stats-card {
+  pointer-events: none;
 }
 
 .radiator.valve-open {
