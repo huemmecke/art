@@ -16,6 +16,10 @@
   const BOILER_VOLUME_L = 7;
   const RETURN_HEADER_L = 12;
   const G = 9.81;
+  /** Auslegungs-Außentemperatur für UA = Last / (tSoll − tAussen,Auslegung) */
+  const DESIGN_OUTDOOR = -12;
+  /** Hydraulische Zielspreizung für Volumenstrom aus Wärmeleistung */
+  const TARGET_SPREAD_K = 10;
   /** Protokoll behalten: genug Sim-Zeit, damit Hysterese-Änderungen sichtbar bleiben */
   const CYCLE_KEEP_SEC = 7200; // 2 h Simulationszeit
   const CYCLE_KEEP_MAX = 240; // max. Modus-Segmente
@@ -227,8 +231,8 @@
       pumpHeadM: initial.pumpHeadM ?? 5.5, // Förderhöhe mWS
       rooms: {
         living: createRoomState({ tSet: 21, loadW: 1800, radType: "panel22", qn: 1800 }),
-        bath: createRoomState({ tSet: 24, loadW: 900, radType: "bath", qn: 800, tRoom: 21 }),
-        bed: createRoomState({ tSet: 18, loadW: 1400, radType: "panel11", qn: 1200, tRoom: 17.5 }),
+        bath: createRoomState({ tSet: 24, loadW: 900, radType: "bath", qn: 1100, tRoom: 21 }),
+        bed: createRoomState({ tSet: 18, loadW: 1400, radType: "panel11", qn: 1400, tRoom: 17.5 }),
       },
       boilerT: 42,
       returnHeaderT: 36,
@@ -247,14 +251,16 @@
       },
       tips: [],
       simTime: 0,
-      dtScale: 18,
+      dtScale: 12,
       /** wird bei Takten erhöht, damit AN/AUS in Echtzeit sichtbar ist */
       dtScaleBoost: 1,
-      physicsNote: "EN-442-Exponent + Darcy-Weisbach (Lernmodell)",
+      physicsNote: "EN-442 · UA-Verlust · Ziel-Spreizung 10 K · Raum-C",
       /** true wenn Last < Brenner-Mindestleistung → muss takten */
       minPowerCycling: false,
       lastLoadKw: 0,
       lastMinKw: 0,
+      buildingLossKw: 0,
+      roomDeficitK: 0,
     };
 
     function brand() {
@@ -288,6 +294,19 @@
       return vol;
     }
 
+    /** Wärmeverlustkoeffizient: Last ist Auslegungsverlust bei tSoll/−12 °C */
+    function roomUA(room) {
+      const dT = Math.max(room.tSet - DESIGN_OUTDOOR, 8);
+      return room.loadW / dT; // W/K
+    }
+
+    /** Raum-Wärmekapazität — realistisch träge, aber in Sim×12 noch in wenigen Minuten beobachtbar */
+    function roomCapacityJperK(room) {
+      const type = radType(room);
+      const base = type.preferLowFlow ? 4.2e5 : 2.6e5; // J/K
+      return base * (0.75 + room.loadW / 2600);
+    }
+
     /** Ventil-Leitwert aus Abgleich + Thermostat (Kv-ähnlich) */
     function valveConductance(roomKey) {
       const room = state.rooms[roomKey];
@@ -315,51 +334,71 @@
     }
 
     /**
-     * Hydraulik-Netz: Darcy Δp je Strang, Pumpe als konstante Förderhöhe,
-     * Volumenströme iterativ über Leitwerte.
+     * Hydraulik: Volumenstrom aus Wärmebedarf bei Ziel-Spreizung ~10 K,
+     * Verteilung über Ventil-Leitwerte + Darcy.
      */
     function hydraulics(dt) {
       state.circuitVolumeL = circuitVolumeLiters();
       const pumpPa = state.pumpHeadM * RHO * G;
+      const outdoor = state.outdoor;
 
-      // Startwerte / Iteration: flow ~ conductance / sqrt(resistance)
       const flows = {};
       let totalLh = 0;
+      let buildingLossW = 0;
+      let deficitSum = 0;
+      let valveSum = 0;
+
+      for (const k of Object.keys(ROOMS)) {
+        const room = state.rooms[k];
+        const ua = roomUA(room);
+        room.ua = ua;
+        room.lossW = ua * Math.max(room.tRoom - outdoor, 0);
+        buildingLossW += room.lossW;
+        deficitSum += Math.max(room.tSet - room.tRoom, 0);
+        valveConductance(k);
+        valveSum += room.valveOpen || 0.02;
+      }
+      const nRooms = Object.keys(ROOMS).length;
+      const roomDeficitK = deficitSum / nRooms;
+      const avgValve = valveSum / nRooms;
+
+      // Bedarf: aktueller UA-Verlust + Anteil Untertemperatur (Aufheizen)
+      const demandW = buildingLossW + roomDeficitK * 420 * nRooms;
+      const heatFlowLh = (Math.max(demandW, 350) / (CP * TARGET_SPREAD_K)) * 3600;
+      // etwas mehr ṁ wenn Ventile weit offen (weniger Spreizung), weniger wenn zu
+      const valveFlowMul = lerp(0.55, 1.15, avgValve);
 
       for (let iter = 0; iter < 4; iter++) {
-        totalLh = 0;
         let sumCond = 0;
         const cond = {};
         for (const k of Object.keys(ROOMS)) {
           const meta = ROOMS[k];
           const room = state.rooms[k];
           const lengthM = meta.lengthM * state.lengthMul;
-          const guess = flows[k] || 200;
+          const guess = flows[k] || Math.max(heatFlowLh / nRooms, 40);
           const dpPipe = darcyPressurePa(lengthM, state.diameterMm, guess);
-          // Ventilwiderstand grob proportional 1/kv²
-          const kv = Math.max(valveConductance(k), 0.02);
-          const dpValve = (80000 / (kv * kv)) * Math.pow(guess / 300, 2);
+          const kv = Math.max(room.valveOpen || valveConductance(k), 0.02);
+          const dpValve = (80000 / (kv * kv)) * Math.pow(guess / 200, 2);
           const dp = dpPipe + dpValve;
           room.deltaP = dp;
-          // Effektive Leitfähigkeit
           cond[k] = kv / Math.sqrt(Math.max(dpPipe / 1000 + 1 / (kv * kv), 0.2));
           sumCond += cond[k];
         }
 
-        // Gesamtdurchfluss: Pumpe gegen mittleres Δp
         const avgDp =
-          Object.keys(ROOMS).reduce((s, k) => s + (state.rooms[k].deltaP || 0), 0) / 3;
-        const pumpFactor = clamp(1 - avgDp / (pumpPa * 1.35), 0.08, 1);
-        const qMax = 1100 * pumpFactor * Math.pow(state.diameterMm / 15, 1.6);
-        totalLh = qMax;
+          Object.keys(ROOMS).reduce((s, k) => s + (state.rooms[k].deltaP || 0), 0) / nRooms;
+        const pumpFactor = clamp(1 - avgDp / (pumpPa * 1.35), 0.12, 1);
+        const pumpCapLh = 750 * pumpFactor * Math.pow(state.diameterMm / 15, 1.5);
+        totalLh = clamp(heatFlowLh * valveFlowMul, 45, pumpCapLh);
         for (const k of Object.keys(ROOMS)) {
           flows[k] = sumCond > 0 ? (cond[k] / sumCond) * totalLh : 0;
         }
       }
 
-      state.systemDeltaP = Object.keys(ROOMS).reduce((s, k) => s + (state.rooms[k].deltaP || 0), 0) / 3;
+      state.systemDeltaP = Object.keys(ROOMS).reduce((s, k) => s + (state.rooms[k].deltaP || 0), 0) / nRooms;
+      state.buildingLossKw = buildingLossW / 1000;
+      state.roomDeficitK = roomDeficitK;
 
-      const outdoor = state.outdoor;
       let returnMix = 0;
       let flowWeight = 0;
       let heatExtractKw = 0;
@@ -377,7 +416,7 @@
         room.pipeSupplyT = lerp(room.pipeSupplyT, state.boilerT, 1 - Math.exp(-dt / tauSupply));
         room.tIn = room.pipeSupplyT;
 
-        // Vorabschätzung tOut für ΔTm; dann Q nach EN-442-ähnlich
+        // EN-442 + ṁ·cp·ΔT
         let tOutGuess = room.tOut;
         let emitterW = 0;
         for (let j = 0; j < 3; j++) {
@@ -385,7 +424,6 @@
           const dtn = 50; // Norm 75/65/20
           const ratio = clamp(dtm / dtn, 0, 1.4);
           emitterW = room.qn * Math.pow(ratio, room.n || type.n);
-          // Durchfluss begrenzt: ohne Masse keine Leistung
           if (mDot < 1e-5) emitterW = 0;
           else {
             const maxQ = mDot * CP * Math.max(room.tIn - room.tRoom - 0.5, 0.5);
@@ -402,11 +440,12 @@
         const tauRet = tauSupply * 0.85;
         room.pipeReturnT = lerp(room.pipeReturnT, room.tOut, 1 - Math.exp(-dt / tauRet));
 
-        const lossFactor = Math.max((room.tRoom - outdoor) / Math.max(room.tSet - outdoor, 4), 0.2);
-        // FB träger
-        const capacity = type.preferLowFlow ? 0.02 : 0.035;
-        const netW = emitterW - room.loadW * lossFactor;
-        room.tRoom = clamp(room.tRoom + (netW / 100) * capacity * (dt / 60), outdoor + 0.5, 34);
+        // Raum: C·dT = (Q_HK − UA·ΔT)·dt
+        const lossW = room.lossW || 0;
+        const netW = emitterW - lossW;
+        const C = roomCapacityJperK(room);
+        room.capacityJperK = C;
+        room.tRoom = clamp(room.tRoom + (netW * dt) / C, outdoor + 0.5, 34);
 
         returnMix += room.pipeReturnT * flowLh;
         flowWeight += flowLh;
@@ -418,7 +457,14 @@
       const tauHeader = clamp((RETURN_HEADER_L / Math.max(totalLh, 40)) * 3600, 5, 90);
       state.returnHeaderT = lerp(state.returnHeaderT, tReturnMix, 1 - Math.exp(-dt / tauHeader));
 
-      return { totalLh, flows, tReturn: state.returnHeaderT, heatExtractKw };
+      return {
+        totalLh,
+        flows,
+        tReturn: state.returnHeaderT,
+        heatExtractKw,
+        buildingLossKw: state.buildingLossKw,
+        roomDeficitK,
+      };
     }
 
     function trimCycleHistory() {
@@ -479,11 +525,17 @@
       const offAt = flowSet + hyst / 2;
       const br = state.burner;
       const lossKw = Math.max(0, (state.boilerT - state.outdoor) * 0.01);
-      const loadKw = Math.max((heatExtractKw || 0) + lossKw, 0.02);
+      // Last für Modulation: max(Extract, Gebäudeverlust + Untertemperatur-Aufruf)
+      // → kalte Räume fordern Wärme, auch wenn Extract momentan noch niedrig ist
+      const buildingKw = Math.max(state.buildingLossKw || 0, 0);
+      const deficitKw = Math.max(state.roomDeficitK || 0, 0) * 0.55;
+      const callKw = buildingKw + deficitKw;
+      const loadKw = Math.max((heatExtractKw || 0) + lossKw, callKw, 0.02);
       const minKw = b.modulating ? state.burnerPowerKw * b.minMod : state.burnerPowerKw;
       const maxKw = state.burnerPowerKw;
       // Vitodens-Logik: unter Pmin kann Leistung nicht weiter abgesenkt werden → Takten
-      const cannotShed = b.modulating && loadKw < minKw * 0.95;
+      // Nur takten, wenn weder Extract noch Gebäudebedarf Pmin brauchen
+      const cannotShed = b.modulating && loadKw < minKw * 0.95 && (state.roomDeficitK || 0) < 1.2;
       state.minPowerCycling = cannotShed;
       state.lastLoadKw = loadKw;
       state.lastMinKw = minKw;
@@ -512,19 +564,22 @@
             // Leistung lässt sich nicht loswerden → hart auf Pmin, bis Hysterese abschaltet
             want = b.minMod;
           } else {
-            // Last im Modulationsfenster: Leistung der Abnahme nachführen
+            // Last im Modulationsfenster: Gebäudebedarf + Kessel-Soll nachführen
             want = clamp(loadKw / maxKw, b.minMod, 1);
-            // leichte Korrektur anhand Kesseltemperatur
             const band = Math.max(hyst, 1);
-            const trim = clamp((flowSet - state.boilerT) / (band * 4), -0.08, 0.12);
+            const trim = clamp((flowSet - state.boilerT) / (band * 2.5), -0.06, 0.35);
             want = clamp(want + trim, b.minMod, 1);
+            // Deutliche Raumuntertemperatur → nicht auf Pmin kleben
+            if ((state.roomDeficitK || 0) > 2) {
+              want = Math.max(want, clamp(0.45 + state.roomDeficitK / 8, b.minMod, 1));
+            }
           }
         }
         br.powerFrac = lerp(br.powerFrac, want, clamp(b.ramp * (dt / 10), 0.05, 1));
         // Nie unter Mindestmodulation (außer Aus)
         if (b.modulating) br.powerFrac = Math.max(br.powerFrac, b.minMod);
 
-        // Abschalten: Soll+Hysterese — bei Pmin-Überschuss typisches Vitodens-Takten
+        // Abschalten an Hysterese — auch bei Raumdefizit (Wasser speichert; Brenner startet wieder)
         if (br.runTime >= b.minRun && state.boilerT >= offAt) {
           br.mode = "off";
           br.powerFrac = 0;
@@ -829,7 +884,7 @@
 
       tips.push({
         level: "ok",
-        text: `Physik: Q=Qn·(ΔTm/50)^n, Darcy Δp. Therme nur ~${BOILER_VOLUME_L} L, Kreislauf ≈ ${state.circuitVolumeL.toFixed(0)} L (×${volRatio.toFixed(0)}).`,
+        text: `Physik: EN-442, UA·(tRaum−tAussen), ṁ aus Ziel-ΔT ${TARGET_SPREAD_K} K, Raum-C. Gebäudeverlust ${(state.buildingLossKw || 0).toFixed(1)} kW · Raumdefizit ${(state.roomDeficitK || 0).toFixed(1)} K.`,
       });
 
       if (state.minPowerCycling && state.burner.mode === "on") {
@@ -970,6 +1025,8 @@
         minPowerCycling: state.minPowerCycling,
         lastLoadKw: state.lastLoadKw,
         lastMinKw: state.lastMinKw,
+        buildingLossKw: state.buildingLossKw,
+        roomDeficitK: state.roomDeficitK,
         cycleLog: br.cycleLog.slice(),
         cycleMarks: (br.marks || []).slice(),
         cycleKeepSec: CYCLE_KEEP_SEC,
@@ -1144,8 +1201,8 @@
           pumpHeadM: 5.5,
           rooms: {
             living: { tSet: 21, loadW: 1800, radType: "panel22", qn: 1800, n: 1.3 },
-            bath: { tSet: 24, loadW: 900, radType: "bath", qn: 800, n: 1.25 },
-            bed: { tSet: 18, loadW: 1400, radType: "panel11", qn: 1200, n: 1.3 },
+            bath: { tSet: 24, loadW: 900, radType: "bath", qn: 1100, n: 1.25 },
+            bed: { tSet: 18, loadW: 1400, radType: "panel11", qn: 1400, n: 1.3 },
           },
         });
         resetBurnerAndTemps();

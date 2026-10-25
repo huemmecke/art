@@ -657,7 +657,8 @@
         valveEl.textContent = `Ventil ${valvePct}% · Thermostat ${thermoPct}%`;
         valveEl.style.fill = valvePct > 70 ? "#f0b429" : valvePct > 35 ? "#9fe7c4" : "#8fa3b5";
       }
-      $(`#flow-${id}`).textContent = `${radShortName(room.radType)} · ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h · ${Math.round(room.emitterW || 0)} W`;
+      const lossW = Math.round(room.lossW || 0);
+      $(`#flow-${id}`).textContent = `${radShortName(room.radType)} · ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h · HK ${Math.round(room.emitterW || 0)} W / Verlust ${lossW} W`;
 
       const heat = $(`#heat-${id}`);
       heat.style.opacity = String(clamp((room.tRoom - 16) / 10, 0, 0.38));
