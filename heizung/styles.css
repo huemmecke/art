@@ -663,15 +663,27 @@ h1 {
 
 .room-stats .stat-temp {
   fill: var(--text);
-  font-size: 22px;
+  font-size: 15px;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.room-stats .stat-valve {
+  fill: #9fe7c4;
+  font-size: 12px;
   font-family: var(--mono);
   font-weight: 600;
 }
 
 .room-stats .stat-flow {
   fill: #7f96ab;
-  font-size: 12px;
+  font-size: 11px;
   font-family: var(--mono);
+}
+
+.radiator.valve-open {
+  stroke: #f0b429;
+  stroke-width: 2;
 }
 
 .callout {

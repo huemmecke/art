@@ -208,6 +208,8 @@
       pipeReturnT: tRoom + 3,
       deltaP: 0,
       kvPreset: 1,
+      thermoOpen: 0.5,
+      valveOpen: 0.5,
     };
   }
 
@@ -305,8 +307,11 @@
       room.kvPreset = preset;
 
       const err = room.tSet - room.tRoom;
+      // Thermostatventil: unter Soll weiter auf, nahe/über Soll zu
       const thermoOpen = clamp(err / 2.0 + 0.3, 0.02, 1);
-      return preset * thermoOpen;
+      room.thermoOpen = thermoOpen;
+      room.valveOpen = clamp(preset * thermoOpen, 0.02, 1);
+      return room.valveOpen;
     }
 
     /**
@@ -852,6 +857,20 @@
 
       const living = state.rooms.living;
       const bed = state.rooms.bed;
+      const coldest = Object.values(state.rooms).sort(
+        (a, b) => a.tRoom - a.tSet - (b.tRoom - b.tSet)
+      )[0];
+      if (coldest && coldest.tSet - coldest.tRoom > 0.8) {
+        tips.push({
+          level: "ok",
+          text: `Thermostat: Ist ${coldest.tRoom.toFixed(1)} °C < Soll ${coldest.tSet.toFixed(1)} °C → Ventil ~${Math.round((coldest.valveOpen || 0) * 100)} % offen, Durchfluss steigt.`,
+        });
+      } else if (coldest && coldest.tRoom - coldest.tSet > 0.6) {
+        tips.push({
+          level: "ok",
+          text: `Thermostat: Ist über Soll → Ventil drosselt (~${Math.round((coldest.thermoOpen || 0) * 100)} % Thermostatöffnung).`,
+        });
+      }
       if (living.spread < 5 && flows.living > flows.bed * 1.5) {
         tips.push({
           level: "warn",

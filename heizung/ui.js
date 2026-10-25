@@ -649,13 +649,21 @@
       $(`#vl-${id}`).textContent = `VL ${room.tIn.toFixed(0)}°`;
       $(`#rl-${id}`).textContent = `RL ${room.tOut.toFixed(0)}°`;
 
-      $(`#temp-${id}`).textContent = `${room.tRoom.toFixed(1)} °C`;
-      const dpKpa = ((room.deltaP || 0) / 1000).toFixed(1);
+      const valvePct = Math.round((room.valveOpen ?? room.thermoOpen ?? 0) * 100);
+      const thermoPct = Math.round((room.thermoOpen ?? 0) * 100);
+      $(`#temp-${id}`).textContent = `Ist ${room.tRoom.toFixed(1)} · Soll ${room.tSet.toFixed(1)}`;
+      const valveEl = $(`#valve-${id}`);
+      if (valveEl) {
+        valveEl.textContent = `Ventil ${valvePct}% · Thermostat ${thermoPct}%`;
+        valveEl.style.fill = valvePct > 70 ? "#f0b429" : valvePct > 35 ? "#9fe7c4" : "#8fa3b5";
+      }
       $(`#flow-${id}`).textContent = `${radShortName(room.radType)} · ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h · ${Math.round(room.emitterW || 0)} W`;
 
       const heat = $(`#heat-${id}`);
       heat.style.opacity = String(clamp((room.tRoom - 16) / 10, 0, 0.38));
       heat.style.fill = spectrumColor(room.tRoom, 16, 28);
+      // Rohranimation / HK „aktiv“ wenn Ventil klar offen und Durchfluss da
+      $(`#rad-${id}`).classList.toggle("valve-open", valvePct >= 40);
     }
 
     drawCycles(s);
