@@ -472,7 +472,7 @@
 
       $(`#temp-${id}`).textContent = `${room.tRoom.toFixed(1)} °C`;
       const dpKpa = ((room.deltaP || 0) / 1000).toFixed(1);
-      $(`#flow-${id}`).textContent = `${radShortName(room.radType)} Qn ${room.qn} · ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h · ${Math.round(room.emitterW || 0)} W · ${dpKpa} kPa`;
+      $(`#flow-${id}`).textContent = `${radShortName(room.radType)} · ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h · ${Math.round(room.emitterW || 0)} W`;
 
       const heat = $(`#heat-${id}`);
       heat.style.opacity = String(clamp((room.tRoom - 16) / 10, 0, 0.38));

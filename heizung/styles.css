@@ -583,23 +583,36 @@ h1 {
 
 .pipe {
   fill: none;
-  stroke-width: 7;
+  stroke-width: 2.25;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.85;
+  opacity: 0.72;
 }
 
 .pipe.supply { stroke: #c45a32; }
-.pipe.return { stroke: #3b6f95; stroke-width: 6; }
+.pipe.return { stroke: #5a87a8; stroke-width: 1.75; opacity: 0.65; }
 
+/* Feine Strömung: dünne Punkte statt klobiger Striche */
 .pipe.flowable {
-  stroke-dasharray: 10 12;
-  animation: flow 1.4s linear infinite;
+  stroke-dasharray: 1.5 7;
+  stroke-width: 2;
+  animation: flow 1.8s linear infinite;
   animation-play-state: paused;
+  opacity: 0.55;
+}
+
+.pipe.return.flowable {
+  stroke-dasharray: 1.2 8;
+  stroke-width: 1.6;
 }
 
 .pipe.flowable.running {
   animation-play-state: running;
+  opacity: 0.9;
+}
+
+.pipe.supply.flowable.running {
+  filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.35));
 }
 
 .radiator {
