@@ -16,6 +16,9 @@
   }
   brandSelect.value = "viessmann";
 
+  let lastBurnerMode = null;
+  let taktFlashTimer = 0;
+
   // Heizkörper-Typen in jede Raum-Select füllen
   $$(".room-ctrl .rad-type").forEach((sel) => {
     sel.innerHTML = "";
@@ -252,8 +255,10 @@
     if (s.burnerMode === "ZÜNDET") {
       return {
         state: "ZÜNDET",
-        title: "Brenner ZÜNDET",
-        explain: "Zündung läuft — gleich kommt die Flamme. Noch keine Nutzleistung.",
+        title: s.minPowerCycling ? "Brenner ZÜNDET — Takten" : "Brenner ZÜNDET",
+        explain: s.minPowerCycling
+          ? "Wiederzündung nach Sperre — typisches Takten unter Mindestleistung."
+          : "Zündung läuft — gleich kommt die Flamme. Noch keine Nutzleistung.",
         short: "ZÜNDET",
         flame: "ZÜND",
       };
@@ -268,6 +273,15 @@
       };
     }
     if (s.burnerMode === "MODULIERT") {
+      if (s.minPowerCycling) {
+        return {
+          state: "MODULIERT",
+          title: `Brenner auf Pmin (${pct} %) — taktet gleich`,
+          explain: `Last ${s.lastLoadKw.toFixed(1)} kW < Mindestleistung ${s.lastMinKw.toFixed(1)} kW. Die Vitodens kann nicht weiter drosseln → Kessel läuft zum Ausschaltpunkt und schaltet ab (Takten).`,
+          short: "Pmin · taktet",
+          flame: "Pmin→AUS",
+        };
+      }
       return {
         state: "MODULIERT",
         title: "Brenner FEUERT — moduliert (gedrosselt)",
@@ -278,9 +292,11 @@
     }
     return {
       state: "AUS",
-      title: "Brenner AUS",
-      explain: "Kein Gas, keine Flamme. Warte auf Unterschreiten der Einschaltschwelle (Hysterese).",
-      short: "AUS",
+      title: s.minPowerCycling ? "Brenner AUS — taktet" : "Brenner AUS",
+      explain: s.minPowerCycling
+        ? `Kein Gas. Warte auf Einschaltpunkt ${s.onAt.toFixed(1)} °C — dann wieder Zündung. Das ist Takten unter Pmin.`
+        : "Kein Gas, keine Flamme. Warte auf Unterschreiten der Einschaltschwelle (Hysterese).",
+      short: s.minPowerCycling ? "AUS · Takten" : "AUS",
       flame: "AUS",
     };
   }
@@ -386,12 +402,38 @@
 
     const banner = $("#fire-banner");
     banner.dataset.state = plain.state;
+    banner.classList.toggle("taktend", !!s.minPowerCycling);
     $("#fire-title").textContent = plain.title;
     const explainEl = $("#fire-explain");
     if (explainEl) explainEl.textContent = plain.explain;
     const statusExplain = $("#status-explain");
     if (statusExplain) statusExplain.textContent = plain.explain;
     $("#fire-power-val").textContent = `${pctGas} %`;
+
+    // Sichtbarer Moduswechsel: Banner flashen + Toast beim Takten
+    if (lastBurnerMode && lastBurnerMode !== plain.state) {
+      banner.classList.remove("mode-flash");
+      void banner.offsetWidth;
+      banner.classList.add("mode-flash");
+      const switchedOff = plain.state === "AUS" && (lastBurnerMode === "MODULIERT" || lastBurnerMode === "BRENNT");
+      const switchedOn = (plain.state === "ZÜNDET" || plain.state === "MODULIERT" || plain.state === "BRENNT") && lastBurnerMode === "AUS";
+      if (s.minPowerCycling && (switchedOff || switchedOn)) {
+        const toast = $("#takt-toast");
+        if (toast) {
+          toast.hidden = false;
+          toast.textContent = switchedOff
+            ? "Jetzt: Brenner AUS — Takten unter Pmin"
+            : "Jetzt: Brenner wieder AN — Takten";
+          toast.dataset.phase = switchedOff ? "off" : "on";
+          taktFlashTimer = performance.now() + 2800;
+        }
+      }
+    }
+    lastBurnerMode = plain.state;
+    const toast = $("#takt-toast");
+    if (toast && !toast.hidden && performance.now() > taktFlashTimer) {
+      toast.hidden = true;
+    }
 
     const pred = s.cyclingPred;
     function fmtSec(sec) {
@@ -471,12 +513,24 @@
 
     const flame = $("#boiler-flame");
     const flameGroup = $("#flame-group");
+    const boilerGroup = $("#boiler-group");
     const firing = plain.state === "BRENNT" || plain.state === "MODULIERT";
     const igniting = plain.state === "ZÜNDET";
     flame.classList.toggle("on", firing || igniting);
     flameGroup.classList.toggle("firing", firing);
     flameGroup.classList.toggle("igniting", igniting);
+    flameGroup.classList.toggle("taktend", !!s.minPowerCycling);
+    if (boilerGroup) boilerGroup.classList.toggle("taktend", !!s.minPowerCycling);
     $("#flame-label").textContent = plain.flame;
+    const taktBadge = $("#takt-badge");
+    if (taktBadge) {
+      taktBadge.setAttribute("visibility", s.minPowerCycling ? "visible" : "hidden");
+      const taktBadgeText = $("#takt-badge-text");
+      if (taktBadgeText) {
+        taktBadgeText.textContent =
+          plain.state === "AUS" ? "TAKTET · AUS" : plain.state === "ZÜNDET" ? "TAKTET · ZÜND" : "TAKTET · Pmin";
+      }
+    }
 
     const pumpGroup = $("#pump-group");
     const pump = $("#pump-disc");

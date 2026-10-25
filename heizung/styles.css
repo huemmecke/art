@@ -1304,6 +1304,94 @@ body.focus-mode {
 .live-chip[data-takt="warn"] .live-chip-pred { color: #f0b429; }
 .live-chip[data-takt="bad"] .live-chip-pred { color: #ef5d5d; }
 
+.live-chip.taktend {
+  box-shadow: 0 0 0 1px rgba(239, 93, 93, 0.55), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.live-chip.mode-flash {
+  animation: mode-flash 0.7s ease-out;
+}
+
+@keyframes mode-flash {
+  0% { transform: scale(1.04); filter: brightness(1.35); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.takt-toast {
+  position: absolute;
+  left: 50%;
+  top: 4.6rem;
+  transform: translateX(-50%);
+  z-index: 8;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  font: 600 0.85rem/1.2 "IBM Plex Sans", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  background: rgba(120, 24, 28, 0.92);
+  color: #ffe8e6;
+  border: 1px solid rgba(239, 93, 93, 0.7);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  animation: toast-in 0.35s ease-out;
+}
+
+.takt-toast[data-phase="on"] {
+  background: rgba(120, 64, 18, 0.94);
+  border-color: rgba(240, 180, 41, 0.7);
+  color: #fff3d6;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.takt-badge-bg {
+  fill: #8b1e22;
+  stroke: #ef5d5d;
+  stroke-width: 1;
+}
+
+.takt-badge-text {
+  fill: #ffe8e6;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+}
+
+#boiler-group.taktend .boiler-body {
+  stroke: #ef5d5d;
+  stroke-width: 2.2;
+}
+
+.flame-group.taktend.firing .flame-shape {
+  animation-duration: 0.18s;
+}
+
+.scenario-hint {
+  margin: 0 0 0.65rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.scenario-hint strong {
+  color: #f0b429;
+}
+
+.scenario-row button.scenario-hot {
+  border-color: rgba(239, 93, 93, 0.55);
+  background: linear-gradient(180deg, #3a1a1c, #221418);
+  color: #ffe8e6;
+  font-weight: 600;
+}
+
+.scenario-row button.scenario-hot:hover {
+  border-color: #ef5d5d;
+  background: linear-gradient(180deg, #4a2024, #2a181c);
+}
+
 .takt-pred {
   border: 1px solid rgba(62, 207, 142, 0.35);
   background: rgba(62, 207, 142, 0.08);

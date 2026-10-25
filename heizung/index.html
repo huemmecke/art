@@ -62,6 +62,10 @@
             <path id="flame-shape" class="flame-shape" d="M27 46 C10 28 16 8 27 0 C38 8 44 28 27 46 Z"/>
             <text id="flame-label" class="flame-label" x="27" y="58" text-anchor="middle">AUS</text>
           </g>
+          <g id="takt-badge" visibility="hidden">
+            <rect x="6" y="-22" width="88" height="18" rx="4" class="takt-badge-bg"/>
+            <text id="takt-badge-text" class="takt-badge-text" x="50" y="-9" text-anchor="middle">TAKTET</text>
+          </g>
           <text class="boiler-vol" x="50" y="132" text-anchor="middle">Sensor im Kessel · ~7 L</text>
         </g>
 
@@ -146,6 +150,7 @@
           <span class="live-chip-pred" id="takt-pred-chip">Takt-Prognose: —</span>
         </span>
       </button>
+      <div id="takt-toast" class="takt-toast" hidden role="status" aria-live="assertive"></div>
 
       <p class="fire-explain-sr" id="fire-explain" hidden>Kein Gas — Kessel kühlt bzw. hält nur Restwärme.</p>
 
@@ -433,8 +438,9 @@
           <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
         </header>
         <div class="modal-body">
+          <p class="scenario-hint">Sofort AN/AUS sehen: <strong>Takten provozieren</strong> (Vitodens 100 unter Pmin).</p>
           <div class="scenario-row">
-            <button type="button" data-scenario="taktend">Takten provozieren</button>
+            <button type="button" class="scenario-hot" data-scenario="taktend">Takten provozieren</button>
             <button type="button" data-scenario="kalt-lang">Langer Strang kalt</button>
             <button type="button" data-scenario="abgleich">Abgleich retten</button>
             <button type="button" data-scenario="fussboden">Fußbodenheizung</button>

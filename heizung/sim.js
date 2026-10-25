@@ -241,6 +241,8 @@
       tips: [],
       simTime: 0,
       dtScale: 18,
+      /** wird bei Takten erhöht, damit AN/AUS in Echtzeit sichtbar ist */
+      dtScaleBoost: 1,
       physicsNote: "EN-442-Exponent + Darcy-Weisbach (Lernmodell)",
       /** true wenn Last < Brenner-Mindestleistung → muss takten */
       minPowerCycling: false,
@@ -494,15 +496,39 @@
       return { onAt, offAt };
     }
 
-    function updateBoiler(dt, totalLh) {
+    function updateBoiler(dt, totalLh, heatExtractKw) {
       const inputKw = state.burner.powerFrac * state.burnerPowerKw;
       const lossKw = Math.max(0, (state.boilerT - state.outdoor) * 0.01);
-      const mixFrac = clamp((totalLh * (dt / 3600)) / BOILER_VOLUME_L, 0, 0.45);
-      const afterMix = state.boilerT * (1 - mixFrac) + state.returnHeaderT * mixFrac;
+      const extractKw = Math.max(heatExtractKw || 0, 0);
       const massKg = BOILER_VOLUME_L;
+      const mDot = Math.max(totalLh, 1) / 3600; // kg/s
+
+      // Energiebilanz am Kesselwasser:
+      // m·cp·dT = P_brenner·dt + ṁ·cp·(T_rl − T_kessel)·dt − P_verlust·dt
+      // Zusätzlich begrenzen wir den „Rohr-Aufheiz-Effekt“, damit nah am Soll
+      // die Vitodens-Pmin-Überschusswärme sichtbar taktet (nicht ewig verdünnt wird).
+      const flowSet = flowSetpoint();
+      const nearSet = state.boilerT > flowSet - 12;
+      const mixGain = nearSet || state.minPowerCycling ? 0.35 : 1.0;
+      const dTFlow =
+        ((mDot * (state.returnHeaderT - state.boilerT)) / massKg) * dt * mixGain;
       const dTBurn = (inputKw * 1000 * dt) / (massKg * CP);
       const dTLoss = (lossKw * 1000 * dt) / (massKg * CP);
-      state.boilerT = clamp(afterMix + dTBurn - dTLoss, state.outdoor + 1, 88);
+      // Abgabe an Kreislauf grob über Extract, aber nicht doppelt so stark wie Flow-Term
+      const dTExtract = nearSet
+        ? (extractKw * 1000 * dt) / (massKg * CP) * 0.25
+        : 0;
+
+      let next = state.boilerT + dTBurn + dTFlow - dTLoss - dTExtract;
+
+      // Unter Pmin und nah am Soll: Mindestleistung muss den Fühler klar nach oben treiben
+      if (state.minPowerCycling && inputKw > 0 && nearSet) {
+        const surplusKw = Math.max(inputKw - extractKw - lossKw, inputKw * 0.35);
+        const dTSurplus = (surplusKw * 1000 * dt) / (massKg * CP);
+        next = Math.max(next, state.boilerT + dTSurplus * 0.85);
+      }
+
+      state.boilerT = clamp(next, state.outdoor + 1, 88);
     }
 
     /**
@@ -672,12 +698,36 @@
     }
 
     function step(realDt) {
-      const dt = clamp(realDt, 0.016, 0.1) * state.dtScale;
+      const flowSetPreview = flowSetpoint();
+      const hystPreview = hysteresisK();
+      const offPreview = flowSetPreview + hystPreview / 2;
+      const onPreview = flowSetPreview - hystPreview / 2;
+      const br = state.burner;
+      // Zeitraffer so, dass AN/AUS innerhalb weniger Echtsekunden sichtbar wird
+      let boost = 1;
+      if (state.minPowerCycling || br.mode !== "on") boost = 3.2;
+      if (state.brandId === "einaus" || (state.hystOverride != null && state.hystOverride <= 1.5)) {
+        boost = Math.max(boost, 2.5);
+      }
+      // Aufheizen zum Ausschaltpunkt / Abkühlen zum Einschaltpunkt beschleunigen,
+      // besonders bei Pmin oder wenn der Brenner hart auf Mindestleistung steht.
+      const atMinMod =
+        brand().modulating && br.mode === "on" && br.powerFrac <= brand().minMod + 0.03;
+      if ((state.minPowerCycling || atMinMod) && br.mode === "on" && state.boilerT < offPreview) {
+        const remain = offPreview - state.boilerT;
+        boost = Math.max(boost, remain > 10 ? 11 : remain > 3 ? 6.5 : 4);
+      }
+      if ((state.minPowerCycling || br.mode === "off") && br.mode !== "on" && state.boilerT > onPreview) {
+        const remain = state.boilerT - onPreview;
+        boost = Math.max(boost, remain > 4 ? 7 : 4);
+      }
+      state.dtScaleBoost = boost;
+      const dt = clamp(realDt, 0.016, 0.1) * state.dtScale * state.dtScaleBoost;
       state.simTime += dt;
-      const flowSet = flowSetpoint();
+      const flowSet = flowSetPreview;
       const hyd = hydraulics(dt);
       const { onAt, offAt } = updateBurner(dt, flowSet, hyd.heatExtractKw);
-      updateBoiler(dt, hyd.totalLh);
+      updateBoiler(dt, hyd.totalLh, hyd.heatExtractKw);
       buildTips(hyd, onAt, offAt, flowSet);
       return snapshot(hyd, onAt, offAt, flowSet, predictCycling(hyd, onAt, offAt, flowSet));
     }
@@ -778,17 +828,46 @@
 
     function applyScenario(id) {
       if (id === "taktend") {
+        // Vitodens 100: Übergangsbetrieb / kleine Last → Pmin nicht abführbar → Takten
         setControls({
-          brandId: "einaus",
-          hystOverride: 1.0,
-          burnerPowerKw: 28,
+          brandId: "viessmann",
+          hystOverride: 1.5,
+          burnerPowerKw: 19,
           outdoor: 8,
-          slope: 1.8,
-          shift: 2,
-          balance: 70,
+          slope: 1.15,
+          shift: 0,
+          balance: 85,
+          diameterMm: 15,
+          lengthMul: 1,
+          rooms: {
+            living: { tSet: 20, loadW: 500, radType: "panel22", qn: 1200 },
+            bath: { tSet: 22, loadW: 250, radType: "bath", qn: 500 },
+            bed: { tSet: 18, loadW: 350, radType: "panel11", qn: 800 },
+          },
         });
-        state.boilerT = flowSetpoint();
-        state.burner.cycleLog = [];
+        const fs = flowSetpoint();
+        const hyst = hysteresisK();
+        // Kurz unter Ausschaltpunkt starten → erster AUS kommt sofort
+        state.boilerT = fs + hyst / 2 - 0.4;
+        state.returnHeaderT = fs - 10;
+        for (const k of Object.keys(state.rooms)) {
+          const r = state.rooms[k];
+          r.tRoom = r.tSet + 0.2;
+          r.pipeSupplyT = fs - 2;
+          r.pipeReturnT = fs - 9;
+          r.tIn = r.pipeSupplyT;
+          r.tOut = r.pipeReturnT;
+        }
+        state.burner = {
+          mode: "on",
+          powerFrac: 0.2,
+          igniteLeft: 0,
+          runTime: 60,
+          lockLeft: 0,
+          starts: [state.simTime],
+          cycleLog: [{ t: state.simTime - 40, on: true, power: 0.2 }],
+        };
+        state.minPowerCycling = true;
       } else if (id === "kalt-lang") {
         setControls({
           brandId: "viessmann",
