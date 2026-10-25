@@ -65,46 +65,56 @@
           <text class="boiler-vol" x="50" y="132" text-anchor="middle">Sensor im Kessel · ~7 L</text>
         </g>
 
-        <g id="pump-group" transform="translate(200,155)">
-          <circle class="pump" id="pump-disc" cx="18" cy="22" r="18"/>
-          <path id="pump-blade" class="pump-blade" d="M18 10 L21 22 L18 34 L15 22 Z" />
-          <text class="tiny" x="18" y="52" text-anchor="middle">Umwälzpumpe</text>
-          <rect class="probe-chip" id="pump-chip" x="-8" y="58" width="52" height="34" rx="6"/>
-          <text class="probe-label" x="18" y="72" text-anchor="middle">VL an Pumpe</text>
-          <text class="probe-temp" id="pump-temp" x="18" y="88" text-anchor="middle">40 °C</text>
+        <!-- Pumpe auf Vorlauf: Therme → Pumpe → VL-Verteiler -->
+        <g id="pump-group" transform="translate(198,148)">
+          <circle class="pump" id="pump-disc" cx="18" cy="18" r="16"/>
+          <path id="pump-blade" class="pump-blade" d="M18 8 L21 18 L18 28 L15 18 Z" />
+          <text class="tiny" x="18" y="44" text-anchor="middle">Pumpe (VL)</text>
+          <rect class="probe-chip" id="pump-chip" x="-10" y="50" width="56" height="32" rx="6"/>
+          <text class="probe-label" x="18" y="63" text-anchor="middle">VL an Pumpe</text>
+          <text class="probe-temp" id="pump-temp" x="18" y="78" text-anchor="middle">40 °C</text>
         </g>
 
-        <g id="return-probe" transform="translate(100,270)">
-          <rect class="probe-chip" id="return-chip" x="0" y="0" width="76" height="34" rx="6"/>
-          <text class="probe-label" x="38" y="14" text-anchor="middle">RL in Therme</text>
-          <text class="probe-temp" id="boiler-return-temp" x="38" y="30" text-anchor="middle">36 °C</text>
+        <!-- Zwei getrennte Verteilerbalken: oben VL, unten RL -->
+        <g id="manifold-supply" transform="translate(248,138)">
+          <rect class="manifold manifold-vl" id="manifold-body" x="0" y="0" width="28" height="52" rx="5"/>
+          <text class="tiny" x="14" y="-6" text-anchor="middle">VL-Verteiler</text>
+          <text class="probe-temp tiny-temp" id="manifold-temp" x="14" y="30" text-anchor="middle">—°</text>
+        </g>
+        <g id="manifold-return" transform="translate(248,218)">
+          <rect class="manifold manifold-rl" id="manifold-return-body" x="0" y="0" width="28" height="52" rx="5"/>
+          <text class="tiny" x="14" y="68" text-anchor="middle">RL-Verteiler</text>
+          <text class="probe-temp tiny-temp" id="manifold-return-temp" x="14" y="30" text-anchor="middle">—°</text>
         </g>
 
-        <g transform="translate(250,148)">
-          <rect class="manifold" id="manifold-body" x="0" y="0" width="36" height="80" rx="6"/>
-          <text class="tiny" x="18" y="96" text-anchor="middle">Verteiler</text>
-          <text class="probe-temp tiny-temp" id="manifold-temp" x="18" y="-6" text-anchor="middle">— °C</text>
+        <g id="return-probe" transform="translate(95,268)">
+          <rect class="probe-chip" id="return-chip" x="0" y="0" width="86" height="34" rx="6"/>
+          <text class="probe-label" x="43" y="14" text-anchor="middle">RL zurück in Therme</text>
+          <text class="probe-temp" id="boiler-return-temp" x="43" y="30" text-anchor="middle">36 °C</text>
         </g>
 
-        <path id="pipe-supply-main" class="pipe supply" d="M188 170 H200"/>
-        <path id="pipe-boiler-to-pump" class="pipe supply" d="M188 155 H200"/>
-        <path id="pipe-pump-to-manifold" class="pipe supply" d="M236 170 H250"/>
-        <path id="pipe-return-main" class="pipe return" d="M188 250 H250 V215"/>
+        <!-- Vorlauf: Therme → Pumpe → VL-Verteiler -->
+        <path id="pipe-boiler-to-pump" class="pipe supply" d="M188 155 H198"/>
+        <path id="pipe-supply-main" class="pipe supply" d="M234 166 H248"/>
+        <path id="pipe-pump-to-manifold" class="pipe supply" d="M216 166 H248"/>
+        <!-- Rücklauf: RL-Verteiler → Therme (eigener Weg, nicht in VL!) -->
+        <path id="pipe-return-main" class="pipe return" d="M248 244 H188 V268"/>
 
-        <path id="pipe-living-s" class="pipe supply flowable" d="M286 170 H360 V188"/>
-        <path id="pipe-living-r" class="pipe return flowable" d="M360 248 V260 H286 V215"/>
+        <!-- Stränge: VL vom oberen Verteiler, RL zum unteren Verteiler -->
+        <path id="pipe-living-s" class="pipe supply flowable" d="M276 155 H360 V188"/>
+        <path id="pipe-living-r" class="pipe return flowable" d="M360 248 V255 H276 V244"/>
         <rect class="radiator" id="rad-living" x="338" y="188" width="44" height="60" rx="6" fill="url(#radGrad-living)"/>
         <text class="rad-vl" id="vl-living" x="360" y="206" text-anchor="middle">VL —</text>
         <text class="rad-rl" id="rl-living" x="360" y="236" text-anchor="middle">RL —</text>
 
-        <path id="pipe-bath-s" class="pipe supply flowable" d="M286 165 H700 V188"/>
-        <path id="pipe-bath-r" class="pipe return flowable" d="M700 248 V265 H286 V210"/>
+        <path id="pipe-bath-s" class="pipe supply flowable" d="M276 150 H700 V188"/>
+        <path id="pipe-bath-r" class="pipe return flowable" d="M700 248 V258 H276 V244"/>
         <rect class="radiator" id="rad-bath" x="678" y="188" width="44" height="60" rx="6" fill="url(#radGrad-bath)"/>
         <text class="rad-vl" id="vl-bath" x="700" y="206" text-anchor="middle">VL —</text>
         <text class="rad-rl" id="rl-bath" x="700" y="236" text-anchor="middle">RL —</text>
 
-        <path id="pipe-bed-s" class="pipe supply flowable" d="M286 175 H300 V388 H500"/>
-        <path id="pipe-bed-r" class="pipe return flowable" d="M500 460 H270 V220"/>
+        <path id="pipe-bed-s" class="pipe supply flowable" d="M276 160 H292 V388 H500"/>
+        <path id="pipe-bed-r" class="pipe return flowable" d="M500 460 H268 V270"/>
         <rect class="radiator" id="rad-bed" x="478" y="388" width="44" height="72" rx="6" fill="url(#radGrad-bed)"/>
         <text class="rad-vl" id="vl-bed" x="500" y="410" text-anchor="middle">VL —</text>
         <text class="rad-rl" id="rl-bed" x="500" y="444" text-anchor="middle">RL —</text>
@@ -416,10 +426,10 @@
             <em>Spektrum = Wassertemperatur</em>
           </div>
           <ul class="legend-list">
-            <li><strong>VL / RL</strong> — Vorlauf / Rücklauf am Heizkörper</li>
-            <li><strong>ΔT</strong> — Spreizung (Wärmeabgabe sichtbar)</li>
-            <li><strong>Therme</strong> — erhitzt nur ~7 L Kesselwasser</li>
-            <li><strong>Pumpe</strong> — trägt die Wärme in den Kreislauf</li>
+            <li><strong>VL-Verteiler</strong> — heißes Wasser zu den Heizkörpern</li>
+            <li><strong>RL-Verteiler</strong> — abgekühltes Wasser zurück zur Therme (getrennt!)</li>
+            <li><strong>Kreislauf</strong> — Therme → Pumpe → VL → HK → RL → Therme</li>
+            <li><strong>ΔT</strong> — Spreizung VL−RL (Wärmeabgabe)</li>
             <li><strong>Moduliert</strong> — Flamme an, aber gedrosselt (nicht Vollast)</li>
           </ul>
           <p class="brand-kicker">Heizkreislauf-Trainer · Lernsimulation</p>

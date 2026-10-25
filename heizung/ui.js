@@ -409,15 +409,21 @@
     $("#boiler-svg-temp").textContent = `${s.boilerT.toFixed(1)} °C`;
     $("#pump-temp").textContent = `${s.boilerT.toFixed(1)} °C`;
     $("#boiler-return-temp").textContent = `${s.returnHeaderT.toFixed(1)} °C`;
-    $("#manifold-temp").textContent = `${s.boilerT.toFixed(0)} °C`;
+    setText("#manifold-temp", `${s.boilerT.toFixed(0)}°`);
+    setText("#manifold-return-temp", `${s.returnHeaderT.toFixed(0)}°`);
 
     const pumpChip = $("#pump-chip");
     const returnChip = $("#return-chip");
     if (pumpChip) pumpChip.style.stroke = spectrumColor(s.boilerT);
     if (returnChip) returnChip.style.stroke = spectrumColor(s.returnHeaderT);
-    $("#pump-temp").style.fill = spectrumColor(s.boilerT);
-    $("#boiler-return-temp").style.fill = spectrumColor(s.returnHeaderT);
-    $("#boiler-svg-temp").style.fill = spectrumColor(Math.min(s.boilerT + 5, 75));
+    const pumpTemp = $("#pump-temp");
+    const boilerRet = $("#boiler-return-temp");
+    const boilerSvg = $("#boiler-svg-temp");
+    const manRet = $("#manifold-return-temp");
+    if (pumpTemp) pumpTemp.style.fill = spectrumColor(s.boilerT);
+    if (boilerRet) boilerRet.style.fill = spectrumColor(s.returnHeaderT);
+    if (boilerSvg) boilerSvg.style.fill = spectrumColor(Math.min(s.boilerT + 5, 75));
+    if (manRet) manRet.style.fill = spectrumColor(s.returnHeaderT);
 
     const lo = 20;
     const hi = 80;
@@ -450,7 +456,9 @@
     if (pipePumpManifold) pipePumpManifold.style.stroke = spectrumColor(s.boilerT);
     $("#pipe-return-main").style.stroke = spectrumColor(s.returnHeaderT);
     const manifold = $("#manifold-body");
+    const manifoldRl = $("#manifold-return-body");
     if (manifold) manifold.style.fill = spectrumColor(s.boilerT, 20, 70);
+    if (manifoldRl) manifoldRl.style.fill = spectrumColor(s.returnHeaderT, 20, 70);
 
     for (const id of ["living", "bath", "bed"]) {
       const room = s.rooms[id];

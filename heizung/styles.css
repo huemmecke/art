@@ -564,6 +564,14 @@ h1 {
   stroke-width: 1.5;
 }
 
+.manifold-vl {
+  stroke: #e08a2a;
+}
+
+.manifold-rl {
+  stroke: #5a87a8;
+}
+
 .rad-vl,
 .rad-rl {
   fill: #f4f7fb;
@@ -954,7 +962,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 @keyframes flow {
-  to { stroke-dashoffset: -44; }
+  to { stroke-dashoffset: -34; }
 }
 
 @keyframes flicker {
