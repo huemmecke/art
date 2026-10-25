@@ -370,7 +370,10 @@
     const banner = $("#fire-banner");
     banner.dataset.state = plain.state;
     $("#fire-title").textContent = plain.title;
-    $("#fire-explain").textContent = plain.explain;
+    const explainEl = $("#fire-explain");
+    if (explainEl) explainEl.textContent = plain.explain;
+    const statusExplain = $("#status-explain");
+    if (statusExplain) statusExplain.textContent = plain.explain;
     $("#fire-power-val").textContent = `${pctGas} %`;
 
     $("#burner-state").textContent = plain.short;
@@ -469,19 +472,55 @@
     }
   }
 
-  const hatch = $("#revision-hatch");
-  const hatchBtn = $("#hatch-toggle");
-  const hatchBody = $("#hatch-body");
-  if (hatchBtn && hatchBody) {
-    hatchBtn.addEventListener("click", () => {
-      const open = hatch.classList.toggle("is-open");
-      hatchBtn.setAttribute("aria-expanded", open ? "true" : "false");
-      hatchBody.hidden = !open;
-      hatchBtn.querySelector(".hatch-title").textContent = open
-        ? "Revisionsklappe schließen"
-        : "Revisionsklappe öffnen";
-    });
+  const modalRoot = $("#modal-root");
+  let activeModal = null;
+
+  function openModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal || !modalRoot) return;
+    closeModal();
+    modalRoot.hidden = false;
+    modal.hidden = false;
+    activeModal = modal;
+    document.body.style.overflow = "hidden";
+    if (id === "modal-cycles") {
+      requestAnimationFrame(() => {
+        // force canvas resize on open
+        const s = sim.snapshot();
+        if (s) drawCycles(renderFull.lastSnap || s);
+      });
+    }
   }
+
+  function closeModal() {
+    if (!modalRoot) return;
+    $$(".modal").forEach((m) => {
+      m.hidden = true;
+    });
+    modalRoot.hidden = true;
+    activeModal = null;
+    document.body.style.overflow = "";
+  }
+
+  $$("[data-open-modal]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      openModal(btn.getAttribute("data-open-modal"));
+    });
+  });
+  $$("[data-close-modal]").forEach((el) => {
+    el.addEventListener("click", () => closeModal());
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && activeModal) closeModal();
+  });
+
+  // Szenario wählen → Modal schließen, Wirkung sofort sehen
+  $$("[data-scenario]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setTimeout(() => closeModal(), 80);
+    });
+  });
 
   bindControls();
   pushControlsFromSim();
@@ -493,7 +532,9 @@
     const dt = (now - last) / 1000;
     last = now;
     readControlsIntoSim();
-    renderFull(sim.step(dt));
+    const snap = sim.step(dt);
+    renderFull.lastSnap = snap;
+    renderFull(snap);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
