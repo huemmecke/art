@@ -503,41 +503,106 @@
       const massKg = BOILER_VOLUME_L;
       const mDot = Math.max(totalLh, 1) / 3600; // kg/s
 
-      // Energiebilanz am Kesselwasser:
-      // m·cp·dT = P_brenner·dt + ṁ·cp·(T_rl − T_kessel)·dt − P_verlust·dt
-      // Zusätzlich begrenzen wir den „Rohr-Aufheiz-Effekt“, damit nah am Soll
-      // die Vitodens-Pmin-Überschusswärme sichtbar taktet (nicht ewig verdünnt wird).
-      const flowSet = flowSetpoint();
-      const nearSet = state.boilerT > flowSet - 12;
-      const mixGain = nearSet || state.minPowerCycling ? 0.35 : 1.0;
+      // Energiebilanz: m·cp·dT = P_brenner·dt + ṁ·cp·(T_rl − T_kessel)·dt − P_verlust·dt
+      // Nur bei klarer Unterschreitung von Pmin dämpfen wir die RL-Kühlung leicht,
+      // damit Mindestleistung den Ausschaltpunkt erreichen kann (Lernmodell).
+      const deepUnderMin =
+        state.minPowerCycling && state.lastMinKw > 0 && state.lastLoadKw < state.lastMinKw * 0.75;
+      const mixGain = deepUnderMin ? 0.55 : 1.0;
       const dTFlow =
         ((mDot * (state.returnHeaderT - state.boilerT)) / massKg) * dt * mixGain;
       const dTBurn = (inputKw * 1000 * dt) / (massKg * CP);
       const dTLoss = (lossKw * 1000 * dt) / (massKg * CP);
-      // Abgabe an Kreislauf grob über Extract, aber nicht doppelt so stark wie Flow-Term
-      const dTExtract = nearSet
-        ? (extractKw * 1000 * dt) / (massKg * CP) * 0.25
-        : 0;
 
-      let next = state.boilerT + dTBurn + dTFlow - dTLoss - dTExtract;
+      let next = state.boilerT + dTBurn + dTFlow - dTLoss;
 
-      // Unter Pmin und nah am Soll: Mindestleistung muss den Fühler klar nach oben treiben
-      if (state.minPowerCycling && inputKw > 0 && nearSet) {
-        const surplusKw = Math.max(inputKw - extractKw - lossKw, inputKw * 0.35);
+      if (deepUnderMin && inputKw > 0) {
+        const surplusKw = Math.max(inputKw - extractKw - lossKw, inputKw * 0.25);
         const dTSurplus = (surplusKw * 1000 * dt) / (massKg * CP);
-        next = Math.max(next, state.boilerT + dTSurplus * 0.85);
+        next = Math.max(next, state.boilerT + dTSurplus * 0.7);
       }
 
       state.boilerT = clamp(next, state.outdoor + 1, 88);
     }
 
     /**
-     * Prognose der Taktung aus aktueller Last, Hysterese und Kesselmasse.
-     * ton/toff ≈ (m·cp·Band) / P_netto  — Lernmodell, keine Herstellerkurve.
+     * Gemessene Taktung aus den letzten vollständigen Zyklen (cycleLog).
+     * Nur die jüngsten Perioden — sonst bleibt nach Hysterese-Änderung die alte Rate kleben.
+     */
+    function measureRecentCycling() {
+      const tNow = state.simTime;
+      const log = state.burner.cycleLog;
+      if (!log.length) return null;
+
+      const offEdges = [];
+      const onEdges = [];
+      let tonSamples = [];
+      let toffSamples = [];
+      for (let i = 1; i < log.length; i++) {
+        const prev = log[i - 1];
+        const cur = log[i];
+        const dur = cur.t - prev.t;
+        if (dur <= 0 || dur > 1800) continue;
+        if (prev.on && !cur.on) {
+          offEdges.push(cur.t);
+          tonSamples.push(dur);
+        }
+        if (!prev.on && cur.on) {
+          onEdges.push(cur.t);
+          toffSamples.push(dur);
+        }
+      }
+
+      const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
+      const lastN = (arr, n) => arr.slice(Math.max(0, arr.length - n));
+
+      // Perioden = Abstand zwischen Ausschaltpunkten (ein voller Takt)
+      const periods = [];
+      for (let i = 1; i < offEdges.length; i++) {
+        periods.push(offEdges[i] - offEdges[i - 1]);
+      }
+      const recentPeriods = lastN(periods, 3);
+      if (recentPeriods.length >= 1) {
+        const periodSec = avg(recentPeriods);
+        return {
+          startsPerHour: clamp(3600 / Math.max(periodSec, 1), 0, 80),
+          tonSec: avg(lastN(tonSamples, 3)),
+          toffSec: avg(lastN(toffSamples, 3)),
+          periodSec,
+          samples: recentPeriods.length,
+        };
+      }
+
+      // Fallback: letzte Starts
+      const starts = state.burner.starts.filter((t) => tNow - t < 600);
+      if (starts.length >= 2) {
+        const recent = lastN(starts, 4);
+        const span = Math.max(recent[recent.length - 1] - recent[0], 1);
+        const periodSec = span / Math.max(recent.length - 1, 1);
+        return {
+          startsPerHour: clamp(3600 / periodSec, 0, 80),
+          tonSec: avg(lastN(tonSamples, 3)),
+          toffSec: avg(lastN(toffSamples, 3)),
+          periodSec,
+          samples: recent.length,
+        };
+      }
+      return null;
+    }
+
+    function taktLabel(startsPerHour) {
+      if (startsPerHour >= 6) return { level: "bad", label: "starkes Takten" };
+      if (startsPerHour >= 3) return { level: "warn", label: "grenzwertig" };
+      if (startsPerHour >= 1.2) return { level: "warn", label: "leichtes Takten" };
+      return { level: "ok", label: "selten" };
+    }
+
+    /**
+     * Prognose der Taktung: Messung hat Vorrang vor „Last ≥ Pmin → kaum Takten“.
+     * Analytisch: ton/toff ≈ (m·cp·Band) / P_netto — Band = Hysterese.
      */
     function predictCycling(hyd, onAt, offAt, flowSet) {
       const b = brand();
-      const hyst = hysteresisK();
       const band = Math.max(offAt - onAt, 0.5);
       const extractKw = Math.max(hyd.heatExtractKw || 0, 0.05);
       const lossKw = Math.max(0, (flowSet - state.outdoor) * 0.01);
@@ -547,9 +612,11 @@
 
       const minKw = b.modulating ? state.burnerPowerKw * b.minMod : state.burnerPowerKw;
       const maxKw = state.burnerPowerKw;
+      const measured = measureRecentCycling();
+      const measuredBusy = measured && measured.startsPerHour >= 1.5;
 
       // Überlast: auch Vollast reicht nicht → läuft durch
-      if (loadKw > maxKw * 1.08) {
+      if (loadKw > maxKw * 1.08 && !measuredBusy) {
         return {
           kind: "overload",
           level: "warn",
@@ -560,13 +627,53 @@
           loadKw,
           bandK: band,
           minKw,
+          source: "analytic",
           label: "Dauerfeuer",
           detail: `Last ${loadKw.toFixed(1)} kW > Brenner ${maxKw.toFixed(1)} kW — Ausschaltpunkt kaum erreichbar (Unterversorgung).`,
         };
       }
 
-      // Last im Modulationsfenster → halten ohne Takten
-      if (b.modulating && loadKw >= minKw * 0.95 && loadKw <= maxKw * 1.05) {
+      // Analytische Taktzeiten (immer mit aktuellem Hysterese-Band)
+      const fireKw = b.modulating ? Math.max(minKw, loadKw < minKw ? minKw : loadKw) : maxKw;
+      const underMin = b.modulating && loadKw < minKw * 0.98;
+      const netHeatKw = underMin
+        ? Math.max(minKw - loadKw, 0.08)
+        : Math.max(0.12, maxKw * 0.04); // leichter Overshoot-Rest wenn „im Fenster“
+      const coolKw = Math.max(loadKw, 0.08);
+      let tonSecA = energyBandJ / (netHeatKw * 1000);
+      let toffSecA = energyBandJ / (coolKw * 1000);
+      tonSecA = Math.max(tonSecA, b.minRun || 0);
+      toffSecA = Math.max(toffSecA, b.lockout || 0);
+      const periodA = tonSecA + toffSecA;
+      const startsA = clamp(3600 / Math.max(periodA, 1), 0, 60);
+
+      // Messung schlägt Theorie, wenn der Brenner nachweislich taktet
+      if (measuredBusy) {
+        const sph = measured.startsPerHour;
+        const { level, label } = taktLabel(sph);
+        const ton = measured.tonSec ?? tonSecA;
+        const toff = measured.toffSec ?? toffSecA;
+        const why = underMin
+          ? `Pmin ${minKw.toFixed(1)} kW > Last ${loadKw.toFixed(1)} kW`
+          : `Last ~Pmin — Overshoot im Band`;
+        return {
+          kind: "cycling",
+          level,
+          startsPerHour: sph,
+          tonSec: ton,
+          toffSec: toff,
+          periodSec: measured.periodSec ?? ton + toff,
+          loadKw,
+          bandK: band,
+          minKw,
+          source: "measured",
+          label,
+          detail: `Gemessen ≈ ${sph.toFixed(1)} Starts/h bei ${band.toFixed(1)} K Hysterese (${why}). Größere Hysterese → weniger Starts.`,
+        };
+      }
+
+      // Stabiles Modulationsfenster nur mit Abstand zu Pmin und ohne gemessene Starts
+      if (b.modulating && loadKw >= minKw * 1.08 && loadKw <= maxKw * 1.05) {
         const modPct = clamp((loadKw / maxKw) * 100, b.minMod * 100, 100);
         return {
           kind: "hold",
@@ -578,49 +685,31 @@
           loadKw,
           bandK: band,
           minKw,
+          source: "analytic",
           label: "kaum Takten",
-          detail: `Last ${loadKw.toFixed(1)} kW ≥ Pmin ${minKw.toFixed(1)} kW (${b.modRatioLabel || "Modulation"}) → kann Leistung abführen, Dauerbetrieb ~${modPct.toFixed(0)} %.`,
+          detail: `Last ${loadKw.toFixed(1)} kW klar über Pmin ${minKw.toFixed(1)} kW (${b.modRatioLabel || "Modulation"}) → Dauerbetrieb ~${modPct.toFixed(0)} %. Band ${band.toFixed(1)} K.`,
         };
       }
 
-      // Unter Pmin: Vitodens 100 & Co. → Takten, weil Mindestleistung nicht „losgeworden“ wird
-      const fireKw = b.modulating ? minKw : maxKw;
-      const netHeatKw = Math.max(fireKw - loadKw, 0.05);
-      const coolKw = Math.max(loadKw, 0.05);
-      let tonSec = energyBandJ / (netHeatKw * 1000);
-      let toffSec = energyBandJ / (coolKw * 1000);
-      tonSec = Math.max(tonSec, b.minRun || 0);
-      toffSec = Math.max(toffSec, b.lockout || 0);
-      const periodSec = tonSec + toffSec;
-      const startsPerHour = clamp(3600 / Math.max(periodSec, 1), 0, 60);
-
-      let level = "ok";
-      let label = "selten";
-      if (startsPerHour >= 6) {
-        level = "bad";
-        label = "starkes Takten";
-      } else if (startsPerHour >= 3) {
-        level = "warn";
-        label = "grenzwertig";
-      }
-
-      const cause =
-        b.modulating && loadKw < minKw
-          ? `Pmin ${minKw.toFixed(1)} kW > Last ${loadKw.toFixed(1)} kW — ${b.name} kann nicht weiter drosseln`
-          : `Ein/Aus-Betrieb`;
+      // Unter Pmin oder Grenzbereich nahe Pmin → analytische Prognose inkl. Hysterese
+      const { level, label } = taktLabel(startsA);
+      const cause = underMin
+        ? `Pmin ${minKw.toFixed(1)} kW > Last ${loadKw.toFixed(1)} kW — ${b.name} kann nicht weiter drosseln`
+        : `Grenzbereich Last≈Pmin — Hysterese ${band.toFixed(1)} K bestimmt die Starts`;
 
       return {
         kind: "cycling",
         level,
-        startsPerHour,
-        tonSec,
-        toffSec,
-        periodSec,
+        startsPerHour: startsA,
+        tonSec: tonSecA,
+        toffSec: toffSecA,
+        periodSec: periodA,
         loadKw,
         bandK: band,
         minKw,
+        source: "analytic",
         label,
-        detail: `${cause} → An ~${Math.round(tonSec)} s / Aus ~${Math.round(toffSec)} s ≈ ${startsPerHour.toFixed(1)} Starts/h (${label}).`,
+        detail: `${cause} → An ~${Math.round(tonSecA)} s / Aus ~${Math.round(toffSecA)} s ≈ ${startsA.toFixed(1)} Starts/h (${label}).`,
       };
     }
 
@@ -698,33 +787,16 @@
     }
 
     function step(realDt) {
-      const flowSetPreview = flowSetpoint();
-      const hystPreview = hysteresisK();
-      const offPreview = flowSetPreview + hystPreview / 2;
-      const onPreview = flowSetPreview - hystPreview / 2;
       const br = state.burner;
-      // Zeitraffer so, dass AN/AUS innerhalb weniger Echtsekunden sichtbar wird
+      // Fester, moderater Zeitraffer — kein Boost proportional zur Bandbreite,
+      // sonst würde eine größere Hysterese in Echtzeit kaum langsamer wirken.
       let boost = 1;
-      if (state.minPowerCycling || br.mode !== "on") boost = 3.2;
-      if (state.brandId === "einaus" || (state.hystOverride != null && state.hystOverride <= 1.5)) {
-        boost = Math.max(boost, 2.5);
-      }
-      // Aufheizen zum Ausschaltpunkt / Abkühlen zum Einschaltpunkt beschleunigen,
-      // besonders bei Pmin oder wenn der Brenner hart auf Mindestleistung steht.
-      const atMinMod =
-        brand().modulating && br.mode === "on" && br.powerFrac <= brand().minMod + 0.03;
-      if ((state.minPowerCycling || atMinMod) && br.mode === "on" && state.boilerT < offPreview) {
-        const remain = offPreview - state.boilerT;
-        boost = Math.max(boost, remain > 10 ? 11 : remain > 3 ? 6.5 : 4);
-      }
-      if ((state.minPowerCycling || br.mode === "off") && br.mode !== "on" && state.boilerT > onPreview) {
-        const remain = state.boilerT - onPreview;
-        boost = Math.max(boost, remain > 4 ? 7 : 4);
-      }
+      if (state.minPowerCycling || br.mode === "off" || br.mode === "igniting") boost = 2.4;
+      if (state.brandId === "einaus") boost = Math.max(boost, 2.2);
       state.dtScaleBoost = boost;
       const dt = clamp(realDt, 0.016, 0.1) * state.dtScale * state.dtScaleBoost;
       state.simTime += dt;
-      const flowSet = flowSetPreview;
+      const flowSet = flowSetpoint();
       const hyd = hydraulics(dt);
       const { onAt, offAt } = updateBurner(dt, flowSet, hyd.heatExtractKw);
       updateBoiler(dt, hyd.totalLh, hyd.heatExtractKw);

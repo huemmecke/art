@@ -445,7 +445,11 @@
       if (!pred) return;
       const card = $(prefix === "" ? "#takt-pred-card" : "#takt-pred-card-cycles");
       if (card) card.dataset.level = pred.level || "ok";
-      setText(prefix === "" ? "#takt-pred-label" : "#takt-pred-label-cycles", pred.label || "—");
+      const src = pred.source === "measured" ? "gemessen" : "Prognose";
+      setText(
+        prefix === "" ? "#takt-pred-label" : "#takt-pred-label-cycles",
+        pred.label ? `${pred.label} · ${src}` : "—"
+      );
       setText(
         prefix === "" ? "#takt-pred-starts" : "#takt-pred-starts-cycles",
         pred.kind === "cycling" ? pred.startsPerHour.toFixed(1) : "≈ 0"
@@ -461,12 +465,14 @@
     const chipPred = $("#takt-pred-chip");
     if (chipPred && pred) {
       banner.dataset.takt = pred.level || "ok";
-      if (s.minPowerCycling) {
+      const bandK = pred.bandK != null ? pred.bandK : s.hysteresis;
+      if (pred.kind === "cycling") {
+        const src = pred.source === "measured" ? "gemessen" : "Prognose";
+        chipPred.textContent = `${src} ≈ ${pred.startsPerHour.toFixed(1)} Starts/h · Band ${bandK.toFixed(1)} K`;
+      } else if (s.minPowerCycling) {
         chipPred.textContent = `Pmin ${s.lastMinKw.toFixed(1)} kW > Last ${s.lastLoadKw.toFixed(1)} kW → taktet`;
-      } else if (pred.kind === "cycling") {
-        chipPred.textContent = `Prognose ≈ ${pred.startsPerHour.toFixed(1)} Starts/h · ${pred.label}`;
       } else {
-        chipPred.textContent = `Prognose: ${pred.label}`;
+        chipPred.textContent = `${pred.label} · Band ${bandK.toFixed(1)} K`;
       }
     }
 
