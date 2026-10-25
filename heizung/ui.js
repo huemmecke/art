@@ -152,7 +152,8 @@
   function readRoom(roomId) {
     // Revisions-Modal hat die vollen Parameter; Hauptbedienung nur Thermostat
     const hatch =
-      $(`#modal-revision .room-ctrl[data-room="${roomId}"]`) ||
+      $(`#panel-revision .room-ctrl[data-room="${roomId}"]`) ||
+      $(`#expert-panel .room-ctrl[data-room="${roomId}"]`) ||
       $(`.room-ctrl[data-room="${roomId}"]`);
     const main = $(`.main-ops .room-ctrl[data-room="${roomId}"]`);
     const tSetEl = (main && $(".tset", main)) || (hatch && $(".tset", hatch));

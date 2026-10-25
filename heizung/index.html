@@ -60,8 +60,7 @@
 
         <div class="rail-tools">
           <p class="rail-label">Werkzeuge</p>
-          <button type="button" class="rail-tool" data-open-modal="modal-controls">Bedienen</button>
-          <button type="button" class="rail-tool" data-open-modal="modal-revision">Revision</button>
+          <a class="rail-tool" href="#expert-panel">Experten-Einstellungen</a>
           <button type="button" class="rail-tool" data-open-modal="modal-cycles">Zyklen</button>
           <button type="button" class="rail-tool" data-open-modal="modal-legend">Legende</button>
           <button type="button" class="rail-tool" data-open-modal="modal-status">Status</button>
@@ -93,9 +92,9 @@
         <section class="scenario-visual" aria-label="Anlage im Überblick">
           <div class="visual-head">
             <h3>Anlage im Überblick</h3>
-            <p>Schema nur zur Orientierung — die Messwerte stehen darunter und rechts.</p>
+            <p>Technik links, Rohrschacht, dann drei Stränge mit Abstand — Messwerte darunter.</p>
           </div>
-          <svg class="house house-diagram" viewBox="0 0 1000 560" role="img" aria-label="Schematisches Haus mit Heizkreislauf">
+                    <svg class="house house-diagram" viewBox="0 0 1040 640" role="img" aria-label="Schematisches Haus mit Heizkreislauf">
           <defs>
             <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#1c2833"/>
@@ -123,93 +122,103 @@
             </linearGradient>
           </defs>
 
-          <path class="roof" d="M70 96 L500 18 L930 96 L910 96 L500 38 L90 96 Z" fill="url(#roofGrad)"/>
-          <rect class="shell" x="90" y="96" width="820" height="430" rx="8"/>
-          <text class="house-label" x="500" y="86" text-anchor="middle">Schematisches Einfamilienhaus</text>
+          <path class="roof" d="M50 78 L520 12 L990 78 L968 78 L520 32 L72 78 Z" fill="url(#roofGrad)"/>
+          <rect class="shell" x="70" y="78" width="900" height="530" rx="10"/>
+          <text class="house-label" x="520" y="68" text-anchor="middle">Schematisches Einfamilienhaus</text>
 
-          <!-- Technik links, drei Stränge rechts mit steigender Rohrlänge -->
-          <rect class="room" id="room-tech" x="108" y="118" width="196" height="386" rx="10"/>
-          <rect class="chase" x="304" y="118" width="36" height="386" rx="4"/>
-          <rect class="room" id="room-living" x="350" y="118" width="540" height="110" rx="10"/>
-          <rect class="room" id="room-bath" x="350" y="242" width="540" height="110" rx="10"/>
-          <rect class="room" id="room-bed" x="350" y="366" width="540" height="138" rx="10"/>
+          <!-- Spalten: Technik | Schacht | drei Geschossbänder mit Abstand -->
+          <rect class="room" id="room-tech" x="90" y="100" width="190" height="488" rx="12"/>
+          <rect class="chase" x="292" y="100" width="42" height="488" rx="6"/>
 
-          <rect class="heat-fill" id="heat-living" x="350" y="118" width="540" height="110" rx="10"/>
-          <rect class="heat-fill" id="heat-bath" x="350" y="242" width="540" height="110" rx="10"/>
-          <rect class="heat-fill" id="heat-bed" x="350" y="366" width="540" height="138" rx="10"/>
+          <rect class="room" id="room-living" x="350" y="100" width="600" height="148" rx="12"/>
+          <rect class="room" id="room-bath" x="350" y="264" width="600" height="148" rx="12"/>
+          <rect class="room" id="room-bed" x="350" y="428" width="600" height="160" rx="12"/>
 
-          <text class="room-title" x="206" y="140" text-anchor="middle">Technik</text>
-          <text class="room-title" x="372" y="140">Wohnzimmer · kurz</text>
-          <text class="room-title" x="372" y="264">Bad · mittel</text>
-          <text class="room-title" x="372" y="388">Schlafzimmer · lang</text>
-          <text class="chase-label" x="322" y="320" text-anchor="middle" transform="rotate(-90 322 320)">Rohrschacht</text>
+          <rect class="heat-fill" id="heat-living" x="350" y="100" width="600" height="148" rx="12"/>
+          <rect class="heat-fill" id="heat-bath" x="350" y="264" width="600" height="148" rx="12"/>
+          <rect class="heat-fill" id="heat-bed" x="350" y="428" width="600" height="160" rx="12"/>
 
-          <g id="boiler-group" transform="translate(138,168)">
-            <rect class="boiler-body" id="boiler-body" x="0" y="0" width="100" height="150" rx="10"/>
-            <text class="boiler-label" x="50" y="18" text-anchor="middle">THERME</text>
-            <text class="probe-label" x="50" y="36" text-anchor="middle">Kesselwasser</text>
-            <text class="boiler-temp-svg" id="boiler-svg-temp" x="50" y="58" text-anchor="middle">40.0 °C</text>
-            <g id="flame-group" class="flame-group" transform="translate(23,72)">
-              <rect class="boiler-flame" id="boiler-flame" x="0" y="16" width="54" height="26" rx="6"/>
-              <path id="flame-shape" class="flame-shape" d="M27 42 C10 26 16 8 27 0 C38 8 44 26 27 42 Z"/>
-              <text id="flame-label" class="flame-label" x="27" y="54" text-anchor="middle">AUS</text>
+          <text class="room-title" x="185" y="124" text-anchor="middle">Technik</text>
+          <text class="room-title" x="370" y="124">Wohnzimmer</text>
+          <text class="room-sub" x="370" y="142">kurzer Strang</text>
+          <text class="room-title" x="370" y="288">Bad</text>
+          <text class="room-sub" x="370" y="306">mittlerer Strang</text>
+          <text class="room-title" x="370" y="452">Schlafzimmer</text>
+          <text class="room-sub" x="370" y="470">langer Strang</text>
+          <text class="chase-label" x="313" y="350" text-anchor="middle" transform="rotate(-90 313 350)">Rohrschacht</text>
+
+          <!-- Technik-Inhalte mit Luft -->
+          <g id="boiler-group" transform="translate(118,160)">
+            <rect class="boiler-body" id="boiler-body" x="0" y="0" width="108" height="168" rx="12"/>
+            <text class="boiler-label" x="54" y="22" text-anchor="middle">THERME</text>
+            <text class="probe-label" x="54" y="42" text-anchor="middle">Kesselwasser</text>
+            <text class="boiler-temp-svg" id="boiler-svg-temp" x="54" y="68" text-anchor="middle">40.0 °C</text>
+            <g id="flame-group" class="flame-group" transform="translate(27,84)">
+              <rect class="boiler-flame" id="boiler-flame" x="0" y="16" width="54" height="28" rx="6"/>
+              <path id="flame-shape" class="flame-shape" d="M27 44 C10 28 16 8 27 0 C38 8 44 28 27 44 Z"/>
+              <text id="flame-label" class="flame-label" x="27" y="58" text-anchor="middle">AUS</text>
             </g>
             <g id="takt-badge" visibility="hidden">
-              <rect x="6" y="-22" width="88" height="18" rx="4" class="takt-badge-bg"/>
-              <text id="takt-badge-text" class="takt-badge-text" x="50" y="-9" text-anchor="middle">TAKTET</text>
+              <rect x="10" y="-24" width="88" height="18" rx="4" class="takt-badge-bg"/>
+              <text id="takt-badge-text" class="takt-badge-text" x="54" y="-11" text-anchor="middle">TAKTET</text>
             </g>
-            <text class="boiler-vol" x="50" y="140" text-anchor="middle">~7 L Sensor</text>
+            <text class="boiler-vol" x="54" y="156" text-anchor="middle">~7 L Sensor</text>
           </g>
 
-          <g id="pump-group" transform="translate(250,200)">
-            <circle class="pump" id="pump-disc" cx="16" cy="16" r="15"/>
-            <path id="pump-blade" class="pump-blade" d="M16 6 L19 16 L16 26 L13 16 Z"/>
-            <text class="tiny" x="16" y="42" text-anchor="middle">Pumpe</text>
-            <rect class="probe-chip" id="pump-chip" x="-20" y="50" width="72" height="32" rx="6"/>
-            <text class="probe-label" x="16" y="62" text-anchor="middle">VL Pumpe</text>
-            <text class="probe-temp" id="pump-temp" x="16" y="76" text-anchor="middle">40 °C</text>
+          <g id="pump-group" transform="translate(148,360)">
+            <circle class="pump" id="pump-disc" cx="40" cy="16" r="16"/>
+            <path id="pump-blade" class="pump-blade" d="M40 6 L43 16 L40 26 L37 16 Z"/>
+            <text class="tiny" x="40" y="44" text-anchor="middle">Pumpe</text>
+            <rect class="probe-chip" id="pump-chip" x="0" y="52" width="80" height="34" rx="8"/>
+            <text class="probe-label" x="40" y="65" text-anchor="middle">VL Pumpe</text>
+            <text class="probe-temp" id="pump-temp" x="40" y="80" text-anchor="middle">40 °C</text>
           </g>
 
-          <g id="manifold-supply" transform="translate(310,150)">
-            <rect class="manifold manifold-vl" id="manifold-body" x="0" y="0" width="24" height="90" rx="5"/>
-            <text class="tiny" x="12" y="-6" text-anchor="middle">VL</text>
-            <text class="probe-temp tiny-temp" id="manifold-temp" x="12" y="48" text-anchor="middle">—°</text>
+          <g id="manifold-supply" transform="translate(301,140)">
+            <rect class="manifold manifold-vl" id="manifold-body" x="0" y="0" width="24" height="100" rx="6"/>
+            <text class="tiny" x="12" y="-8" text-anchor="middle">VL</text>
+            <text class="probe-temp tiny-temp" id="manifold-temp" x="12" y="54" text-anchor="middle">—°</text>
           </g>
-          <g id="manifold-return" transform="translate(310,280)">
-            <rect class="manifold manifold-rl" id="manifold-return-body" x="0" y="0" width="24" height="70" rx="5"/>
-            <text class="tiny" x="12" y="86" text-anchor="middle">RL</text>
-            <text class="probe-temp tiny-temp" id="manifold-return-temp" x="12" y="40" text-anchor="middle">—°</text>
-          </g>
-
-          <g id="return-probe" transform="translate(128,430)">
-            <rect class="probe-chip" id="return-chip" x="0" y="0" width="140" height="34" rx="6"/>
-            <text class="probe-label" x="70" y="13" text-anchor="middle">RL → Therme</text>
-            <text class="probe-temp" id="boiler-return-temp" x="70" y="27" text-anchor="middle">36 °C</text>
+          <g id="manifold-return" transform="translate(301,360)">
+            <rect class="manifold manifold-rl" id="manifold-return-body" x="0" y="0" width="24" height="90" rx="6"/>
+            <text class="tiny" x="12" y="108" text-anchor="middle">RL</text>
+            <text class="probe-temp tiny-temp" id="manifold-return-temp" x="12" y="50" text-anchor="middle">—°</text>
           </g>
 
-          <path id="pipe-boiler-to-pump" class="pipe supply" d="M238 230 H250"/>
-          <path id="pipe-pump-to-manifold" class="pipe supply" d="M266 216 H310"/>
-          <path id="pipe-supply-main" class="pipe supply" d="M322 150 V140"/>
-          <path id="pipe-return-main" class="pipe return" d="M310 330 H250 V447 H128"/>
+          <g id="return-probe" transform="translate(108,520)">
+            <rect class="probe-chip" id="return-chip" x="0" y="0" width="154" height="36" rx="8"/>
+            <text class="probe-label" x="77" y="14" text-anchor="middle">RL → Therme</text>
+            <text class="probe-temp" id="boiler-return-temp" x="77" y="29" text-anchor="middle">36 °C</text>
+          </g>
 
-          <!-- Stränge → HK; VL/RL-Labels rechts neben dem Heizkörper (nicht auf der Leitung) -->
-          <path id="pipe-living-s" class="pipe supply flowable" d="M334 170 H420"/>
-          <path id="pipe-living-r" class="pipe return flowable" d="M420 200 H334 V315"/>
-          <rect class="radiator" id="rad-living" x="420" y="148" width="58" height="70" rx="6" fill="url(#radGrad-living)"/>
-          <text class="rad-vl" id="vl-living" x="492" y="172">VL —</text>
-          <text class="rad-rl" id="rl-living" x="492" y="196">RL —</text>
+          <!-- Technik-Rohre -->
+          <path id="pipe-boiler-to-pump" class="pipe supply" d="M172 328 V360"/>
+          <path id="pipe-pump-to-manifold" class="pipe supply" d="M188 376 H301"/>
+          <path id="pipe-supply-main" class="pipe supply" d="M313 140 V120"/>
+          <path id="pipe-return-main" class="pipe return" d="M301 430 H230 V538 H108"/>
 
-          <path id="pipe-bath-s" class="pipe supply flowable" d="M334 200 V275 H560"/>
-          <path id="pipe-bath-r" class="pipe return flowable" d="M560 305 H340 V315"/>
-          <rect class="radiator" id="rad-bath" x="560" y="268" width="58" height="70" rx="6" fill="url(#radGrad-bath)"/>
-          <text class="rad-vl" id="vl-bath" x="632" y="292">VL —</text>
-          <text class="rad-rl" id="rl-bath" x="632" y="316">RL —</text>
+          <!--
+            Stränge nur am unteren Rand jedes Bandes → HK rechts.
+            Titel oben, Heizkörper unten rechts, Labels rechts vom HK.
+            Wohn kurz / Bad mittel / Schlaf lang.
+          -->
+          <path id="pipe-living-s" class="pipe supply flowable" d="M334 210 H560"/>
+          <path id="pipe-living-r" class="pipe return flowable" d="M560 230 H340 V405"/>
+          <rect class="radiator" id="rad-living" x="560" y="175" width="64" height="72" rx="8" fill="url(#radGrad-living)"/>
+          <text class="rad-vl" id="vl-living" x="640" y="200">VL —</text>
+          <text class="rad-rl" id="rl-living" x="640" y="224">RL —</text>
 
-          <path id="pipe-bed-s" class="pipe supply flowable" d="M334 250 V420 H760"/>
-          <path id="pipe-bed-r" class="pipe return flowable" d="M760 455 H340 V350"/>
-          <rect class="radiator" id="rad-bed" x="760" y="400" width="64" height="78" rx="6" fill="url(#radGrad-bed)"/>
-          <text class="rad-vl" id="vl-bed" x="838" y="428">VL —</text>
-          <text class="rad-rl" id="rl-bed" x="838" y="452">RL —</text>
+          <path id="pipe-bath-s" class="pipe supply flowable" d="M334 240 V370 H700"/>
+          <path id="pipe-bath-r" class="pipe return flowable" d="M700 390 H340 V405"/>
+          <rect class="radiator" id="rad-bath" x="700" y="335" width="64" height="72" rx="8" fill="url(#radGrad-bath)"/>
+          <text class="rad-vl" id="vl-bath" x="780" y="360">VL —</text>
+          <text class="rad-rl" id="rl-bath" x="780" y="384">RL —</text>
+
+          <path id="pipe-bed-s" class="pipe supply flowable" d="M334 300 V540 H860"/>
+          <path id="pipe-bed-r" class="pipe return flowable" d="M860 560 H340 V450"/>
+          <rect class="radiator" id="rad-bed" x="860" y="500" width="68" height="76" rx="8" fill="url(#radGrad-bed)"/>
+          <text class="rad-vl" id="vl-bed" x="790" y="530" text-anchor="end">VL —</text>
+          <text class="rad-rl" id="rl-bed" x="790" y="554" text-anchor="end">RL —</text>
 
           <g id="callouts"></g>
         </svg>
@@ -254,6 +263,120 @@
         </aside>
       </main>
     </div>
+
+
+    <section class="expert-panel" id="expert-panel" aria-label="Experten-Einstellungen">
+      <header class="expert-head">
+        <div>
+          <p class="rail-label">Experten-Einstellungen</p>
+          <h2>Bedienung &amp; Revision</h2>
+          <p class="expert-lead">Hier drehst du die Hebel, die das aktive Szenario beeinflusst — Heizkurve, Hysterese, Abgleich, Heizkörper.</p>
+        </div>
+        <p class="physics-badge" id="physics-badge">Physik: EN-442-Exponent + Darcy-Weisbach</p>
+      </header>
+
+      <div class="expert-grid controls">
+        <section class="ctrl-block main-ops">
+          <h2>Hauptbedienung</h2>
+          <label class="field">
+            <span>Außentemperatur <em id="val-outdoor">0 °C</em></span>
+            <input type="range" id="outdoor" min="-15" max="20" step="1" value="0">
+          </label>
+          <label class="field">
+            <span>Brenner / Marke</span>
+            <select id="burner-brand"></select>
+          </label>
+          <p class="hint" id="brand-hint"></p>
+          <label class="field">
+            <span>Hydraulischer Abgleich <em id="val-balance">offen (schlecht)</em></span>
+            <input type="range" id="balance" min="0" max="100" step="5" value="20">
+          </label>
+          <div class="room-ctrl compact" data-room="living">
+            <strong>Wohnzimmer Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
+          </div>
+          <div class="room-ctrl compact" data-room="bath">
+            <strong>Bad Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
+          </div>
+          <div class="room-ctrl compact" data-room="bed">
+            <strong>Schlafzimmer Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
+          </div>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Brenner fein</h2>
+          <label class="field">
+            <span>Max. Leistung <em id="val-power">18 kW</em></span>
+            <input type="range" id="burner-power" min="8" max="35" step="1" value="18">
+          </label>
+          <label class="field">
+            <span>Hysterese <em id="val-hyst">2.0 K</em></span>
+            <input type="range" id="hysteresis" min="0.5" max="12" step="0.5" value="2">
+          </label>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Heizkurve fein</h2>
+          <label class="field">
+            <span>Steigung <em id="val-slope">1.4</em></span>
+            <input type="range" id="slope" min="0.6" max="2.4" step="0.1" value="1.4">
+          </label>
+          <label class="field">
+            <span>Parallelverschiebung <em id="val-shift">0 K</em></span>
+            <input type="range" id="shift" min="-8" max="8" step="0.5" value="0">
+          </label>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Hydraulik fein</h2>
+          <label class="field">
+            <span>Rohrdurchmesser <em id="val-diameter">15 mm</em></span>
+            <input type="range" id="diameter" min="10" max="22" step="1" value="15">
+          </label>
+          <label class="field">
+            <span>Kreislauflänge-Faktor <em id="val-length">1.0×</em></span>
+            <input type="range" id="length" min="0.6" max="2.2" step="0.1" value="1.0">
+          </label>
+          <label class="field">
+            <span>Pumpen-Förderhöhe <em id="val-pump">5.5 mWS</em></span>
+            <input type="range" id="pump-head" min="2" max="8" step="0.5" value="5.5">
+          </label>
+          <p class="hint tiny-hint">Δp nach Darcy-Weisbach · Durchfluss teilt sich nach Widerständen</p>
+        </section>
+
+        <section class="ctrl-block expert-rooms" id="panel-revision">
+          <h2>Heizkörper je Raum</h2>
+          <p class="hint">Qn bei Norm 75/65/20 · Q = Qn · (ΔTm/50)^n</p>
+          <div class="room-ctrl" data-room="living">
+            <strong>Wohnzimmer</strong>
+            <label class="stack">Typ <select class="rad-type"></select></label>
+            <label>Qn / Größe <input type="range" class="qn" min="400" max="4000" step="50" value="1800"><em class="qn-val">1800 W</em></label>
+            <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
+            <label>Heizlast <input type="range" class="load" min="800" max="3500" step="100" value="1800"><em class="load-val">1800 W</em></label>
+            <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
+          </div>
+          <div class="room-ctrl" data-room="bath">
+            <strong>Bad</strong>
+            <label class="stack">Typ <select class="rad-type"></select></label>
+            <label>Qn / Größe <input type="range" class="qn" min="300" max="2500" step="50" value="800"><em class="qn-val">800 W</em></label>
+            <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.25"><em class="nexp-val">1.25</em></label>
+            <label>Heizlast <input type="range" class="load" min="400" max="2000" step="50" value="900"><em class="load-val">900 W</em></label>
+            <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
+          </div>
+          <div class="room-ctrl" data-room="bed">
+            <strong>Schlafzimmer</strong>
+            <label class="stack">Typ <select class="rad-type"></select></label>
+            <label>Qn / Größe <input type="range" class="qn" min="400" max="3500" step="50" value="1200"><em class="qn-val">1200 W</em></label>
+            <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
+            <label>Heizlast <input type="range" class="load" min="600" max="3000" step="100" value="1400"><em class="load-val">1400 W</em></label>
+            <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
+          </div>
+        </section>
+      </div>
+      <p class="disclaimer">Lernmodell mit Praxisformeln — keine DIN-EN-12831-Auslegung.</p>
+    </section>
 
     <!-- ===== MODALS ===== -->
     <div class="modal-root" id="modal-root" hidden>
@@ -316,126 +439,6 @@
               <span>heiß</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="modal" id="modal-controls" role="dialog" aria-modal="true" aria-labelledby="controls-heading" hidden>
-        <header class="modal-head">
-          <h2 id="controls-heading">Hauptbedienung</h2>
-          <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
-        </header>
-        <div class="modal-body controls">
-          <section class="ctrl-block main-ops">
-            <label class="field">
-              <span>Außentemperatur <em id="val-outdoor">0 °C</em></span>
-              <input type="range" id="outdoor" min="-15" max="20" step="1" value="0">
-            </label>
-            <label class="field">
-              <span>Brenner / Marke</span>
-              <select id="burner-brand"></select>
-            </label>
-            <p class="hint" id="brand-hint"></p>
-            <label class="field">
-              <span>Hydraulischer Abgleich <em id="val-balance">offen (schlecht)</em></span>
-              <input type="range" id="balance" min="0" max="100" step="5" value="20">
-            </label>
-            <div class="room-ctrl compact" data-room="living">
-              <strong>Wohnzimmer Soll</strong>
-              <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
-            </div>
-            <div class="room-ctrl compact" data-room="bath">
-              <strong>Bad Soll</strong>
-              <label>Thermostat <input type="range" class="tset main-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
-            </div>
-            <div class="room-ctrl compact" data-room="bed">
-              <strong>Schlafzimmer Soll</strong>
-              <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <div class="modal modal-wide" id="modal-revision" role="dialog" aria-modal="true" aria-labelledby="revision-heading" hidden>
-        <header class="modal-head">
-          <h2 id="revision-heading">Revisionsklappe</h2>
-          <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
-        </header>
-        <div class="modal-body controls">
-          <p class="physics-badge" id="physics-badge">Physik: EN-442-Exponent + Darcy-Weisbach</p>
-
-          <section class="ctrl-block">
-            <h2>Brenner fein</h2>
-            <label class="field">
-              <span>Max. Leistung <em id="val-power">18 kW</em></span>
-              <input type="range" id="burner-power" min="8" max="35" step="1" value="18">
-            </label>
-            <label class="field">
-              <span>Hysterese <em id="val-hyst">2.0 K</em></span>
-              <input type="range" id="hysteresis" min="0.5" max="12" step="0.5" value="2">
-            </label>
-          </section>
-
-          <section class="ctrl-block">
-            <h2>Heizkurve fein</h2>
-            <label class="field">
-              <span>Steigung <em id="val-slope">1.4</em></span>
-              <input type="range" id="slope" min="0.6" max="2.4" step="0.1" value="1.4">
-            </label>
-            <label class="field">
-              <span>Parallelverschiebung <em id="val-shift">0 K</em></span>
-              <input type="range" id="shift" min="-8" max="8" step="0.5" value="0">
-            </label>
-          </section>
-
-          <section class="ctrl-block">
-            <h2>Hydraulik fein</h2>
-            <label class="field">
-              <span>Rohrdurchmesser <em id="val-diameter">15 mm</em></span>
-              <input type="range" id="diameter" min="10" max="22" step="1" value="15">
-            </label>
-            <label class="field">
-              <span>Kreislauflänge-Faktor <em id="val-length">1.0×</em></span>
-              <input type="range" id="length" min="0.6" max="2.2" step="0.1" value="1.0">
-            </label>
-            <label class="field">
-              <span>Pumpen-Förderhöhe <em id="val-pump">5.5 mWS</em></span>
-              <input type="range" id="pump-head" min="2" max="8" step="0.5" value="5.5">
-            </label>
-            <p class="hint tiny-hint">Δp nach Darcy-Weisbach · Durchfluss teilt sich nach Widerständen</p>
-          </section>
-
-          <section class="ctrl-block" id="revision-hatch">
-            <h2>Heizkörper je Raum</h2>
-            <p class="hint">Qn bei Norm 75/65/20 · Q = Qn · (ΔTm/50)^n</p>
-
-            <div class="room-ctrl" data-room="living">
-              <strong>Wohnzimmer</strong>
-              <label class="stack">Typ <select class="rad-type"></select></label>
-              <label>Qn / Größe <input type="range" class="qn" min="400" max="4000" step="50" value="1800"><em class="qn-val">1800 W</em></label>
-              <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
-              <label>Heizlast <input type="range" class="load" min="800" max="3500" step="100" value="1800"><em class="load-val">1800 W</em></label>
-              <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
-            </div>
-
-            <div class="room-ctrl" data-room="bath">
-              <strong>Bad</strong>
-              <label class="stack">Typ <select class="rad-type"></select></label>
-              <label>Qn / Größe <input type="range" class="qn" min="300" max="2500" step="50" value="800"><em class="qn-val">800 W</em></label>
-              <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.25"><em class="nexp-val">1.25</em></label>
-              <label>Heizlast <input type="range" class="load" min="400" max="2000" step="50" value="900"><em class="load-val">900 W</em></label>
-              <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
-            </div>
-
-            <div class="room-ctrl" data-room="bed">
-              <strong>Schlafzimmer</strong>
-              <label class="stack">Typ <select class="rad-type"></select></label>
-              <label>Qn / Größe <input type="range" class="qn" min="400" max="3500" step="50" value="1200"><em class="qn-val">1200 W</em></label>
-              <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
-              <label>Heizlast <input type="range" class="load" min="600" max="3000" step="100" value="1400"><em class="load-val">1400 W</em></label>
-              <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
-            </div>
-          </section>
-          <p class="disclaimer">Lernmodell mit Praxisformeln — keine DIN-EN-12831-Auslegung.</p>
         </div>
       </div>
 
@@ -506,8 +509,6 @@
         </div>
       </div>
     </div>
-  </div>
-  
   </div>
   <script src="sim.js"></script>
   <script src="ui.js"></script>
