@@ -16,6 +16,10 @@
   const BOILER_VOLUME_L = 7;
   const RETURN_HEADER_L = 12;
   const G = 9.81;
+  /** Protokoll behalten: genug Sim-Zeit, damit Hysterese-Änderungen sichtbar bleiben */
+  const CYCLE_KEEP_SEC = 7200; // 2 h Simulationszeit
+  const CYCLE_KEEP_MAX = 240; // max. Modus-Segmente
+  const MARK_KEEP_MAX = 48;
 
   const BRANDS = {
     viessmann: {
@@ -237,6 +241,7 @@
         lockLeft: 0,
         starts: [],
         cycleLog: [],
+        marks: [],
       },
       tips: [],
       simTime: 0,
@@ -411,6 +416,31 @@
       return { totalLh, flows, tReturn: state.returnHeaderT, heatExtractKw };
     }
 
+    function trimCycleHistory() {
+      const br = state.burner;
+      const log = br.cycleLog;
+      const marks = br.marks || (br.marks = []);
+      while (log.length > CYCLE_KEEP_MAX) log.shift();
+      while (log.length > 2 && state.simTime - log[0].t > CYCLE_KEEP_SEC) log.shift();
+      while (marks.length > MARK_KEEP_MAX) marks.shift();
+      while (marks.length && state.simTime - marks[0].t > CYCLE_KEEP_SEC) marks.shift();
+    }
+
+    function markEvent(kind, label, value) {
+      const br = state.burner;
+      if (!br.marks) br.marks = [];
+      const last = br.marks[br.marks.length - 1];
+      // Slider-Ziehen / identische Marker: letzten Eintrag aktualisieren statt Flut
+      if (last && last.kind === kind && state.simTime - last.t < 8) {
+        last.t = state.simTime;
+        last.label = label;
+        last.value = value;
+        return;
+      }
+      br.marks.push({ t: state.simTime, kind, label, value });
+      trimCycleHistory();
+    }
+
     /**
      * Ein Protokoll-Eintrag pro Brenner-Modus (off | igniting | on).
      * Leistungswechsel während „on“ ändern nur power/tEnd — keine Schein-Zyklen.
@@ -434,7 +464,7 @@
         last.power = power;
         last.tEnd = state.simTime;
       }
-      while (log.length > 2 && state.simTime - log[0].t > 900) log.shift();
+      trimCycleHistory();
     }
 
     function updateBurner(dt, flowSet, heatExtractKw) {
@@ -649,6 +679,9 @@
         dtScaleBoost: state.dtScaleBoost,
         startsHour: br.starts.length,
         logLen: log.length,
+        logSpanSec: log.length ? Math.max(0, state.simTime - log[0].t) : 0,
+        logKeepSec: CYCLE_KEEP_SEC,
+        marks: (br.marks || []).length,
         logLast: last
           ? { t: last.t, tEnd: last.tEnd, mode: last.mode, on: last.on, power: last.power }
           : null,
@@ -919,6 +952,8 @@
         lastLoadKw: state.lastLoadKw,
         lastMinKw: state.lastMinKw,
         cycleLog: br.cycleLog.slice(),
+        cycleMarks: (br.marks || []).slice(),
+        cycleKeepSec: CYCLE_KEEP_SEC,
         diagnostics: diag,
         simTime: state.simTime,
         physicsNote: state.physicsNote,
@@ -935,6 +970,8 @@
 
     function setControls(partial) {
       const { rooms: roomPatch, ...rest } = partial || {};
+      const prevHyst = hysteresisK();
+      const prevBrand = state.brandId;
       Object.assign(state, rest);
       if (roomPatch) {
         for (const k of Object.keys(roomPatch)) {
@@ -951,6 +988,13 @@
           Object.assign(state.rooms[k], patch);
         }
       }
+      const nextHyst = hysteresisK();
+      if (Math.abs(nextHyst - prevHyst) >= 0.25) {
+        markEvent("hyst", `Hyst ${nextHyst.toFixed(1)} K`, nextHyst);
+      }
+      if (rest.brandId != null && rest.brandId !== prevBrand) {
+        markEvent("brand", brand().name.split(" ")[0], null);
+      }
     }
 
     function resetBurnerAndTemps() {
@@ -964,6 +1008,7 @@
         lockLeft: 0,
         starts: [],
         cycleLog: [],
+        marks: [],
       };
       for (const k of Object.keys(state.rooms)) {
         const r = state.rooms[k];
@@ -1023,9 +1068,11 @@
               power: 0.2,
             },
           ],
+          marks: [],
         };
         state.minPowerCycling = true;
         syncCycleLog();
+        markEvent("scenario", "Szenario: Takten", null);
       } else if (id === "kalt-lang") {
         setControls({
           brandId: "viessmann",

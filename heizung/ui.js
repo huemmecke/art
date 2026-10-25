@@ -301,10 +301,17 @@
     };
   }
 
+  function fmtSimSpan(sec) {
+    if (!Number.isFinite(sec) || sec < 0) return "—";
+    if (sec < 90) return `${Math.round(sec)} s Sim`;
+    if (sec < 3600) return `${(sec / 60).toFixed(1)} min Sim`;
+    return `${(sec / 3600).toFixed(1)} h Sim`;
+  }
+
   function drawCycles(s) {
     const dpr = window.devicePixelRatio || 1;
     const cssW = cycleCanvas.clientWidth || 900;
-    const cssH = 72;
+    const cssH = 100;
     if (cycleCanvas.width !== Math.floor(cssW * dpr) || cycleCanvas.height !== Math.floor(cssH * dpr)) {
       cycleCanvas.width = Math.floor(cssW * dpr);
       cycleCanvas.height = Math.floor(cssH * dpr);
@@ -313,11 +320,19 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
 
-    const windowSec = 900;
     const tNow = s.simTime;
-    const t0 = Math.max(0, tNow - windowSec);
     const log = s.cycleLog || [];
-    const baseY = cssH * 0.78;
+    const marks = s.cycleMarks || [];
+    // Gesamtes behaltenes Protokoll zeigen (nicht nur 15 Min), damit Hyst-Wechsel sichtbar bleibt
+    const earliestLog = log.length ? log[0].t : tNow;
+    const earliestMark = marks.length ? marks[0].t : tNow;
+    const earliest = Math.min(earliestLog, earliestMark);
+    const t0 = Math.max(0, Math.min(earliest, tNow - 60));
+    const windowSec = Math.max(tNow - t0, 60);
+    const plotLeft = 36;
+    const plotW = cssW - 40;
+    const baseY = cssH * 0.82;
+    const xAt = (t) => plotLeft + ((t - t0) / windowSec) * plotW;
 
     ctx.fillStyle = "#0a1016";
     ctx.fillRect(0, 0, cssW, cssH);
@@ -333,7 +348,7 @@
       ctx.moveTo(x, 0);
       ctx.lineTo(x, cssH);
     }
-    ctx.moveTo(36, baseY);
+    ctx.moveTo(plotLeft, baseY);
     ctx.lineTo(cssW, baseY);
     ctx.stroke();
 
@@ -348,14 +363,14 @@
       const tEndRaw = i + 1 < events.length ? events[i + 1].t : Math.max(ev.tEnd || tNow, tNow);
       const tEnd = Math.min(tEndRaw, tNow);
       if (tEnd <= t0) continue;
-      const x1 = 36 + ((tStart - t0) / windowSec) * (cssW - 40);
-      const x2 = 36 + ((tEnd - t0) / windowSec) * (cssW - 40);
+      const x1 = xAt(tStart);
+      const x2 = xAt(tEnd);
       const w = Math.max(x2 - x1, 2);
 
       if (mode === "on") {
         if (i === 0 || !(events[i - 1].mode === "on" || events[i - 1].on)) firePhases += 1;
         const power = clamp(ev.power || 0.2, 0.05, 1);
-        const h = 8 + power * (baseY - 16);
+        const h = 8 + power * (baseY - 22);
         const y = baseY - h;
         const grad = ctx.createLinearGradient(0, y, 0, baseY);
         if (power > 0.9) {
@@ -376,6 +391,24 @@
       }
     }
 
+    // Marker (Hysterese / Szenario) — senkrechte Linie + Label
+    for (const m of marks) {
+      if (m.t < t0 || m.t > tNow) continue;
+      const x = xAt(m.t);
+      ctx.strokeStyle = m.kind === "hyst" ? "#7dd3fc" : "#c4b5fd";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, 4);
+      ctx.lineTo(x, baseY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = m.kind === "hyst" ? "#7dd3fc" : "#c4b5fd";
+      ctx.font = "9px IBM Plex Mono, monospace";
+      const label = m.label || m.kind;
+      ctx.fillText(label, Math.min(x + 3, cssW - 70), 12);
+    }
+
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -384,7 +417,7 @@
     ctx.stroke();
     ctx.fillStyle = "#fff";
     ctx.font = "11px Outfit, sans-serif";
-    ctx.fillText("jetzt", cssW - 36, 14);
+    ctx.fillText("jetzt", cssW - 36, 26);
 
     const plain = burnerPlain(s);
     const last = log[log.length - 1];
@@ -394,8 +427,14 @@
       (plain.state === "ZÜNDET" && lastMode === "igniting") ||
       ((plain.state === "MODULIERT" || plain.state === "BRENNT") && lastMode === "on");
     $("#cycle-caption").textContent = match
-      ? `Jetzt ${plain.short} · Log=${lastMode} · ${firePhases} Feuerphase(n)`
-      : `⚠ Jetzt ${plain.short} ≠ Log ${lastMode} · ${firePhases} Feuerphase(n)`;
+      ? `Jetzt ${plain.short} · ${firePhases} Feuerphasen · Fenster ${fmtSimSpan(windowSec)}`
+      : `⚠ Jetzt ${plain.short} ≠ Log ${lastMode} · Fenster ${fmtSimSpan(windowSec)}`;
+
+    const axis = document.querySelector(".cycle-axis");
+    if (axis && axis.children.length >= 2) {
+      axis.children[0].textContent = `← ${fmtSimSpan(windowSec)}`;
+      axis.children[1].textContent = "jetzt →";
+    }
 
     const metricsEl = $("#cycle-metrics");
     const d = s.diagnostics;
@@ -410,7 +449,8 @@
         `Band=${d.onAt.toFixed(1)}–${d.offAt.toFixed(1)} (${d.bandK.toFixed(1)}K)`,
         `Last=${d.loadKw.toFixed(2)}/Pmin=${d.minKw.toFixed(2)}`,
         `Starts/h=${d.startsHour}`,
-        `Log=${d.logLen} last=${d.logLast ? `${d.logLast.mode}@${d.logLast.power.toFixed(2)}` : "—"}`,
+        `Log=${d.logLen} über ${fmtSimSpan(d.logSpanSec || 0)} (max ${fmtSimSpan(d.logKeepSec || 0)})`,
+        `Marker=${d.marks ?? marks.length}`,
         `Feuerphasen=${d.firePhases}`,
         `Pred=${d.predKind}/${d.predSource}/${d.predLabel || "—"}`,
         d.predStarts != null ? `PredStarts=${d.predStarts.toFixed(1)}` : null,
