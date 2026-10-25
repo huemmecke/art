@@ -655,7 +655,9 @@
       const valveEl = $(`#valve-${id}`);
       if (valveEl) {
         valveEl.textContent = `Ventil ${valvePct}% · Thermostat ${thermoPct}%`;
-        valveEl.style.fill = valvePct > 70 ? "#f0b429" : valvePct > 35 ? "#9fe7c4" : "#8fa3b5";
+        const valveColor = valvePct > 70 ? "#f0b429" : valvePct > 35 ? "#9fe7c4" : "#8fa3b5";
+        valveEl.style.color = valveColor;
+        valveEl.style.fill = valveColor;
       }
       const lossW = Math.round(room.lossW || 0);
       $(`#flow-${id}`).textContent = `${radShortName(room.radType)} · ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h`;
