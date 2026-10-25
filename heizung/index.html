@@ -25,11 +25,23 @@
 
     <main class="stage">
       <section class="canvas-panel" aria-label="Haus und Heizkreislauf">
+        <div class="fire-banner" id="fire-banner" data-state="AUS" role="status" aria-live="polite">
+          <span class="fire-icon" aria-hidden="true">🔥</span>
+          <div class="fire-copy">
+            <strong id="fire-title">Brenner AUS</strong>
+            <p id="fire-explain">Kein Gas — Kessel kühlt bzw. hält nur Restwärme.</p>
+          </div>
+          <div class="fire-power">
+            <span>Gasleistung</span>
+            <em id="fire-power-val">0 %</em>
+          </div>
+        </div>
+
         <div class="hud">
           <div class="hud-card" id="hud-burner">
-            <span class="hud-label">Brenner</span>
+            <span class="hud-label">Brennerzustand</span>
             <strong id="burner-state">AUS</strong>
-            <span class="hud-sub" id="burner-power-hud">0 %</span>
+            <span class="hud-sub" id="burner-power-hud">0 % Gas</span>
           </div>
           <div class="hud-card" id="hud-boiler">
             <span class="hud-label">Kessel (nur ~7 L)</span>
@@ -69,12 +81,25 @@
           </div>
         </div>
 
-        <div class="cycle-strip" aria-label="Brennerzyklen">
+        <div class="cycle-strip" aria-label="Brennerzyklen erklärt">
           <div class="cycle-head">
-            <strong>Brennerzyklen</strong>
-            <span id="cycle-caption">letzte ~15 min Anlagenzeit</span>
+            <strong>Wann hat der Brenner gefeuert?</strong>
+            <span id="cycle-caption">Zeitachse → rechts = jetzt</span>
           </div>
-          <canvas id="cycle-canvas" width="900" height="56"></canvas>
+          <p class="cycle-explain" id="cycle-explain">
+            Das ist ein <strong>Protokoll</strong>: links früher, rechts jetzt.
+            <strong>Hohe orange/rote Balken = Brenner an</strong> (Höhe = wie stark er Gas gibt).
+            <strong>Flache graue Linie = Brenner aus</strong>.
+            Viele kurze Balken hintereinander = <em>Takten</em> (schlecht).
+          </p>
+          <div class="cycle-legend">
+            <span><i class="leg-on"></i> Feuert (Gas an)</span>
+            <span><i class="leg-mod"></i> Moduliert = gedrosselt</span>
+            <span><i class="leg-off"></i> Aus</span>
+            <span><i class="leg-now"></i> Jetzt</span>
+          </div>
+          <canvas id="cycle-canvas" width="900" height="72"></canvas>
+          <div class="cycle-axis"><span>vor ~15 min</span><span>jetzt →</span></div>
         </div>
 
         <svg class="house" viewBox="0 0 920 560" role="img" aria-label="Hausgrundriss mit Heizkreislauf">
@@ -120,12 +145,16 @@
           <rect class="heat-fill" id="heat-bed" x="290" y="310" width="574" height="190" rx="12"/>
 
           <!-- Boiler: small heated pocket -->
-          <g id="boiler-group" transform="translate(100,140)">
-            <rect class="boiler-body" id="boiler-body" x="0" y="0" width="90" height="110" rx="10"/>
-            <rect class="boiler-flame" id="boiler-flame" x="18" y="55" width="54" height="36" rx="8"/>
-            <text class="boiler-label" x="45" y="22" text-anchor="middle">THERME</text>
-            <text class="boiler-temp-svg" id="boiler-svg-temp" x="45" y="42" text-anchor="middle">40°</text>
-            <text class="boiler-vol" x="45" y="100" text-anchor="middle">nur ~7 L heiß</text>
+          <g id="boiler-group" transform="translate(100,130)">
+            <rect class="boiler-body" id="boiler-body" x="0" y="0" width="90" height="120" rx="10"/>
+            <text class="boiler-label" x="45" y="20" text-anchor="middle">THERME</text>
+            <text class="boiler-temp-svg" id="boiler-svg-temp" x="45" y="40" text-anchor="middle">40°</text>
+            <g id="flame-group" class="flame-group" transform="translate(18,52)">
+              <rect class="boiler-flame" id="boiler-flame" x="0" y="18" width="54" height="28" rx="6"/>
+              <path id="flame-shape" class="flame-shape" d="M27 46 C10 28 16 8 27 0 C38 8 44 28 27 46 Z"/>
+              <text id="flame-label" class="flame-label" x="27" y="58" text-anchor="middle">AUS</text>
+            </g>
+            <text class="boiler-vol" x="45" y="112" text-anchor="middle">nur ~7 L heiß</text>
           </g>
 
           <!-- Pump -->

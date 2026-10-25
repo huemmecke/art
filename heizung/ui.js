@@ -160,10 +160,48 @@
     if (stops[1]) stops[1].setAttribute("stop-color", spectrumColor(tBottom));
   }
 
+  function burnerPlain(s) {
+    const pct = Math.round(s.burnerFrac * 100);
+    if (s.burnerMode === "ZÜNDET") {
+      return {
+        state: "ZÜNDET",
+        title: "Brenner ZÜNDET",
+        explain: "Zündung läuft — gleich kommt die Flamme. Noch keine Nutzleistung.",
+        short: "ZÜNDET",
+        flame: "ZÜND",
+      };
+    }
+    if (s.burnerMode === "BRENNT") {
+      return {
+        state: "BRENNT",
+        title: "Brenner FEUERT — fast Vollast",
+        explain: `Gasventil weitgehend offen (~${pct} %). Der kleine Kesselinhalt wird schnell heiß.`,
+        short: "FEUERT",
+        flame: "FEUERT",
+      };
+    }
+    if (s.burnerMode === "MODULIERT") {
+      return {
+        state: "MODULIERT",
+        title: "Brenner FEUERT — moduliert (gedrosselt)",
+        explain: `„Moduliert“ heißt: Flamme ist an, aber nur mit ${pct} % Gasleistung — nicht Vollast. So hält er die Solltemperatur, ohne ständig aus/an zu schalten.`,
+        short: "FEUERT · moduliert",
+        flame: `${pct}%`,
+      };
+    }
+    return {
+      state: "AUS",
+      title: "Brenner AUS",
+      explain: "Kein Gas, keine Flamme. Warte auf Unterschreiten der Einschaltschwelle (Hysterese).",
+      short: "AUS",
+      flame: "AUS",
+    };
+  }
+
   function drawCycles(s) {
     const dpr = window.devicePixelRatio || 1;
     const cssW = cycleCanvas.clientWidth || 900;
-    const cssH = 56;
+    const cssH = 72;
     if (cycleCanvas.width !== Math.floor(cssW * dpr) || cycleCanvas.height !== Math.floor(cssH * dpr)) {
       cycleCanvas.width = Math.floor(cssW * dpr);
       cycleCanvas.height = Math.floor(cssH * dpr);
@@ -176,66 +214,91 @@
     const tNow = s.simTime;
     const t0 = Math.max(0, tNow - windowSec);
     const log = s.cycleLog || [];
+    const baseY = cssH * 0.78;
 
-    // grid
     ctx.fillStyle = "#0a1016";
     ctx.fillRect(0, 0, cssW, cssH);
-    ctx.strokeStyle = "rgba(143,163,181,0.15)";
+
+    // Leistungsskala links
+    ctx.fillStyle = "rgba(143,163,181,0.55)";
+    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.fillText("100%", 4, 14);
+    ctx.fillText("0%", 4, baseY - 2);
+
+    ctx.strokeStyle = "rgba(143,163,181,0.12)";
     ctx.beginPath();
     for (let i = 1; i < 6; i++) {
       const x = (i / 6) * cssW;
       ctx.moveTo(x, 0);
       ctx.lineTo(x, cssH);
     }
+    ctx.moveTo(36, baseY);
+    ctx.lineTo(cssW, baseY);
     ctx.stroke();
 
-    // baseline
-    ctx.fillStyle = "rgba(143,163,181,0.2)";
-    ctx.fillRect(0, cssH * 0.72, cssW, 2);
-
-    // segments
     const events = log.length ? log.slice() : [{ t: t0, on: false, power: 0 }];
+    let onCount = 0;
     for (let i = 0; i < events.length; i++) {
       const ev = events[i];
       const tStart = Math.max(ev.t, t0);
       const tEnd = i + 1 < events.length ? events[i + 1].t : tNow;
       if (tEnd <= t0) continue;
-      const x1 = ((tStart - t0) / windowSec) * cssW;
-      const x2 = ((Math.min(tEnd, tNow) - t0) / windowSec) * cssW;
-      const w = Math.max(x2 - x1, 1);
+      const x1 = 36 + ((tStart - t0) / windowSec) * (cssW - 40);
+      const x2 = 36 + ((Math.min(tEnd, tNow) - t0) / windowSec) * (cssW - 40);
+      const w = Math.max(x2 - x1, 2);
       if (ev.on) {
-        const h = 10 + (ev.power || 1) * (cssH * 0.55);
-        const y = cssH * 0.72 - h;
-        const grad = ctx.createLinearGradient(0, y, 0, y + h);
-        grad.addColorStop(0, spectrumColor(55 + (ev.power || 0) * 20));
-        grad.addColorStop(1, spectrumColor(35));
+        onCount += 1;
+        const power = clamp(ev.power || 1, 0.05, 1);
+        const h = 8 + power * (baseY - 16);
+        const y = baseY - h;
+        const grad = ctx.createLinearGradient(0, y, 0, baseY);
+        if (power > 0.9) {
+          grad.addColorStop(0, "#ef4444");
+          grad.addColorStop(1, "#f97316");
+        } else {
+          grad.addColorStop(0, "#f97316");
+          grad.addColorStop(1, "#eab308");
+        }
         ctx.fillStyle = grad;
         ctx.fillRect(x1, y, w, h);
       } else {
-        ctx.fillStyle = "rgba(77,106,130,0.35)";
-        ctx.fillRect(x1, cssH * 0.72 - 4, w, 4);
+        ctx.fillStyle = "#5b6f82";
+        ctx.fillRect(x1, baseY - 3, w, 3);
       }
     }
 
-    // now needle
-    ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 1.5;
+    // Jetzt-Marke
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cssW - 1, 4);
-    ctx.lineTo(cssW - 1, cssH - 4);
+    ctx.moveTo(cssW - 3, 4);
+    ctx.lineTo(cssW - 3, cssH - 4);
     ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.font = "11px Outfit, sans-serif";
+    ctx.fillText("jetzt", cssW - 36, 14);
 
-    $("#cycle-caption").textContent = s.burnerMode === "AUS"
-      ? "AUS-Phasen = grau · AN = Spektrum (Leistung)"
-      : `${s.burnerMode} · ${Math.round(s.burnerFrac * 100)} % · Zyklen der letzten ~15 min`;
+    const plain = burnerPlain(s);
+    $("#cycle-caption").textContent = plain.state === "AUS"
+      ? `Gerade AUS · ${onCount} Feuerphase(n) im Fenster`
+      : `Gerade ${plain.short} · ${Math.round(s.burnerFrac * 100)} % Gas`;
   }
 
   function renderFull(s) {
     syncLabelsFromState(s);
 
-    $("#burner-state").textContent = s.burnerMode;
-    $("#hud-burner").dataset.state = s.burnerMode;
-    $("#burner-power-hud").textContent = `${Math.round(s.burnerFrac * 100)} %`;
+    const plain = burnerPlain(s);
+    const pctGas = Math.round(s.burnerFrac * 100);
+
+    const banner = $("#fire-banner");
+    banner.dataset.state = plain.state;
+    $("#fire-title").textContent = plain.title;
+    $("#fire-explain").textContent = plain.explain;
+    $("#fire-power-val").textContent = `${pctGas} %`;
+
+    $("#burner-state").textContent = plain.short;
+    $("#hud-burner").dataset.state = plain.state;
+    $("#burner-power-hud").textContent = `${pctGas} % Gas`;
     $("#boiler-temp").textContent = s.boilerT.toFixed(1);
     $("#boiler-set").textContent = s.flowSet.toFixed(1);
     $("#boiler-svg-temp").textContent = `${s.boilerT.toFixed(0)}°`;
@@ -259,10 +322,13 @@
     $("#hyst-needle").style.left = `${pct(s.boilerT)}%`;
 
     const flame = $("#boiler-flame");
-    const firing = s.burnerMode === "BRENNT" || s.burnerMode === "MODULIERT";
-    const igniting = s.burnerMode === "ZÜNDET";
+    const flameGroup = $("#flame-group");
+    const firing = plain.state === "BRENNT" || plain.state === "MODULIERT";
+    const igniting = plain.state === "ZÜNDET";
     flame.classList.toggle("on", firing || igniting);
-    flame.style.fill = igniting ? "#f0b429" : firing ? spectrumColor(s.boilerT + 8) : "";
+    flameGroup.classList.toggle("firing", firing);
+    flameGroup.classList.toggle("igniting", igniting);
+    $("#flame-label").textContent = plain.flame;
 
     const pump = $("#pump-disc");
     if (pump) pump.classList.toggle("spinning", s.totalLh > 40);
