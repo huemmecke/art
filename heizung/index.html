@@ -236,88 +236,139 @@
         </aside>
       </section>
 
-      <aside class="controls" aria-label="Parameter">
-        <section class="ctrl-block">
-          <h2>Brenner</h2>
-          <label class="field">
-            <span>Marke / Profil</span>
-            <select id="burner-brand"></select>
-          </label>
-          <p class="hint" id="brand-hint"></p>
-          <label class="field">
-            <span>Max. Leistung <em id="val-power">18 kW</em></span>
-            <input type="range" id="burner-power" min="8" max="35" step="1" value="18">
-          </label>
-          <label class="field">
-            <span>Hysterese-Override <em id="val-hyst">Profil</em></span>
-            <input type="range" id="hysteresis" min="0.5" max="12" step="0.5" value="2">
-          </label>
-          <p class="hint tiny-hint">Schmal = oft Takten · Breit = große Temperaturschwünge</p>
-        </section>
-
-        <section class="ctrl-block">
-          <h2>Heizkurve</h2>
+      <aside class="controls" aria-label="Bedienung">
+        <section class="ctrl-block main-ops">
+          <h2>Hauptbedienung</h2>
+          <p class="hint">Nur die wichtigsten Hebel — der Rest steckt in der Revisionsklappe.</p>
           <label class="field">
             <span>Außentemperatur <em id="val-outdoor">0 °C</em></span>
             <input type="range" id="outdoor" min="-15" max="20" step="1" value="0">
           </label>
           <label class="field">
-            <span>Steigung <em id="val-slope">1.4</em></span>
-            <input type="range" id="slope" min="0.6" max="2.4" step="0.1" value="1.4">
+            <span>Brenner / Marke</span>
+            <select id="burner-brand"></select>
           </label>
-          <label class="field">
-            <span>Parallelverschiebung <em id="val-shift">0 K</em></span>
-            <input type="range" id="shift" min="-8" max="8" step="0.5" value="0">
-          </label>
-        </section>
-
-        <section class="ctrl-block">
-          <h2>Hydraulik</h2>
-          <label class="field">
-            <span>Rohrdurchmesser <em id="val-diameter">15 mm</em></span>
-            <input type="range" id="diameter" min="10" max="22" step="1" value="15">
-          </label>
-          <label class="field">
-            <span>Kreislauflänge-Faktor <em id="val-length">1.0×</em></span>
-            <input type="range" id="length" min="0.6" max="2.2" step="0.1" value="1.0">
-          </label>
+          <p class="hint" id="brand-hint"></p>
           <label class="field">
             <span>Hydraulischer Abgleich <em id="val-balance">offen (schlecht)</em></span>
             <input type="range" id="balance" min="0" max="100" step="5" value="20">
           </label>
-          <p class="hint tiny-hint">0 % = kurze Stränge stehlen den Durchfluss · 100 % = ausgeglichen</p>
-        </section>
-
-        <section class="ctrl-block">
-          <h2>Räume &amp; Thermostate</h2>
-          <div class="room-ctrl" data-room="living">
-            <strong>Wohnzimmer</strong>
-            <label>Soll <input type="range" class="tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
-            <label>Heizlast <input type="range" class="load" min="800" max="3500" step="100" value="1800"><em class="load-val">1800 W</em></label>
+          <div class="room-ctrl compact" data-room="living">
+            <strong>Wohnzimmer Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
           </div>
-          <div class="room-ctrl" data-room="bath">
-            <strong>Bad</strong>
-            <label>Soll <input type="range" class="tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
-            <label>Heizlast <input type="range" class="load" min="400" max="2000" step="50" value="900"><em class="load-val">900 W</em></label>
+          <div class="room-ctrl compact" data-room="bath">
+            <strong>Bad Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
           </div>
-          <div class="room-ctrl" data-room="bed">
-            <strong>Schlafzimmer</strong>
-            <label>Soll <input type="range" class="tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
-            <label>Heizlast <input type="range" class="load" min="600" max="3000" step="100" value="1400"><em class="load-val">1400 W</em></label>
+          <div class="room-ctrl compact" data-room="bed">
+            <strong>Schlafzimmer Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
           </div>
         </section>
 
         <section class="ctrl-block scenarios">
-          <h2>Szenarien zum Ausprobieren</h2>
+          <h2>Szenarien</h2>
           <div class="scenario-row">
             <button type="button" data-scenario="taktend">Takten provozieren</button>
             <button type="button" data-scenario="kalt-lang">Langer Strang kalt</button>
             <button type="button" data-scenario="abgleich">Abgleich retten</button>
+            <button type="button" data-scenario="fussboden">Fußbodenheizung</button>
             <button type="button" data-scenario="reset">Standard</button>
           </div>
         </section>
 
-        <p class="disclaimer">Didaktisches Modell — keine Auslegung nach DIN EN 12831. Zeigt Zusammenhänge, keine Planungsfreigabe.</p>
+        <details class="hatch" id="revision-hatch">
+          <summary>
+            <span class="hatch-title">Revisionsklappe öffnen</span>
+            <span class="hatch-sub">Alle Parameter · Heizkörper Art/Größe · Darcy/Exponenten</span>
+          </summary>
+
+          <div class="hatch-body">
+            <p class="physics-badge" id="physics-badge">Physik: EN-442-Exponent + Darcy-Weisbach</p>
+
+            <section class="ctrl-block">
+              <h2>Brenner fein</h2>
+              <label class="field">
+                <span>Max. Leistung <em id="val-power">18 kW</em></span>
+                <input type="range" id="burner-power" min="8" max="35" step="1" value="18">
+              </label>
+              <label class="field">
+                <span>Hysterese <em id="val-hyst">2.0 K</em></span>
+                <input type="range" id="hysteresis" min="0.5" max="12" step="0.5" value="2">
+              </label>
+            </section>
+
+            <section class="ctrl-block">
+              <h2>Heizkurve fein</h2>
+              <label class="field">
+                <span>Steigung <em id="val-slope">1.4</em></span>
+                <input type="range" id="slope" min="0.6" max="2.4" step="0.1" value="1.4">
+              </label>
+              <label class="field">
+                <span>Parallelverschiebung <em id="val-shift">0 K</em></span>
+                <input type="range" id="shift" min="-8" max="8" step="0.5" value="0">
+              </label>
+            </section>
+
+            <section class="ctrl-block">
+              <h2>Hydraulik fein</h2>
+              <label class="field">
+                <span>Rohrdurchmesser <em id="val-diameter">15 mm</em></span>
+                <input type="range" id="diameter" min="10" max="22" step="1" value="15">
+              </label>
+              <label class="field">
+                <span>Kreislauflänge-Faktor <em id="val-length">1.0×</em></span>
+                <input type="range" id="length" min="0.6" max="2.2" step="0.1" value="1.0">
+              </label>
+              <label class="field">
+                <span>Pumpen-Förderhöhe <em id="val-pump">5.5 mWS</em></span>
+                <input type="range" id="pump-head" min="2" max="8" step="0.5" value="5.5">
+              </label>
+              <p class="hint tiny-hint">Δp nach Darcy-Weisbach · Durchfluss teilt sich nach Widerständen</p>
+            </section>
+
+            <section class="ctrl-block">
+              <h2>Heizkörper je Raum</h2>
+              <p class="hint">Qn bei Norm 75/65/20 · Q = Qn · (ΔTm/50)^n</p>
+
+              <div class="room-ctrl" data-room="living">
+                <strong>Wohnzimmer</strong>
+                <label class="stack">Typ
+                  <select class="rad-type"></select>
+                </label>
+                <label>Qn / Größe <input type="range" class="qn" min="400" max="4000" step="50" value="1800"><em class="qn-val">1800 W</em></label>
+                <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
+                <label>Heizlast <input type="range" class="load" min="800" max="3500" step="100" value="1800"><em class="load-val">1800 W</em></label>
+                <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
+              </div>
+
+              <div class="room-ctrl" data-room="bath">
+                <strong>Bad</strong>
+                <label class="stack">Typ
+                  <select class="rad-type"></select>
+                </label>
+                <label>Qn / Größe <input type="range" class="qn" min="300" max="2500" step="50" value="800"><em class="qn-val">800 W</em></label>
+                <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.25"><em class="nexp-val">1.25</em></label>
+                <label>Heizlast <input type="range" class="load" min="400" max="2000" step="50" value="900"><em class="load-val">900 W</em></label>
+                <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
+              </div>
+
+              <div class="room-ctrl" data-room="bed">
+                <strong>Schlafzimmer</strong>
+                <label class="stack">Typ
+                  <select class="rad-type"></select>
+                </label>
+                <label>Qn / Größe <input type="range" class="qn" min="400" max="3500" step="50" value="1200"><em class="qn-val">1200 W</em></label>
+                <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
+                <label>Heizlast <input type="range" class="load" min="600" max="3000" step="100" value="1400"><em class="load-val">1400 W</em></label>
+                <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
+              </div>
+            </section>
+          </div>
+        </details>
+
+        <p class="disclaimer">Lernmodell mit Praxisformeln (EN-442-ähnlich, Darcy) — keine Auslegung nach DIN EN 12831 / keine Planungsfreigabe.</p>
       </aside>
     </main>
   </div>

@@ -1,11 +1,21 @@
 /**
- * Didaktisches Heizkreislauf-Modell (kein DIN-Auslegungstool).
+ * Didaktisches Heizkreislauf-Modell — näher an Praxisformeln, keine DIN-Auslegung.
  *
- * Kernlehrsatz: Die Gastherme erhitzt nur den kleinen Kesselinhalt.
- * Die Pumpe trägt dieses warme Wasser portionenweise in den Kreislauf.
+ * Physik-Schicht:
+ * - Heizkörper: Q = Qn · ((ΔTm/ΔTn)^n)  (EN-442-ähnlich)
+ * - Rohr: Darcy-Weisbach Δp = λ·(L/d)·(ρ v² / 2)
+ * - Spreizung: Q = ṁ · cp · ΔT
+ * - Kessel: nur kleiner Wasservolumen, Mischung mit Rücklauf
  */
 (function () {
   "use strict";
+
+  const CP = 4180; // J/(kg·K)
+  const RHO = 980; // kg/m³ heißes Heizwasser grob
+  const MU = 0.0004; // Pa·s dynamische Viskosität ~60 °C
+  const BOILER_VOLUME_L = 7;
+  const RETURN_HEADER_L = 12;
+  const G = 9.81;
 
   const BRANDS = {
     viessmann: {
@@ -21,7 +31,7 @@
     },
     buderus: {
       name: "Buderus / Bosch (modulierend)",
-      hint: "Stabiles Modulieren, etwas breitere Hysterese als Top-Sparsam.",
+      hint: "Stabiles Modulieren, etwas breitere Hysterese.",
       hysteresis: 2.5,
       modulating: true,
       minMod: 0.2,
@@ -32,7 +42,7 @@
     },
     vaillant: {
       name: "Vaillant (modulierend)",
-      hint: "Schnelle Reaktion, enge Bandbreite — bei falscher Kurve trotzdem Takten möglich.",
+      hint: "Schnelle Reaktion, enge Bandbreite.",
       hysteresis: 1.8,
       modulating: true,
       minMod: 0.16,
@@ -43,7 +53,7 @@
     },
     weishaupt: {
       name: "Weishaupt (klassisch)",
-      hint: "Oft eher Stufen-/Ein-Aus-Charakter: Hysterese und Mindestlaufzeit entscheiden über Takten.",
+      hint: "Eher Ein/Aus-Charakter — Hysterese entscheidet über Takten.",
       hysteresis: 5.0,
       modulating: false,
       minMod: 1,
@@ -54,7 +64,7 @@
     },
     einaus: {
       name: "Generisch Ein/Aus (Lehrgerät)",
-      hint: "Reines Ein/Aus — ideal, um Hysterese und Starts/h zu begreifen.",
+      hint: "Reines Ein/Aus — ideal für Hysterese und Starts/h.",
       hysteresis: 6.0,
       modulating: false,
       minMod: 1,
@@ -65,15 +75,61 @@
     },
   };
 
-  const ROOMS = {
-    living: { id: "living", label: "Wohnzimmer", lengthFactor: 0.55, baseKvOpen: 1.0, pipeVolL: 4 },
-    bath: { id: "bath", label: "Bad", lengthFactor: 1.0, baseKvOpen: 1.0, pipeVolL: 8 },
-    bed: { id: "bed", label: "Schlafzimmer", lengthFactor: 1.85, baseKvOpen: 1.0, pipeVolL: 14 },
+  /**
+   * Heizkörper-Typen: Qn bei Norm 75/65/20 (ΔTn = 50 K log. Mittel ≈ 49.8 → wir nutzen 50).
+   * n = Heizkörperexponent (Platten ~1.3, Badheizkörper ~1.25, FB ~1.1)
+   */
+  const RADIATOR_TYPES = {
+    panel22: {
+      name: "Plattenheizkörper Typ 22",
+      hint: "Standard Wohnraum — Exponent n≈1.30",
+      n: 1.3,
+      defaultQn: 1800,
+      waterLPerKw: 4.5,
+    },
+    panel11: {
+      name: "Plattenheizkörper Typ 11",
+      hint: "Flacher, weniger Leistung — n≈1.30",
+      n: 1.3,
+      defaultQn: 1100,
+      waterLPerKw: 3.2,
+    },
+    panel33: {
+      name: "Plattenheizkörper Typ 33",
+      hint: "Hohe Leistung kompakt — n≈1.33",
+      n: 1.33,
+      defaultQn: 2600,
+      waterLPerKw: 6.0,
+    },
+    bath: {
+      name: "Badheizkörper (Röhre)",
+      hint: "Oft unterdimensioniert sichtbar — n≈1.25",
+      n: 1.25,
+      defaultQn: 700,
+      waterLPerKw: 5.5,
+    },
+    cast: {
+      name: "Glieder-/Rippenheizkörper",
+      hint: "Trägheit höher (mehr Wasser) — n≈1.28",
+      n: 1.28,
+      defaultQn: 1600,
+      waterLPerKw: 8.0,
+    },
+    underfloor: {
+      name: "Fußbodenheizung",
+      hint: "Niedrige VL, flacher Exponent n≈1.1, große Wassermasse",
+      n: 1.1,
+      defaultQn: 2000,
+      waterLPerKw: 18,
+      preferLowFlow: true,
+    },
   };
 
-  /** Liter Kesselwasser — bewusst klein gegen den Kreislauf */
-  const BOILER_VOLUME_L = 7;
-  const RETURN_HEADER_L = 12;
+  const ROOMS = {
+    living: { id: "living", label: "Wohnzimmer", lengthFactor: 0.55, pipeVolL: 4, lengthM: 6 },
+    bath: { id: "bath", label: "Bad", lengthFactor: 1.0, pipeVolL: 8, lengthM: 12 },
+    bed: { id: "bed", label: "Schlafzimmer", lengthFactor: 1.85, pipeVolL: 14, lengthM: 22 },
+  };
 
   function clamp(v, a, b) {
     return Math.max(a, Math.min(b, v));
@@ -91,11 +147,50 @@
     return clamp(raw + shift, 25, 75);
   }
 
-  function createRoomState(tSet, loadW, tRoom) {
+  /** Logarithmisches Temperaturmittel (EN 442) */
+  function deltaTm(tIn, tOut, tRoom) {
+    const d1 = tIn - tRoom;
+    const d2 = tOut - tRoom;
+    if (d1 <= 0.5 || d2 <= 0.5) return Math.max(0, (d1 + d2) / 2);
+    if (Math.abs(d1 - d2) < 0.3) return (d1 + d2) / 2;
+    return (d1 - d2) / Math.log(d1 / d2);
+  }
+
+  /**
+   * Darcy-Weisbach: Δp = λ · (L/d) · (ρ v² / 2)
+   * λ aus Blasius grob für turbulente Strömung, sonst Hagen-Poiseuille.
+   */
+  function darcyPressurePa(lengthM, diameterMm, flowLh) {
+    const d = Math.max(diameterMm, 8) / 1000;
+    const A = Math.PI * (d / 2) ** 2;
+    const q = flowLh / 3600 / 1000; // m³/s
+    const v = q / A;
+    if (v < 1e-6) return 0;
+    const Re = (RHO * v * d) / MU;
+    let lambda;
+    if (Re < 2300) {
+      lambda = 64 / Math.max(Re, 1);
+    } else {
+      // Blasius
+      lambda = 0.3164 / Math.pow(Re, 0.25);
+    }
+    return lambda * (lengthM / d) * (RHO * v * v) / 2;
+  }
+
+  function createRoomState(overrides) {
+    const typeId = overrides.radType || "panel22";
+    const type = RADIATOR_TYPES[typeId] || RADIATOR_TYPES.panel22;
+    const tSet = overrides.tSet ?? 21;
+    const loadW = overrides.loadW ?? 1800;
+    const tRoom = overrides.tRoom ?? tSet - 1.5;
+    const qn = overrides.qn ?? type.defaultQn;
     return {
       tSet,
       loadW,
       tRoom,
+      radType: typeId,
+      qn,
+      n: overrides.n ?? type.n,
       flowLh: 0,
       emitterW: 0,
       tIn: tRoom + 8,
@@ -103,6 +198,8 @@
       spread: 4,
       pipeSupplyT: tRoom + 6,
       pipeReturnT: tRoom + 3,
+      deltaP: 0,
+      kvPreset: 1,
     };
   }
 
@@ -117,16 +214,17 @@
       burnerPowerKw: initial.burnerPowerKw ?? 18,
       brandId: initial.brandId ?? "viessmann",
       hystOverride: initial.hystOverride ?? null,
+      pumpHeadM: initial.pumpHeadM ?? 5.5, // Förderhöhe mWS
       rooms: {
-        living: createRoomState(21, 1800, 19.5),
-        bath: createRoomState(24, 900, 21),
-        bed: createRoomState(18, 1400, 17.5),
+        living: createRoomState({ tSet: 21, loadW: 1800, radType: "panel22", qn: 1800 }),
+        bath: createRoomState({ tSet: 24, loadW: 900, radType: "bath", qn: 800, tRoom: 21 }),
+        bed: createRoomState({ tSet: 18, loadW: 1400, radType: "panel11", qn: 1200, tRoom: 17.5 }),
       },
-      /** Nur der kleine Kesselinhalt — nicht der ganze Kreislauf */
       boilerT: 42,
       returnHeaderT: 36,
       boilerVolumeL: BOILER_VOLUME_L,
       circuitVolumeL: 0,
+      systemDeltaP: 0,
       burner: {
         mode: "off",
         powerFrac: 0,
@@ -134,17 +232,20 @@
         runTime: 0,
         lockLeft: 0,
         starts: [],
-        /** Zyklus-Historie für die Zeitachse [{t, on, power}] */
         cycleLog: [],
       },
       tips: [],
       simTime: 0,
       dtScale: 18,
-      lastBurnerOn: false,
+      physicsNote: "EN-442-Exponent + Darcy-Weisbach (Lernmodell)",
     };
 
     function brand() {
       return BRANDS[state.brandId] || BRANDS.viessmann;
+    }
+
+    function radType(room) {
+      return RADIATOR_TYPES[room.radType] || RADIATOR_TYPES.panel22;
     }
 
     function hysteresisK() {
@@ -159,65 +260,86 @@
     function circuitVolumeLiters() {
       const d = state.diameterMm / 1000;
       const area = Math.PI * (d / 2) ** 2;
-      let pipeL = 0;
-      for (const meta of Object.values(ROOMS)) {
-        const lengthM = 8 * meta.lengthFactor * state.lengthMul;
-        pipeL += area * lengthM * 1000; // m³ → L
-        pipeL += meta.pipeVolL * state.lengthMul;
+      let vol = RETURN_HEADER_L;
+      for (const [key, meta] of Object.entries(ROOMS)) {
+        const room = state.rooms[key];
+        const lengthM = meta.lengthM * state.lengthMul;
+        vol += area * lengthM * 1000;
+        vol += meta.pipeVolL * state.lengthMul;
+        vol += (room.qn / 1000) * radType(room).waterLPerKw;
       }
-      return pipeL + RETURN_HEADER_L + 18; // + Heizkörperwasser grob
+      return vol;
     }
 
-    function pipeResistance(lengthFactor) {
-      const d = state.diameterMm / 15;
-      const L = lengthFactor * state.lengthMul;
-      return (L / Math.pow(Math.max(d, 0.55), 4.5)) * 1.15;
-    }
-
-    function roomConductance(roomKey) {
-      const meta = ROOMS[roomKey];
+    /** Ventil-Leitwert aus Abgleich + Thermostat (Kv-ähnlich) */
+    function valveConductance(roomKey) {
       const room = state.rooms[roomKey];
+      const meta = ROOMS[roomKey];
       const bal = state.balance / 100;
-      const natural = 1 / pipeResistance(meta.lengthFactor);
-      const sharesSumApprox = Object.keys(ROOMS).reduce(
-        (s, k) => s + 1 / pipeResistance(ROOMS[k].lengthFactor),
+
+      // Natürlicher Durchflussanteil ohne Abgleich ~ 1/√Δp bzw. 1/Länge
+      const natural = 1 / Math.sqrt(Math.max(meta.lengthFactor * state.lengthMul, 0.2));
+      const sumNat = Object.keys(ROOMS).reduce(
+        (s, k) => s + 1 / Math.sqrt(Math.max(ROOMS[k].lengthFactor * state.lengthMul, 0.2)),
         0
       );
-      const naturalNorm = natural / sharesSumApprox;
-      const balancedKv = 1 / 3 / Math.max(naturalNorm, 0.05);
-      const kv = lerp(1.0, balancedKv, bal) * meta.baseKvOpen;
+      const naturalShare = natural / sumNat;
+      const targetShare = 1 / 3;
+      // Abgleich drosselt kurze Stränge
+      const preset = lerp(1, targetShare / Math.max(naturalShare, 0.05), bal);
+      room.kvPreset = preset;
+
       const err = room.tSet - room.tRoom;
-      const thermoOpen = clamp(err / 2 + 0.35, 0.02, 1);
-      const resistance = pipeResistance(meta.lengthFactor) / Math.max(kv * thermoOpen, 0.03);
-      return 1 / resistance;
+      const thermoOpen = clamp(err / 2.0 + 0.3, 0.02, 1);
+      return preset * thermoOpen;
     }
 
     /**
-     * Wärmetransport: Pumpe schiebt Kesselwasser in die Rohre.
-     * Langer Strang = mehr Totzeit, Wärme kommt später an.
+     * Hydraulik-Netz: Darcy Δp je Strang, Pumpe als konstante Förderhöhe,
+     * Volumenströme iterativ über Leitwerte.
      */
     function hydraulics(dt) {
       state.circuitVolumeL = circuitVolumeLiters();
+      const pumpPa = state.pumpHeadM * RHO * G;
 
-      const cond = {};
-      let sum = 0;
-      for (const k of Object.keys(ROOMS)) {
-        cond[k] = roomConductance(k);
-        sum += cond[k];
-      }
-
-      const avgRes =
-        Object.keys(ROOMS).reduce((s, k) => s + pipeResistance(ROOMS[k].lengthFactor), 0) / 3;
-      const pumpMaxLh = 900;
-      const totalLh = pumpMaxLh / (1 + avgRes * 0.55);
-
+      // Startwerte / Iteration: flow ~ conductance / sqrt(resistance)
       const flows = {};
-      for (const k of Object.keys(ROOMS)) {
-        flows[k] = sum > 0 ? (cond[k] / sum) * totalLh : 0;
+      let totalLh = 0;
+
+      for (let iter = 0; iter < 4; iter++) {
+        totalLh = 0;
+        let sumCond = 0;
+        const cond = {};
+        for (const k of Object.keys(ROOMS)) {
+          const meta = ROOMS[k];
+          const room = state.rooms[k];
+          const lengthM = meta.lengthM * state.lengthMul;
+          const guess = flows[k] || 200;
+          const dpPipe = darcyPressurePa(lengthM, state.diameterMm, guess);
+          // Ventilwiderstand grob proportional 1/kv²
+          const kv = Math.max(valveConductance(k), 0.02);
+          const dpValve = (80000 / (kv * kv)) * Math.pow(guess / 300, 2);
+          const dp = dpPipe + dpValve;
+          room.deltaP = dp;
+          // Effektive Leitfähigkeit
+          cond[k] = kv / Math.sqrt(Math.max(dpPipe / 1000 + 1 / (kv * kv), 0.2));
+          sumCond += cond[k];
+        }
+
+        // Gesamtdurchfluss: Pumpe gegen mittleres Δp
+        const avgDp =
+          Object.keys(ROOMS).reduce((s, k) => s + (state.rooms[k].deltaP || 0), 0) / 3;
+        const pumpFactor = clamp(1 - avgDp / (pumpPa * 1.35), 0.08, 1);
+        const qMax = 1100 * pumpFactor * Math.pow(state.diameterMm / 15, 1.6);
+        totalLh = qMax;
+        for (const k of Object.keys(ROOMS)) {
+          flows[k] = sumCond > 0 ? (cond[k] / sumCond) * totalLh : 0;
+        }
       }
+
+      state.systemDeltaP = Object.keys(ROOMS).reduce((s, k) => s + (state.rooms[k].deltaP || 0), 0) / 3;
 
       const outdoor = state.outdoor;
-      const cp = 4180;
       let returnMix = 0;
       let flowWeight = 0;
       let heatExtractKw = 0;
@@ -225,53 +347,56 @@
       for (const k of Object.keys(ROOMS)) {
         const meta = ROOMS[k];
         const room = state.rooms[k];
+        const type = radType(room);
         const flowLh = flows[k];
-        const mDot = flowLh / 3600;
+        const mDot = flowLh / 3600; // kg/s
 
-        // Transportverzögerung Vorlauf: Rohvolumen / Volumenstrom
+        // Transportverzögerung Vorlauf
         const supplyVol = meta.pipeVolL * state.lengthMul * (15 / Math.max(state.diameterMm, 10));
-        const tauSupply = clamp((supplyVol / Math.max(flowLh, 20)) * 3600, 8, 180);
-        const alphaS = 1 - Math.exp(-dt / tauSupply);
-        room.pipeSupplyT = lerp(room.pipeSupplyT, state.boilerT, alphaS);
+        const tauSupply = clamp((supplyVol / Math.max(flowLh, 15)) * 3600, 6, 200);
+        room.pipeSupplyT = lerp(room.pipeSupplyT, state.boilerT, 1 - Math.exp(-dt / tauSupply));
         room.tIn = room.pipeSupplyT;
 
-        // Heizkörper: Wärmeabgabe aus mittlerer Übertemperatur + Massenstrom
-        const meanWater = (room.tIn + room.tOut) / 2;
-        const deltaDrive = Math.max(meanWater - room.tRoom, 0);
-        const maxSpread = clamp(room.tIn - room.tRoom - 1, 1, 25);
-        let emitterW = Math.min(
-          mDot * cp * maxSpread,
-          deltaDrive * (95 + flowLh * 0.9)
-        );
-        if (flowLh < 15) emitterW *= flowLh / 15;
+        // Vorabschätzung tOut für ΔTm; dann Q nach EN-442-ähnlich
+        let tOutGuess = room.tOut;
+        let emitterW = 0;
+        for (let j = 0; j < 3; j++) {
+          const dtm = deltaTm(room.tIn, tOutGuess, room.tRoom);
+          const dtn = 50; // Norm 75/65/20
+          const ratio = clamp(dtm / dtn, 0, 1.4);
+          emitterW = room.qn * Math.pow(ratio, room.n || type.n);
+          // Durchfluss begrenzt: ohne Masse keine Leistung
+          if (mDot < 1e-5) emitterW = 0;
+          else {
+            const maxQ = mDot * CP * Math.max(room.tIn - room.tRoom - 0.5, 0.5);
+            emitterW = Math.min(emitterW, maxQ);
+          }
+          const spread = mDot > 1e-5 ? emitterW / (mDot * CP) : 0;
+          tOutGuess = room.tIn - clamp(spread, 0, Math.max(room.tIn - room.tRoom - 0.5, 0));
+        }
 
-        // Spreizung aus Q = m·cp·ΔT
-        const spread =
-          mDot > 0.00005 ? clamp(emitterW / (mDot * cp), 0.5, maxSpread) : Math.min(2, maxSpread);
-        room.tOut = room.tIn - spread;
-        room.spread = spread;
+        room.tOut = tOutGuess;
+        room.spread = room.tIn - room.tOut;
+        room.emitterW = emitterW;
 
-        // Rücklauf-Rohr laggt etwas
         const tauRet = tauSupply * 0.85;
-        const alphaR = 1 - Math.exp(-dt / tauRet);
-        room.pipeReturnT = lerp(room.pipeReturnT, room.tOut, alphaR);
+        room.pipeReturnT = lerp(room.pipeReturnT, room.tOut, 1 - Math.exp(-dt / tauRet));
 
         const lossFactor = Math.max((room.tRoom - outdoor) / Math.max(room.tSet - outdoor, 4), 0.2);
+        // FB träger
+        const capacity = type.preferLowFlow ? 0.02 : 0.035;
         const netW = emitterW - room.loadW * lossFactor;
-        room.tRoom = clamp(room.tRoom + (netW / 100) * 0.035 * (dt / 60), outdoor + 0.5, 34);
+        room.tRoom = clamp(room.tRoom + (netW / 100) * capacity * (dt / 60), outdoor + 0.5, 34);
 
         returnMix += room.pipeReturnT * flowLh;
         flowWeight += flowLh;
         heatExtractKw += emitterW / 1000;
         room.flowLh = flowLh;
-        room.emitterW = emitterW;
       }
 
       const tReturnMix = flowWeight > 0 ? returnMix / flowWeight : state.returnHeaderT;
-      // Rücklaufsammler mischt, ehe Wasser zurück in den kleinen Kessel geht
       const tauHeader = clamp((RETURN_HEADER_L / Math.max(totalLh, 40)) * 3600, 5, 90);
-      const alphaH = 1 - Math.exp(-dt / tauHeader);
-      state.returnHeaderT = lerp(state.returnHeaderT, tReturnMix, alphaH);
+      state.returnHeaderT = lerp(state.returnHeaderT, tReturnMix, 1 - Math.exp(-dt / tauHeader));
 
       return { totalLh, flows, tReturn: state.returnHeaderT, heatExtractKw };
     }
@@ -285,11 +410,10 @@
         last.power = power;
         last.tEnd = state.simTime;
       }
-      // behalte ~15 min Simulationszeit
       while (log.length > 2 && state.simTime - log[0].t > 900) log.shift();
     }
 
-    function updateBurner(dt, flowSet, heatExtractKw) {
+    function updateBurner(dt, flowSet) {
       const b = brand();
       const hyst = hysteresisK();
       const onAt = flowSet - hyst / 2;
@@ -313,17 +437,13 @@
 
       if (br.mode === "on") {
         br.runTime += dt;
-        let want;
+        let want = 1;
         if (b.modulating) {
           const band = Math.max(hyst, 1);
-          const err = flowSet - state.boilerT;
-          want = clamp(0.35 + err / band, b.minMod, 1);
-        } else {
-          want = 1;
+          want = clamp(0.35 + (flowSet - state.boilerT) / band, b.minMod, 1);
         }
         br.powerFrac = lerp(br.powerFrac, want, clamp(b.ramp * (dt / 10), 0.05, 1));
         logCycle(true, br.powerFrac);
-
         if (br.runTime >= b.minRun && state.boilerT >= offAt) {
           br.mode = "off";
           br.powerFrac = 0;
@@ -343,26 +463,15 @@
       return { onAt, offAt };
     }
 
-    /**
-     * Nur der kleine Kesselinhalt wird vom Brenner erhitzt.
-     * Rücklaufwasser verdünnt ihn — Pumpe tauscht Volumen aus.
-     */
-    function updateBoiler(dt, totalLh, heatExtractKw) {
+    function updateBoiler(dt, totalLh) {
       const inputKw = state.burner.powerFrac * state.burnerPowerKw;
       const lossKw = Math.max(0, (state.boilerT - state.outdoor) * 0.01);
-
-      // Volumenstrom durch den Kessel mischt Rücklauf ein
       const mixFrac = clamp((totalLh * (dt / 3600)) / BOILER_VOLUME_L, 0, 0.45);
       const afterMix = state.boilerT * (1 - mixFrac) + state.returnHeaderT * mixFrac;
-
-      // Brennerleistung auf kleine Wassermasse → schnelle ΔT
-      // Q = m·cp·ΔT → ΔT = Q·dt / (m·cp); m = 7 kg
       const massKg = BOILER_VOLUME_L;
-      const dTBurn = (inputKw * 1000 * dt) / (massKg * 4180);
-      const dTLoss = (lossKw * 1000 * dt) / (massKg * 4180);
-
+      const dTBurn = (inputKw * 1000 * dt) / (massKg * CP);
+      const dTLoss = (lossKw * 1000 * dt) / (massKg * CP);
       state.boilerT = clamp(afterMix + dTBurn - dTLoss, state.outdoor + 1, 88);
-      void heatExtractKw; // Abgabe passiert an den Heizkörpern, nicht „aus dem Kessel abgezogen“
     }
 
     function buildTips(hyd, onAt, offAt, flowSet) {
@@ -373,60 +482,49 @@
 
       tips.push({
         level: "ok",
-        text: `Therme erhitzt nur ~${BOILER_VOLUME_L} L Kesselwasser — Kreislauf ≈ ${state.circuitVolumeL.toFixed(0)} L (≈${volRatio.toFixed(0)}×). Die Pumpe trägt die Wärme portionenweise hinaus.`,
+        text: `Physik: Q=Qn·(ΔTm/50)^n, Darcy Δp. Therme nur ~${BOILER_VOLUME_L} L, Kreislauf ≈ ${state.circuitVolumeL.toFixed(0)} L (×${volRatio.toFixed(0)}).`,
       });
 
-      if (state.burner.mode === "igniting") {
-        tips.push({ level: "warn", text: "Brenner zündet … erst der Kessel wird heiß, Rohre noch kälter." });
-      } else if (state.burner.mode === "on") {
-        const pct = Math.round(state.burner.powerFrac * 100);
-        const lagBed = state.boilerT - state.rooms.bed.tIn;
+      if (state.burner.mode === "on") {
         tips.push({
           level: "ok",
           text: brand().modulating
-            ? `Brenner ${pct} %: Kessel ${state.boilerT.toFixed(0)} °C. Langer Strang hinkt um ${Math.max(0, lagBed).toFixed(1)} K hinterher.`
-            : `Brenner Vollast bis ${offAt.toFixed(1)} °C — Wärmewelle wandert erst danach durch die Rohre.`,
+            ? `Brenner ${Math.round(state.burner.powerFrac * 100)} % — Kessel ${state.boilerT.toFixed(0)} °C, Schlaf-VL ${state.rooms.bed.tIn.toFixed(0)} °C (Transportverzögerung).`
+            : `Brenner Vollast bis Ausschaltpunkt ${offAt.toFixed(1)} °C.`,
         });
+      } else if (state.burner.mode === "igniting") {
+        tips.push({ level: "warn", text: "Brenner zündet — erst Kessel heiß, Rohre noch kälter." });
       } else {
-        tips.push({
-          level: "ok",
-          text: `Brenner aus (unter ${onAt.toFixed(1)} °C wieder an). Restwärme im Kreislauf kühlt über die Heizkörper ab.`,
-        });
+        tips.push({ level: "ok", text: `Brenner aus. Wieder an unter ${onAt.toFixed(1)} °C.` });
       }
 
-      // Spreizung-Tipp
-      const spLiving = state.rooms.living.spread;
-      const spBed = state.rooms.bed.spread;
-      if (spLiving < 4 && flows.living > flows.bed * 1.4) {
+      const living = state.rooms.living;
+      const bed = state.rooms.bed;
+      if (living.spread < 5 && flows.living > flows.bed * 1.5) {
         tips.push({
           level: "warn",
-          text: `Wohnzimmer-Spreizung nur ${spLiving.toFixed(1)} K (viel Durchfluss) — Schlafzimmer ${spBed.toFixed(1)} K. Typisch ohne Abgleich.`,
-        });
-      }
-
-      if (starts >= 6) {
-        tips.push({
-          level: "bad",
-          text: `${starts} Starts/h — Takten! Kleiner Kesselinhalt + enge Hysterese = viele Zyklen.`,
-        });
-      } else if (starts >= 3) {
-        tips.push({
-          level: "warn",
-          text: `${starts} Starts/h — Grenzbereich. Zyklusband unten beobachten.`,
+          text: `Spreizung Wohnen ${living.spread.toFixed(1)} K vs. Schlaf ${bed.spread.toFixed(1)} K — typisch ohne Abgleich (zu viel ṁ im kurzen Strang).`,
         });
       }
 
       if (state.balance < 40 && flows.living > flows.bed * 1.6) {
         tips.push({
           level: "bad",
-          text: "Kurzer Strang stiehlt Durchfluss — Wärme kommt im Schlafzimmer spät/wenig an.",
+          text: `Darcy: kurzer Strang Δp ${((living.deltaP || 0) / 1000).toFixed(1)} kPa vs. lang ${((bed.deltaP || 0) / 1000).toFixed(1)} kPa — Durchfluss stiehlt sich den Weg.`,
         });
       }
 
-      if (state.diameterMm <= 12 && state.lengthMul >= 1.4) {
+      if (starts >= 6) {
+        tips.push({ level: "bad", text: `${starts} Starts/h — Takten! Hysterese/Leistung/Kurve prüfen.` });
+      } else if (starts >= 3) {
+        tips.push({ level: "warn", text: `${starts} Starts/h — Grenzbereich.` });
+      }
+
+      // Unterdimensionierter HK
+      if (bed.emitterW < bed.loadW * 0.55 && bed.tRoom < bed.tSet - 1) {
         tips.push({
           level: "warn",
-          text: "Dünnes Rohr + lange Wege → hoher Druckverlust, Volumenstrom bricht ein.",
+          text: `Schlafzimmer-HK Qn=${bed.qn} W zu klein bzw. ΔTm zu niedrig (Typ ${radType(bed).name}).`,
         });
       }
 
@@ -436,13 +534,11 @@
     function step(realDt) {
       const dt = clamp(realDt, 0.016, 0.1) * state.dtScale;
       state.simTime += dt;
-
       const flowSet = flowSetpoint();
       const hyd = hydraulics(dt);
-      const { onAt, offAt } = updateBurner(dt, flowSet, hyd.heatExtractKw);
-      updateBoiler(dt, hyd.totalLh, hyd.heatExtractKw);
+      const { onAt, offAt } = updateBurner(dt, flowSet);
+      updateBoiler(dt, hyd.totalLh);
       buildTips(hyd, onAt, offAt, flowSet);
-
       return snapshot(hyd, onAt, offAt, flowSet);
     }
 
@@ -460,6 +556,7 @@
         diameterMm: state.diameterMm,
         lengthMul: state.lengthMul,
         balance: state.balance,
+        pumpHeadM: state.pumpHeadM,
         burnerPowerKw: state.burnerPowerKw,
         brandId: state.brandId,
         brand: brand(),
@@ -471,11 +568,13 @@
         returnHeaderT: state.returnHeaderT,
         boilerVolumeL: BOILER_VOLUME_L,
         circuitVolumeL: state.circuitVolumeL || circuitVolumeLiters(),
+        systemDeltaP: state.systemDeltaP,
         burnerMode: modeLabel,
         burnerFrac: br.powerFrac,
         startsHour: br.starts.length,
         cycleLog: br.cycleLog.slice(),
         simTime: state.simTime,
+        physicsNote: state.physicsNote,
         rooms: {
           living: { ...state.rooms.living },
           bath: { ...state.rooms.bath },
@@ -492,8 +591,17 @@
       Object.assign(state, rest);
       if (roomPatch) {
         for (const k of Object.keys(roomPatch)) {
-          if (!state.rooms[k]) state.rooms[k] = createRoomState(20, 1000, 20);
-          Object.assign(state.rooms[k], roomPatch[k]);
+          if (!state.rooms[k]) state.rooms[k] = createRoomState({});
+          const patch = { ...roomPatch[k] };
+          if (patch.radType && RADIATOR_TYPES[patch.radType]) {
+            const t = RADIATOR_TYPES[patch.radType];
+            if (patch.n == null) patch.n = t.n;
+            // Wenn Typ wechselt und qn nicht explizit: Default des Typs
+            if (patch.qn == null && state.rooms[k].radType !== patch.radType) {
+              patch.qn = t.defaultQn;
+            }
+          }
+          Object.assign(state.rooms[k], patch);
         }
       }
     }
@@ -545,9 +653,9 @@
           shift: 0,
           burnerPowerKw: 18,
           rooms: {
-            living: { tSet: 22, loadW: 1600 },
-            bath: { tSet: 24, loadW: 800 },
-            bed: { tSet: 20, loadW: 2000 },
+            living: { tSet: 22, loadW: 1600, radType: "panel33", qn: 2200 },
+            bath: { tSet: 24, loadW: 800, radType: "bath", qn: 600 },
+            bed: { tSet: 20, loadW: 2000, radType: "panel11", qn: 900 },
           },
         });
       } else if (id === "abgleich") {
@@ -558,6 +666,18 @@
           hystOverride: null,
           brandId: "buderus",
           outdoor: 0,
+        });
+      } else if (id === "fussboden") {
+        setControls({
+          outdoor: 0,
+          slope: 0.8,
+          shift: -2,
+          brandId: "viessmann",
+          rooms: {
+            living: { radType: "underfloor", qn: 2200, tSet: 21, loadW: 1800 },
+            bath: { radType: "bath", qn: 700, tSet: 24, loadW: 900 },
+            bed: { radType: "underfloor", qn: 1600, tSet: 18, loadW: 1400 },
+          },
         });
       } else {
         setControls({
@@ -570,10 +690,11 @@
           burnerPowerKw: 18,
           brandId: "viessmann",
           hystOverride: null,
+          pumpHeadM: 5.5,
           rooms: {
-            living: { tSet: 21, loadW: 1800 },
-            bath: { tSet: 24, loadW: 900 },
-            bed: { tSet: 18, loadW: 1400 },
+            living: { tSet: 21, loadW: 1800, radType: "panel22", qn: 1800, n: 1.3 },
+            bath: { tSet: 24, loadW: 900, radType: "bath", qn: 800, n: 1.25 },
+            bed: { tSet: 18, loadW: 1400, radType: "panel11", qn: 1200, n: 1.3 },
           },
         });
         resetBurnerAndTemps();
@@ -583,6 +704,7 @@
     return {
       BRANDS,
       ROOMS,
+      RADIATOR_TYPES,
       step,
       setControls,
       applyScenario,
@@ -602,5 +724,14 @@
     };
   }
 
-  window.HeizungSim = { createSim, BRANDS, ROOMS, heatingCurveFlowSet, BOILER_VOLUME_L };
+  window.HeizungSim = {
+    createSim,
+    BRANDS,
+    ROOMS,
+    RADIATOR_TYPES,
+    heatingCurveFlowSet,
+    BOILER_VOLUME_L,
+    darcyPressurePa,
+    deltaTm,
+  };
 })();

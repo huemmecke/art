@@ -838,6 +838,97 @@ input[type="range"]::-webkit-slider-thumb {
   line-height: 1.4;
 }
 
+.hatch {
+  border: 1px dashed #6a5638;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(42, 34, 22, 0.55), rgba(18, 22, 28, 0.8));
+  overflow: hidden;
+}
+
+.hatch summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.9rem 1rem;
+  display: grid;
+  gap: 0.2rem;
+  position: relative;
+}
+
+.hatch summary::-webkit-details-marker { display: none; }
+
+.hatch summary::after {
+  content: "▼";
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  color: #d6b27a;
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.hatch[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.hatch-title {
+  font-weight: 700;
+  color: #f0d7a8;
+  letter-spacing: 0.02em;
+}
+
+.hatch-sub {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.hatch-body {
+  padding: 0 0.75rem 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  border-top: 1px solid rgba(214, 178, 122, 0.2);
+  padding-top: 0.75rem;
+}
+
+.physics-badge {
+  margin: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(62, 207, 142, 0.1);
+  border: 1px solid rgba(62, 207, 142, 0.35);
+  color: #9fe7c4;
+  font-size: 0.78rem;
+  font-family: var(--mono);
+}
+
+.room-ctrl.compact {
+  padding: 0.35rem 0;
+}
+
+.room-ctrl label.stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+}
+
+.room-ctrl select.rad-type {
+  width: 100%;
+}
+
+.main-ops .hint {
+  margin-top: 0;
+}
+
+.scenario-row {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 420px) {
+  .scenario-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @keyframes flow {
   to { stroke-dashoffset: -44; }
 }

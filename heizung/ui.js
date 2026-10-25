@@ -16,11 +16,21 @@
   }
   brandSelect.value = "viessmann";
 
+  // Heizkörper-Typen in jede Raum-Select füllen
+  $$(".room-ctrl .rad-type").forEach((sel) => {
+    sel.innerHTML = "";
+    for (const [id, t] of Object.entries(window.HeizungSim.RADIATOR_TYPES)) {
+      const opt = document.createElement("option");
+      opt.value = id;
+      opt.textContent = t.name;
+      sel.appendChild(opt);
+    }
+  });
+
   function clamp(v, a, b) {
     return Math.max(a, Math.min(b, v));
   }
 
-  /** Spektralfarben: violett → blau → cyan → grün → gelb → orange → rot */
   function spectrumColor(t, lo = 20, hi = 75) {
     const x = clamp((t - lo) / (hi - lo), 0, 1);
     const stops = [
@@ -37,24 +47,49 @@
     const [x0, c0] = stops[i];
     const [x1, c1] = stops[i + 1];
     const u = (x - x0) / Math.max(x1 - x0, 1e-6);
-    const r = Math.round(c0[0] + (c1[0] - c0[0]) * u);
-    const g = Math.round(c0[1] + (c1[1] - c0[1]) * u);
-    const b = Math.round(c0[2] + (c1[2] - c0[2]) * u);
-    return `rgb(${r},${g},${b})`;
+    return `rgb(${Math.round(c0[0] + (c1[0] - c0[0]) * u)},${Math.round(c0[1] + (c1[1] - c0[1]) * u)},${Math.round(c0[2] + (c1[2] - c0[2]) * u)})`;
   }
 
-  function roomInputs(id) {
-    const block = $(`.room-ctrl[data-room="${id}"]`);
+  function roomBlocks(roomId) {
+    return $$(`.room-ctrl[data-room="${roomId}"]`);
+  }
+
+  function readRoom(roomId) {
+    // Hatch-Block hat die vollen Parameter; Main nur Thermostat
+    const hatch = $$(`.hatch .room-ctrl[data-room="${roomId}"]`)[0] || $(`.room-ctrl[data-room="${roomId}"]`);
+    const main = $(`.main-ops .room-ctrl[data-room="${roomId}"]`);
+    const tSetEl = main ? $(".tset", main) : $(".tset", hatch);
+    const typeEl = $(".rad-type", hatch);
     return {
-      tSet: Number($(".tset", block).value),
-      loadW: Number($(".load", block).value),
+      tSet: Number(tSetEl.value),
+      loadW: Number($(".load", hatch).value),
+      radType: typeEl ? typeEl.value : "panel22",
+      qn: Number($(".qn", hatch).value),
+      n: Number($(".nexp", hatch).value),
     };
   }
 
   function refreshRoomLabels() {
     $$(".room-ctrl").forEach((block) => {
-      $(".tset-val", block).textContent = `${Number($(".tset", block).value)} °C`;
-      $(".load-val", block).textContent = `${Number($(".load", block).value)} W`;
+      const tset = $(".tset", block);
+      const load = $(".load", block);
+      const qn = $(".qn", block);
+      const nexp = $(".nexp", block);
+      if (tset && $(".tset-val", block)) $(".tset-val", block).textContent = `${Number(tset.value)} °C`;
+      if (load && $(".load-val", block)) $(".load-val", block).textContent = `${Number(load.value)} W`;
+      if (qn && $(".qn-val", block)) $(".qn-val", block).textContent = `${Number(qn.value)} W`;
+      if (nexp && $(".nexp-val", block)) $(".nexp-val", block).textContent = Number(nexp.value).toFixed(2);
+    });
+  }
+
+  function syncThermostats(fromEl) {
+    const block = fromEl.closest(".room-ctrl");
+    if (!block) return;
+    const roomId = block.dataset.room;
+    const val = fromEl.value;
+    roomBlocks(roomId).forEach((b) => {
+      const t = $(".tset", b);
+      if (t && t !== fromEl) t.value = val;
     });
   }
 
@@ -69,10 +104,11 @@
       diameterMm: Number($("#diameter").value),
       lengthMul: Number($("#length").value),
       balance: Number($("#balance").value),
+      pumpHeadM: Number($("#pump-head").value),
       rooms: {
-        living: roomInputs("living"),
-        bath: roomInputs("bath"),
-        bed: roomInputs("bed"),
+        living: readRoom("living"),
+        bath: readRoom("bath"),
+        bed: readRoom("bed"),
       },
     });
   }
@@ -89,10 +125,21 @@
     $("#diameter").value = String(st.diameterMm);
     $("#length").value = String(st.lengthMul);
     $("#balance").value = String(st.balance);
+    $("#pump-head").value = String(st.pumpHeadM);
     for (const id of ["living", "bath", "bed"]) {
-      const block = $(`.room-ctrl[data-room="${id}"]`);
-      $(".tset", block).value = String(st.rooms[id].tSet);
-      $(".load", block).value = String(st.rooms[id].loadW);
+      const r = st.rooms[id];
+      roomBlocks(id).forEach((block) => {
+        const tset = $(".tset", block);
+        if (tset) tset.value = String(r.tSet);
+        const load = $(".load", block);
+        if (load) load.value = String(r.loadW);
+        const qn = $(".qn", block);
+        if (qn) qn.value = String(r.qn);
+        const nexp = $(".nexp", block);
+        if (nexp) nexp.value = String(r.n);
+        const type = $(".rad-type", block);
+        if (type) type.value = r.radType;
+      });
     }
     refreshRoomLabels();
     $("#brand-hint").textContent = b.hint;
@@ -105,12 +152,29 @@
     $("#val-shift").textContent = `${s.shift > 0 ? "+" : ""}${s.shift} K`;
     $("#val-diameter").textContent = `${s.diameterMm} mm`;
     $("#val-length").textContent = `${s.lengthMul.toFixed(1)}×`;
+    $("#val-pump").textContent = `${s.pumpHeadM.toFixed(1)} mWS`;
     const bal = s.balance;
     $("#val-balance").textContent =
       bal < 35 ? `${bal}% offen (schlecht)` : bal < 75 ? `${bal}% teilweise` : `${bal}% ausgeglichen`;
     $("#val-hyst").textContent = `${s.hysteresis.toFixed(1)} K`;
     $("#hyst-readout").textContent = `Band ${s.onAt.toFixed(1)}–${s.offAt.toFixed(1)} °C`;
     $("#brand-hint").textContent = s.brand.hint;
+    const badge = $("#physics-badge");
+    if (badge) {
+      badge.textContent = `${s.physicsNote} · Δp≈${((s.systemDeltaP || 0) / 1000).toFixed(1)} kPa`;
+    }
+  }
+
+  function onRadTypeChange(sel) {
+    const block = sel.closest(".room-ctrl");
+    const type = window.HeizungSim.RADIATOR_TYPES[sel.value];
+    if (!type || !block) return;
+    const qn = $(".qn", block);
+    const nexp = $(".nexp", block);
+    if (qn) qn.value = String(type.defaultQn);
+    if (nexp) nexp.value = String(type.n);
+    refreshRoomLabels();
+    readControlsIntoSim();
   }
 
   function bindControls() {
@@ -123,6 +187,7 @@
       "diameter",
       "length",
       "balance",
+      "pump-head",
     ].forEach((id) => {
       $(`#${id}`).addEventListener("input", () => {
         readControlsIntoSim();
@@ -138,9 +203,14 @@
 
     $$(".room-ctrl input").forEach((el) => {
       el.addEventListener("input", () => {
+        if (el.classList.contains("tset")) syncThermostats(el);
         refreshRoomLabels();
         readControlsIntoSim();
       });
+    });
+
+    $$(".rad-type").forEach((sel) => {
+      sel.addEventListener("change", () => onRadTypeChange(sel));
     });
 
     $$("[data-scenario]").forEach((btn) => {
@@ -218,8 +288,6 @@
 
     ctx.fillStyle = "#0a1016";
     ctx.fillRect(0, 0, cssW, cssH);
-
-    // Leistungsskala links
     ctx.fillStyle = "rgba(143,163,181,0.55)";
     ctx.font = "10px IBM Plex Mono, monospace";
     ctx.fillText("100%", 4, 14);
@@ -267,7 +335,6 @@
       }
     }
 
-    // Jetzt-Marke
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -279,9 +346,19 @@
     ctx.fillText("jetzt", cssW - 36, 14);
 
     const plain = burnerPlain(s);
-    $("#cycle-caption").textContent = plain.state === "AUS"
-      ? `Gerade AUS · ${onCount} Feuerphase(n) im Fenster`
-      : `Gerade ${plain.short} · ${Math.round(s.burnerFrac * 100)} % Gas`;
+    $("#cycle-caption").textContent =
+      plain.state === "AUS"
+        ? `Gerade AUS · ${onCount} Feuerphase(n) im Fenster`
+        : `Gerade ${plain.short} · ${Math.round(s.burnerFrac * 100)} % Gas`;
+  }
+
+  function radShortName(typeId) {
+    const t = window.HeizungSim.RADIATOR_TYPES[typeId];
+    if (!t) return typeId;
+    if (typeId === "underfloor") return "FBH";
+    if (typeId === "bath") return "Bad-HK";
+    if (typeId.startsWith("panel")) return typeId.replace("panel", "Typ ");
+    return t.name.split(" ")[0];
   }
 
   function renderFull(s) {
@@ -309,7 +386,6 @@
     const boilerBody = $("#boiler-body");
     if (boilerBody) boilerBody.style.fill = spectrumColor(s.boilerT);
 
-    // Sensorpunkte: Brenner/Kessel, Pumpe (VL), Rücklauf in Therme
     $("#boiler-svg-temp").textContent = `${s.boilerT.toFixed(1)} °C`;
     $("#pump-temp").textContent = `${s.boilerT.toFixed(1)} °C`;
     $("#boiler-return-temp").textContent = `${s.returnHeaderT.toFixed(1)} °C`;
@@ -326,12 +402,10 @@
     const lo = 20;
     const hi = 80;
     const pct = (v) => ((clamp(v, lo, hi) - lo) / (hi - lo)) * 100;
-    const onP = pct(s.onAt);
-    const offP = pct(s.offAt);
-    $("#hyst-fill").style.left = `${onP}%`;
-    $("#hyst-fill").style.width = `${Math.max(offP - onP, 1)}%`;
-    $("#hyst-on").style.left = `${onP}%`;
-    $("#hyst-off").style.left = `${offP}%`;
+    $("#hyst-fill").style.left = `${pct(s.onAt)}%`;
+    $("#hyst-fill").style.width = `${Math.max(pct(s.offAt) - pct(s.onAt), 1)}%`;
+    $("#hyst-on").style.left = `${pct(s.onAt)}%`;
+    $("#hyst-off").style.left = `${pct(s.offAt)}%`;
     $("#hyst-needle").style.left = `${pct(s.boilerT)}%`;
 
     const flame = $("#boiler-flame");
@@ -349,7 +423,6 @@
     if (pumpGroup) pumpGroup.classList.toggle("spinning", s.totalLh > 40);
     if (pump) pump.style.fill = spectrumColor(s.boilerT - 2, 20, 70);
 
-    // Hauptleitungen
     $("#pipe-supply-main").style.stroke = spectrumColor(s.boilerT);
     const pipeBoilerPump = $("#pipe-boiler-to-pump");
     const pipePumpManifold = $("#pipe-pump-to-manifold");
@@ -372,14 +445,14 @@
       $(`#pipe-${id}-r`).style.stroke = spectrumColor(room.tOut || room.pipeReturnT || s.returnHeaderT);
 
       setGradStops(`radGrad-${id}`, room.tIn, room.tOut);
-      const rad = $(`#rad-${id}`);
-      rad.classList.toggle("hot", (room.emitterW || 0) > 80);
+      $(`#rad-${id}`).classList.toggle("hot", (room.emitterW || 0) > 80);
 
       $(`#vl-${id}`).textContent = `VL ${room.tIn.toFixed(0)}°`;
       $(`#rl-${id}`).textContent = `RL ${room.tOut.toFixed(0)}°`;
 
       $(`#temp-${id}`).textContent = `${room.tRoom.toFixed(1)} °C`;
-      $(`#flow-${id}`).textContent = `ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h · ${Math.round(room.emitterW || 0)} W`;
+      const dpKpa = ((room.deltaP || 0) / 1000).toFixed(1);
+      $(`#flow-${id}`).textContent = `${radShortName(room.radType)} Qn ${room.qn} · ΔT ${room.spread.toFixed(1)} K · ${Math.round(flow)} L/h · ${Math.round(room.emitterW || 0)} W · ${dpKpa} kPa`;
 
       const heat = $(`#heat-${id}`);
       heat.style.opacity = String(clamp((room.tRoom - 16) / 10, 0, 0.38));
