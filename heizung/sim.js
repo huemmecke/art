@@ -19,11 +19,13 @@
 
   const BRANDS = {
     viessmann: {
-      name: "Viessmann (modulierend)",
-      hint: "Weiches Modulieren, enge Hysterese, wenige Starts — typisch moderne Gasbrennwert.",
+      name: "Viessmann Vitodens 100",
+      hint: "Moduliert ca. 1:5 — unter der Mindestleistung kann sie Wärme nicht „klein genug“ machen und taktet.",
       hysteresis: 2.0,
       modulating: true,
-      minMod: 0.18,
+      /** Vitodens 100 typ. ~1:5 (z. B. ~4 kW bei 19–20 kW) */
+      minMod: 0.2,
+      modRatioLabel: "1:5",
       ramp: 0.55,
       minRun: 45,
       lockout: 25,
@@ -31,10 +33,11 @@
     },
     buderus: {
       name: "Buderus / Bosch (modulierend)",
-      hint: "Stabiles Modulieren, etwas breitere Hysterese.",
+      hint: "Moduliert, Mindestleistung beachten — darunter ebenfalls Takten.",
       hysteresis: 2.5,
       modulating: true,
       minMod: 0.2,
+      modRatioLabel: "1:5",
       ramp: 0.48,
       minRun: 50,
       lockout: 30,
@@ -42,10 +45,11 @@
     },
     vaillant: {
       name: "Vaillant (modulierend)",
-      hint: "Schnelle Reaktion, enge Bandbreite.",
+      hint: "Breitere Modulation (~1:6) — etwas seltener Takten bei Teillast.",
       hysteresis: 1.8,
       modulating: true,
-      minMod: 0.16,
+      minMod: 0.17,
+      modRatioLabel: "1:6",
       ramp: 0.62,
       minRun: 40,
       lockout: 20,
@@ -238,6 +242,10 @@
       simTime: 0,
       dtScale: 18,
       physicsNote: "EN-442-Exponent + Darcy-Weisbach (Lernmodell)",
+      /** true wenn Last < Brenner-Mindestleistung → muss takten */
+      minPowerCycling: false,
+      lastLoadKw: 0,
+      lastMinKw: 0,
     };
 
     function brand() {
@@ -413,12 +421,21 @@
       while (log.length > 2 && state.simTime - log[0].t > 900) log.shift();
     }
 
-    function updateBurner(dt, flowSet) {
+    function updateBurner(dt, flowSet, heatExtractKw) {
       const b = brand();
       const hyst = hysteresisK();
       const onAt = flowSet - hyst / 2;
       const offAt = flowSet + hyst / 2;
       const br = state.burner;
+      const lossKw = Math.max(0, (state.boilerT - state.outdoor) * 0.01);
+      const loadKw = Math.max((heatExtractKw || 0) + lossKw, 0.02);
+      const minKw = b.modulating ? state.burnerPowerKw * b.minMod : state.burnerPowerKw;
+      const maxKw = state.burnerPowerKw;
+      // Vitodens-Logik: unter Pmin kann Leistung nicht weiter abgesenkt werden → Takten
+      const cannotShed = b.modulating && loadKw < minKw * 0.95;
+      state.minPowerCycling = cannotShed;
+      state.lastLoadKw = loadKw;
+      state.lastMinKw = minKw;
 
       br.starts = br.starts.filter((t) => state.simTime - t < 3600);
       if (br.lockLeft > 0) br.lockLeft = Math.max(0, br.lockLeft - dt);
@@ -430,7 +447,8 @@
         if (br.igniteLeft <= 0) {
           br.mode = "on";
           br.runTime = 0;
-          br.powerFrac = b.modulating ? Math.max(b.minMod, 0.4) : 1;
+          // Start: bei Unterlast sofort auf Mindestleistung (nicht „sanft darunter“)
+          br.powerFrac = b.modulating ? (cannotShed ? b.minMod : Math.max(b.minMod, loadKw / maxKw)) : 1;
         }
         return { onAt, offAt };
       }
@@ -439,11 +457,24 @@
         br.runTime += dt;
         let want = 1;
         if (b.modulating) {
-          const band = Math.max(hyst, 1);
-          want = clamp(0.35 + (flowSet - state.boilerT) / band, b.minMod, 1);
+          if (cannotShed) {
+            // Leistung lässt sich nicht loswerden → hart auf Pmin, bis Hysterese abschaltet
+            want = b.minMod;
+          } else {
+            // Last im Modulationsfenster: Leistung der Abnahme nachführen
+            want = clamp(loadKw / maxKw, b.minMod, 1);
+            // leichte Korrektur anhand Kesseltemperatur
+            const band = Math.max(hyst, 1);
+            const trim = clamp((flowSet - state.boilerT) / (band * 4), -0.08, 0.12);
+            want = clamp(want + trim, b.minMod, 1);
+          }
         }
         br.powerFrac = lerp(br.powerFrac, want, clamp(b.ramp * (dt / 10), 0.05, 1));
+        // Nie unter Mindestmodulation (außer Aus)
+        if (b.modulating) br.powerFrac = Math.max(br.powerFrac, b.minMod);
         logCycle(true, br.powerFrac);
+
+        // Abschalten: Soll+Hysterese — bei Pmin-Überschuss typisches Vitodens-Takten
         if (br.runTime >= b.minRun && state.boilerT >= offAt) {
           br.mode = "off";
           br.powerFrac = 0;
@@ -491,24 +522,7 @@
       const minKw = b.modulating ? state.burnerPowerKw * b.minMod : state.burnerPowerKw;
       const maxKw = state.burnerPowerKw;
 
-      // Modulation kann Last treffen → kaum Takten
-      if (b.modulating && loadKw >= minKw * 0.9 && loadKw <= maxKw * 1.05) {
-        const modPct = clamp((loadKw / maxKw) * 100, b.minMod * 100, 100);
-        return {
-          kind: "hold",
-          level: "ok",
-          startsPerHour: 0,
-          tonSec: null,
-          toffSec: null,
-          periodSec: null,
-          loadKw,
-          bandK: band,
-          label: "kaum Takten",
-          detail: `Last ≈ ${loadKw.toFixed(1)} kW liegt im Modulationsbereich (${minKw.toFixed(1)}–${maxKw.toFixed(1)} kW) → Dauerbetrieb bei ~${modPct.toFixed(0)} %, prognostiziert ≈ 0 Starts/h.`,
-        };
-      }
-
-      // Überlast: auch Vollast reicht nicht → läuft durch (oder nie aus)
+      // Überlast: auch Vollast reicht nicht → läuft durch
       if (loadKw > maxKw * 1.08) {
         return {
           kind: "overload",
@@ -519,13 +533,32 @@
           periodSec: null,
           loadKw,
           bandK: band,
+          minKw,
           label: "Dauerfeuer",
-          detail: `Last ${loadKw.toFixed(1)} kW > Brenner ${maxKw.toFixed(1)} kW — Kessel erreicht Ausschaltpunkt kaum, prognostiziert Dauerfeuer (0 Starts/h, Unterversorgung).`,
+          detail: `Last ${loadKw.toFixed(1)} kW > Brenner ${maxKw.toFixed(1)} kW — Ausschaltpunkt kaum erreichbar (Unterversorgung).`,
         };
       }
 
-      // Klassisches Ein/Aus-Takten (oder Modulation unter Min → wie Ein/Aus)
-      const fireKw = b.modulating ? Math.max(minKw, Math.min(maxKw, loadKw * 1.35)) : maxKw;
+      // Last im Modulationsfenster → halten ohne Takten
+      if (b.modulating && loadKw >= minKw * 0.95 && loadKw <= maxKw * 1.05) {
+        const modPct = clamp((loadKw / maxKw) * 100, b.minMod * 100, 100);
+        return {
+          kind: "hold",
+          level: "ok",
+          startsPerHour: 0,
+          tonSec: null,
+          toffSec: null,
+          periodSec: null,
+          loadKw,
+          bandK: band,
+          minKw,
+          label: "kaum Takten",
+          detail: `Last ${loadKw.toFixed(1)} kW ≥ Pmin ${minKw.toFixed(1)} kW (${b.modRatioLabel || "Modulation"}) → kann Leistung abführen, Dauerbetrieb ~${modPct.toFixed(0)} %.`,
+        };
+      }
+
+      // Unter Pmin: Vitodens 100 & Co. → Takten, weil Mindestleistung nicht „losgeworden“ wird
+      const fireKw = b.modulating ? minKw : maxKw;
       const netHeatKw = Math.max(fireKw - loadKw, 0.05);
       const coolKw = Math.max(loadKw, 0.05);
       let tonSec = energyBandJ / (netHeatKw * 1000);
@@ -545,6 +578,11 @@
         label = "grenzwertig";
       }
 
+      const cause =
+        b.modulating && loadKw < minKw
+          ? `Pmin ${minKw.toFixed(1)} kW > Last ${loadKw.toFixed(1)} kW — ${b.name} kann nicht weiter drosseln`
+          : `Ein/Aus-Betrieb`;
+
       return {
         kind: "cycling",
         level,
@@ -554,8 +592,9 @@
         periodSec,
         loadKw,
         bandK: band,
+        minKw,
         label,
-        detail: `Band ${band.toFixed(1)} K · Last ${loadKw.toFixed(1)} kW → An ~${Math.round(tonSec)} s / Aus ~${Math.round(toffSec)} s → Zyklus ~${Math.round(periodSec)} s ≈ ${startsPerHour.toFixed(1)} Starts/h (${label}).`,
+        detail: `${cause} → An ~${Math.round(tonSec)} s / Aus ~${Math.round(toffSec)} s ≈ ${startsPerHour.toFixed(1)} Starts/h (${label}).`,
       };
     }
 
@@ -570,17 +609,27 @@
         text: `Physik: Q=Qn·(ΔTm/50)^n, Darcy Δp. Therme nur ~${BOILER_VOLUME_L} L, Kreislauf ≈ ${state.circuitVolumeL.toFixed(0)} L (×${volRatio.toFixed(0)}).`,
       });
 
-      if (state.burner.mode === "on") {
+      if (state.minPowerCycling && state.burner.mode === "on") {
+        tips.push({
+          level: "warn",
+          text: `${brand().name}: Last ${state.lastLoadKw.toFixed(1)} kW < Pmin ${state.lastMinKw.toFixed(1)} kW — Mindestleistung wird nicht abgeführt → Kessel läuft auf Ausschaltpunkt und taktet.`,
+        });
+      } else if (state.burner.mode === "on") {
         tips.push({
           level: "ok",
           text: brand().modulating
-            ? `Brenner ${Math.round(state.burner.powerFrac * 100)} % — Kessel ${state.boilerT.toFixed(0)} °C, Schlaf-VL ${state.rooms.bed.tIn.toFixed(0)} °C (Transportverzögerung).`
+            ? `Brenner ${Math.round(state.burner.powerFrac * 100)} % (Pmin ${(brand().minMod * 100).toFixed(0)} %) — Last im Modulationsfenster, Kessel ${state.boilerT.toFixed(0)} °C.`
             : `Brenner Vollast bis Ausschaltpunkt ${offAt.toFixed(1)} °C.`,
         });
       } else if (state.burner.mode === "igniting") {
         tips.push({ level: "warn", text: "Brenner zündet — erst Kessel heiß, Rohre noch kälter." });
       } else {
-        tips.push({ level: "ok", text: `Brenner aus. Wieder an unter ${onAt.toFixed(1)} °C.` });
+        tips.push({
+          level: "ok",
+          text: state.minPowerCycling
+            ? `Brenner aus (Sperre/Hysterese). Nächster Start wieder bei ${onAt.toFixed(1)} °C — typisches Takten unter Pmin.`
+            : `Brenner aus. Wieder an unter ${onAt.toFixed(1)} °C.`,
+        });
       }
 
       const living = state.rooms.living;
@@ -627,7 +676,7 @@
       state.simTime += dt;
       const flowSet = flowSetpoint();
       const hyd = hydraulics(dt);
-      const { onAt, offAt } = updateBurner(dt, flowSet);
+      const { onAt, offAt } = updateBurner(dt, flowSet, hyd.heatExtractKw);
       updateBoiler(dt, hyd.totalLh);
       buildTips(hyd, onAt, offAt, flowSet);
       return snapshot(hyd, onAt, offAt, flowSet, predictCycling(hyd, onAt, offAt, flowSet));
@@ -668,6 +717,9 @@
         burnerFrac: br.powerFrac,
         startsHour: br.starts.length,
         cyclingPred: pred,
+        minPowerCycling: state.minPowerCycling,
+        lastLoadKw: state.lastLoadKw,
+        lastMinKw: state.lastMinKw,
         cycleLog: br.cycleLog.slice(),
         simTime: state.simTime,
         physicsNote: state.physicsNote,

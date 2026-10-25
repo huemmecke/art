@@ -419,10 +419,13 @@
     const chipPred = $("#takt-pred-chip");
     if (chipPred && pred) {
       banner.dataset.takt = pred.level || "ok";
-      chipPred.textContent =
-        pred.kind === "cycling"
-          ? `Prognose ≈ ${pred.startsPerHour.toFixed(1)} Starts/h · ${pred.label}`
-          : `Prognose: ${pred.label}`;
+      if (s.minPowerCycling) {
+        chipPred.textContent = `Pmin ${s.lastMinKw.toFixed(1)} kW > Last ${s.lastLoadKw.toFixed(1)} kW → taktet`;
+      } else if (pred.kind === "cycling") {
+        chipPred.textContent = `Prognose ≈ ${pred.startsPerHour.toFixed(1)} Starts/h · ${pred.label}`;
+      } else {
+        chipPred.textContent = `Prognose: ${pred.label}`;
+      }
     }
 
     $("#burner-state").textContent = plain.short;
