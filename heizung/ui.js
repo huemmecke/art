@@ -1,0 +1,223 @@
+(function () {
+  "use strict";
+
+  const sim = window.HeizungSim.createSim({});
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+  const brandSelect = $("#burner-brand");
+  for (const [id, b] of Object.entries(window.HeizungSim.BRANDS)) {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = b.name;
+    brandSelect.appendChild(opt);
+  }
+  brandSelect.value = "viessmann";
+
+  function clamp(v, a, b) {
+    return Math.max(a, Math.min(b, v));
+  }
+
+  function heatColor(t, lo = 25, hi = 70) {
+    const x = clamp((t - lo) / (hi - lo), 0, 1);
+    const r = Math.round(42 + x * 186);
+    const g = Math.round(111 + (x < 0.55 ? x * 40 : 22 - (x - 0.55) * 140));
+    const b = Math.round(158 - x * 130);
+    return `rgb(${r},${g},${Math.max(30, b)})`;
+  }
+
+  function roomInputs(id) {
+    const block = $(`.room-ctrl[data-room="${id}"]`);
+    return {
+      tSet: Number($(".tset", block).value),
+      loadW: Number($(".load", block).value),
+    };
+  }
+
+  function refreshRoomLabels() {
+    $$(".room-ctrl").forEach((block) => {
+      $(".tset-val", block).textContent = `${Number($(".tset", block).value)} °C`;
+      $(".load-val", block).textContent = `${Number($(".load", block).value)} W`;
+    });
+  }
+
+  function readControlsIntoSim() {
+    sim.setControls({
+      brandId: brandSelect.value,
+      hystOverride: Number($("#hysteresis").value),
+      burnerPowerKw: Number($("#burner-power").value),
+      outdoor: Number($("#outdoor").value),
+      slope: Number($("#slope").value),
+      shift: Number($("#shift").value),
+      diameterMm: Number($("#diameter").value),
+      lengthMul: Number($("#length").value),
+      balance: Number($("#balance").value),
+      rooms: {
+        living: roomInputs("living"),
+        bath: roomInputs("bath"),
+        bed: roomInputs("bed"),
+      },
+    });
+  }
+
+  function pushControlsFromSim() {
+    const st = sim.getState();
+    const b = window.HeizungSim.BRANDS[st.brandId];
+    brandSelect.value = st.brandId;
+    $("#hysteresis").value = String(st.hystOverride != null ? st.hystOverride : b.hysteresis);
+    $("#burner-power").value = String(st.burnerPowerKw);
+    $("#outdoor").value = String(st.outdoor);
+    $("#slope").value = String(st.slope);
+    $("#shift").value = String(st.shift);
+    $("#diameter").value = String(st.diameterMm);
+    $("#length").value = String(st.lengthMul);
+    $("#balance").value = String(st.balance);
+    for (const id of ["living", "bath", "bed"]) {
+      const block = $(`.room-ctrl[data-room="${id}"]`);
+      $(".tset", block).value = String(st.rooms[id].tSet);
+      $(".load", block).value = String(st.rooms[id].loadW);
+    }
+    refreshRoomLabels();
+    $("#brand-hint").textContent = b.hint;
+  }
+
+  function syncLabelsFromState(s) {
+    $("#val-power").textContent = `${s.burnerPowerKw} kW`;
+    $("#val-outdoor").textContent = `${s.outdoor} °C`;
+    $("#val-slope").textContent = s.slope.toFixed(1);
+    $("#val-shift").textContent = `${s.shift > 0 ? "+" : ""}${s.shift} K`;
+    $("#val-diameter").textContent = `${s.diameterMm} mm`;
+    $("#val-length").textContent = `${s.lengthMul.toFixed(1)}×`;
+    const bal = s.balance;
+    $("#val-balance").textContent =
+      bal < 35 ? `${bal}% offen (schlecht)` : bal < 75 ? `${bal}% teilweise` : `${bal}% ausgeglichen`;
+    $("#val-hyst").textContent = `${s.hysteresis.toFixed(1)} K`;
+    $("#hyst-readout").textContent = `Band ${s.onAt.toFixed(1)}–${s.offAt.toFixed(1)} °C`;
+    $("#brand-hint").textContent = s.brand.hint;
+  }
+
+  function bindControls() {
+    [
+      "burner-power",
+      "hysteresis",
+      "outdoor",
+      "slope",
+      "shift",
+      "diameter",
+      "length",
+      "balance",
+    ].forEach((id) => {
+      $(`#${id}`).addEventListener("input", () => {
+        readControlsIntoSim();
+        refreshRoomLabels();
+      });
+    });
+
+    brandSelect.addEventListener("change", () => {
+      const b = window.HeizungSim.BRANDS[brandSelect.value];
+      $("#hysteresis").value = String(b.hysteresis);
+      readControlsIntoSim();
+    });
+
+    $$(".room-ctrl input").forEach((el) => {
+      el.addEventListener("input", () => {
+        refreshRoomLabels();
+        readControlsIntoSim();
+      });
+    });
+
+    $$("[data-scenario]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        sim.applyScenario(btn.dataset.scenario);
+        pushControlsFromSim();
+        readControlsIntoSim();
+      });
+    });
+  }
+
+  function renderFull(s) {
+    syncLabelsFromState(s);
+
+    $("#burner-state").textContent = s.burnerMode;
+    $("#hud-burner").dataset.state = s.burnerMode;
+    $("#burner-power-hud").textContent = `${Math.round(s.burnerFrac * 100)} %`;
+    $("#boiler-temp").textContent = s.boilerT.toFixed(1);
+    $("#boiler-set").textContent = s.flowSet.toFixed(1);
+    $("#boiler-svg-temp").textContent = `${s.boilerT.toFixed(0)}°`;
+    $("#starts-hour").textContent = String(s.startsHour);
+    $("#outdoor-readout").textContent = String(s.outdoor);
+    $("#flow-set").textContent = s.flowSet.toFixed(0);
+
+    const lo = 20;
+    const hi = 80;
+    const pct = (v) => ((clamp(v, lo, hi) - lo) / (hi - lo)) * 100;
+    const onP = pct(s.onAt);
+    const offP = pct(s.offAt);
+    $("#hyst-fill").style.left = `${onP}%`;
+    $("#hyst-fill").style.width = `${Math.max(offP - onP, 1)}%`;
+    $("#hyst-on").style.left = `${onP}%`;
+    $("#hyst-off").style.left = `${offP}%`;
+    $("#hyst-needle").style.left = `${pct(s.boilerT)}%`;
+
+    const flame = $("#boiler-flame");
+    const firing = s.burnerMode === "BRENNT" || s.burnerMode === "MODULIERT";
+    const igniting = s.burnerMode === "ZÜNDET";
+    flame.classList.toggle("on", firing || igniting);
+    flame.style.fill = igniting ? "#f0b429" : "";
+
+    const supplyColor = heatColor(s.boilerT);
+    const returnColor = heatColor(s.boilerT - 8, 20, 60);
+    $$(".pipe.supply").forEach((p) => {
+      p.style.stroke = supplyColor;
+    });
+    $$(".pipe.return").forEach((p) => {
+      p.style.stroke = returnColor;
+    });
+
+    for (const id of ["living", "bath", "bed"]) {
+      const flow = s.flows[id] || 0;
+      const running = flow > 25 && s.boilerT > s.rooms[id].tRoom + 2;
+      $(`#pipe-${id}-s`).classList.toggle("running", running);
+      $(`#pipe-${id}-r`).classList.toggle("running", running);
+      const speed = clamp(1.8 - flow / 500, 0.45, 1.8);
+      $(`#pipe-${id}-s`).style.animationDuration = `${speed}s`;
+      $(`#pipe-${id}-r`).style.animationDuration = `${speed * 1.1}s`;
+
+      const rad = $(`#rad-${id}`);
+      const hot = (s.rooms[id].emitterW || 0) > 80;
+      rad.classList.toggle("hot", hot);
+      rad.style.fill = hot ? heatColor(s.boilerT - 5) : "#314352";
+
+      $(`#temp-${id}`).textContent = `${s.rooms[id].tRoom.toFixed(1)} °C`;
+      $(`#flow-${id}`).textContent = `${Math.round(flow)} L/h · ${Math.round(s.rooms[id].emitterW || 0)} W`;
+
+      const heat = $(`#heat-${id}`);
+      heat.style.opacity = String(clamp((s.rooms[id].tRoom - 16) / 10, 0, 0.42));
+      heat.style.fill = heatColor(s.rooms[id].tRoom, 16, 26);
+    }
+
+    const list = $("#tips-list");
+    const key = s.tips.map((t) => t.text).join("|");
+    if (list.dataset.key !== key) {
+      list.dataset.key = key;
+      list.innerHTML = s.tips
+        .map((t) => `<li class="${t.level}">${t.text}</li>`)
+        .join("");
+    }
+  }
+
+  bindControls();
+  pushControlsFromSim();
+  readControlsIntoSim();
+  refreshRoomLabels();
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = (now - last) / 1000;
+    last = now;
+    readControlsIntoSim();
+    renderFull(sim.step(dt));
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();

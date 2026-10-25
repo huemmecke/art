@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heizkreislauf-Trainer — interaktive Infografik</title>
+  <meta name="description" content="Dreh an Vorlauf, Hysterese, Abgleich und Brennerprofil — und sieh, was im Heizkreislauf passiert. Lernsimulation für Azubis Heizungsstechnik.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <p class="brand-kicker">Lernsimulation · Heizungsstechnik</p>
+          <h1>Heizkreislauf-Trainer</h1>
+        </div>
+      </div>
+      <p class="tagline">Dreh an den Parametern — sieh, was der Brenner und der Kreislauf tun.</p>
+    </header>
+
+    <main class="stage">
+      <section class="canvas-panel" aria-label="Haus und Heizkreislauf">
+        <div class="hud">
+          <div class="hud-card" id="hud-burner">
+            <span class="hud-label">Brenner</span>
+            <strong id="burner-state">AUS</strong>
+            <span class="hud-sub" id="burner-power-hud">0 %</span>
+          </div>
+          <div class="hud-card" id="hud-boiler">
+            <span class="hud-label">Kessel</span>
+            <strong><span id="boiler-temp">40.0</span> °C</strong>
+            <span class="hud-sub">Soll <span id="boiler-set">45.0</span> °C</span>
+          </div>
+          <div class="hud-card">
+            <span class="hud-label">Starts / h</span>
+            <strong id="starts-hour">0</strong>
+            <span class="hud-sub" id="hyst-readout">Hysterese ±2 K</span>
+          </div>
+          <div class="hud-card">
+            <span class="hud-label">Außen</span>
+            <strong><span id="outdoor-readout">0</span> °C</strong>
+            <span class="hud-sub">Vorlauf-Soll <span id="flow-set">45</span> °C</span>
+          </div>
+        </div>
+
+        <div class="hysteresis-band" aria-hidden="true">
+          <div class="hyst-track">
+            <div class="hyst-fill" id="hyst-fill"></div>
+            <div class="hyst-marker on" id="hyst-on" title="Einschalten"></div>
+            <div class="hyst-marker off" id="hyst-off" title="Ausschalten"></div>
+            <div class="hyst-needle" id="hyst-needle"></div>
+          </div>
+          <div class="hyst-labels">
+            <span>kalt</span>
+            <span>Hysterese-Band</span>
+            <span>heiß</span>
+          </div>
+        </div>
+
+        <svg class="house" viewBox="0 0 920 560" role="img" aria-label="Hausgrundriss mit Heizkreislauf">
+          <defs>
+            <linearGradient id="floorGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1a242e"/>
+              <stop offset="100%" stop-color="#121920"/>
+            </linearGradient>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2.5" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- Building shell -->
+          <rect class="shell" x="40" y="40" width="840" height="480" rx="18"/>
+          <text class="room-title" x="70" y="78">Technikraum</text>
+          <text class="room-title" x="320" y="78">Wohnzimmer</text>
+          <text class="room-title" x="620" y="78">Bad</text>
+          <text class="room-title" x="320" y="300">Schlafzimmer</text>
+
+          <!-- Rooms -->
+          <rect class="room" id="room-tech" x="56" y="90" width="220" height="180" rx="12"/>
+          <rect class="room" id="room-living" x="290" y="90" width="280" height="180" rx="12"/>
+          <rect class="room" id="room-bath" x="586" y="90" width="278" height="180" rx="12"/>
+          <rect class="room" id="room-bed" x="290" y="310" width="574" height="190" rx="12"/>
+
+          <!-- Room heat overlays -->
+          <rect class="heat-fill" id="heat-living" x="290" y="90" width="280" height="180" rx="12"/>
+          <rect class="heat-fill" id="heat-bath" x="586" y="90" width="278" height="180" rx="12"/>
+          <rect class="heat-fill" id="heat-bed" x="290" y="310" width="574" height="190" rx="12"/>
+
+          <!-- Boiler -->
+          <g id="boiler-group" transform="translate(100,140)">
+            <rect class="boiler-body" x="0" y="0" width="90" height="110" rx="10"/>
+            <rect class="boiler-flame" id="boiler-flame" x="18" y="55" width="54" height="36" rx="8"/>
+            <text class="boiler-label" x="45" y="28" text-anchor="middle">KESSEL</text>
+            <text class="boiler-temp-svg" id="boiler-svg-temp" x="45" y="48" text-anchor="middle">40°</text>
+          </g>
+
+          <!-- Manifold -->
+          <g transform="translate(210,155)">
+            <rect class="manifold" x="0" y="0" width="36" height="80" rx="6"/>
+            <text class="tiny" x="18" y="96" text-anchor="middle">Verteiler</text>
+          </g>
+
+          <!-- Pipes: supply (hot) and return (cool) -->
+          <path id="pipe-supply-main" class="pipe supply" d="M190 175 H228"/>
+          <path id="pipe-return-main" class="pipe return" d="M190 210 H228"/>
+
+          <!-- Living: short circuit -->
+          <path id="pipe-living-s" class="pipe supply flowable" d="M246 170 H360 V200"/>
+          <path id="pipe-living-r" class="pipe return flowable" d="M360 220 V250 H246 V210"/>
+          <circle class="radiator" id="rad-living" cx="360" cy="210" r="18"/>
+
+          <!-- Bath: medium -->
+          <path id="pipe-bath-s" class="pipe supply flowable" d="M246 165 H700 V200"/>
+          <path id="pipe-bath-r" class="pipe return flowable" d="M700 220 V255 H246 V205"/>
+          <circle class="radiator" id="rad-bath" cx="700" cy="210" r="18"/>
+
+          <!-- Bed: long circuit -->
+          <path id="pipe-bed-s" class="pipe supply flowable" d="M246 175 H270 V400 H520"/>
+          <path id="pipe-bed-r" class="pipe return flowable" d="M520 420 H250 V215"/>
+          <circle class="radiator" id="rad-bed" cx="520" cy="410" r="18"/>
+
+          <!-- Room readouts -->
+          <g class="room-stats" id="stats-living" transform="translate(305,115)">
+            <text class="stat-name" x="0" y="0">Wohnzimmer · kurz</text>
+            <text class="stat-temp" id="temp-living" x="0" y="28">20.0 °C</text>
+            <text class="stat-flow" id="flow-living" x="0" y="50">0 L/h</text>
+          </g>
+          <g class="room-stats" id="stats-bath" transform="translate(600,115)">
+            <text class="stat-name" x="0" y="0">Bad · mittel</text>
+            <text class="stat-temp" id="temp-bath" x="0" y="28">20.0 °C</text>
+            <text class="stat-flow" id="flow-bath" x="0" y="50">0 L/h</text>
+          </g>
+          <g class="room-stats" id="stats-bed" transform="translate(305,335)">
+            <text class="stat-name" x="0" y="0">Schlafzimmer · lang</text>
+            <text class="stat-temp" id="temp-bed" x="0" y="28">20.0 °C</text>
+            <text class="stat-flow" id="flow-bed" x="0" y="50">0 L/h</text>
+          </g>
+
+          <!-- Callout bubbles -->
+          <g id="callouts"></g>
+        </svg>
+
+        <aside class="live-tips" aria-live="polite">
+          <h2>Was passiert gerade?</h2>
+          <ul id="tips-list"></ul>
+        </aside>
+      </section>
+
+      <aside class="controls" aria-label="Parameter">
+        <section class="ctrl-block">
+          <h2>Brenner</h2>
+          <label class="field">
+            <span>Marke / Profil</span>
+            <select id="burner-brand"></select>
+          </label>
+          <p class="hint" id="brand-hint"></p>
+          <label class="field">
+            <span>Max. Leistung <em id="val-power">18 kW</em></span>
+            <input type="range" id="burner-power" min="8" max="35" step="1" value="18">
+          </label>
+          <label class="field">
+            <span>Hysterese-Override <em id="val-hyst">Profil</em></span>
+            <input type="range" id="hysteresis" min="0.5" max="12" step="0.5" value="2">
+          </label>
+          <p class="hint tiny-hint">Schmal = oft Takten · Breit = große Temperaturschwünge</p>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Heizkurve</h2>
+          <label class="field">
+            <span>Außentemperatur <em id="val-outdoor">0 °C</em></span>
+            <input type="range" id="outdoor" min="-15" max="20" step="1" value="0">
+          </label>
+          <label class="field">
+            <span>Steigung <em id="val-slope">1.4</em></span>
+            <input type="range" id="slope" min="0.6" max="2.4" step="0.1" value="1.4">
+          </label>
+          <label class="field">
+            <span>Parallelverschiebung <em id="val-shift">0 K</em></span>
+            <input type="range" id="shift" min="-8" max="8" step="0.5" value="0">
+          </label>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Hydraulik</h2>
+          <label class="field">
+            <span>Rohrdurchmesser <em id="val-diameter">15 mm</em></span>
+            <input type="range" id="diameter" min="10" max="22" step="1" value="15">
+          </label>
+          <label class="field">
+            <span>Kreislauflänge-Faktor <em id="val-length">1.0×</em></span>
+            <input type="range" id="length" min="0.6" max="2.2" step="0.1" value="1.0">
+          </label>
+          <label class="field">
+            <span>Hydraulischer Abgleich <em id="val-balance">offen (schlecht)</em></span>
+            <input type="range" id="balance" min="0" max="100" step="5" value="20">
+          </label>
+          <p class="hint tiny-hint">0 % = kurze Stränge stehlen den Durchfluss · 100 % = ausgeglichen</p>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Räume &amp; Thermostate</h2>
+          <div class="room-ctrl" data-room="living">
+            <strong>Wohnzimmer</strong>
+            <label>Soll <input type="range" class="tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
+            <label>Heizlast <input type="range" class="load" min="800" max="3500" step="100" value="1800"><em class="load-val">1800 W</em></label>
+          </div>
+          <div class="room-ctrl" data-room="bath">
+            <strong>Bad</strong>
+            <label>Soll <input type="range" class="tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
+            <label>Heizlast <input type="range" class="load" min="400" max="2000" step="50" value="900"><em class="load-val">900 W</em></label>
+          </div>
+          <div class="room-ctrl" data-room="bed">
+            <strong>Schlafzimmer</strong>
+            <label>Soll <input type="range" class="tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
+            <label>Heizlast <input type="range" class="load" min="600" max="3000" step="100" value="1400"><em class="load-val">1400 W</em></label>
+          </div>
+        </section>
+
+        <section class="ctrl-block scenarios">
+          <h2>Szenarien zum Ausprobieren</h2>
+          <div class="scenario-row">
+            <button type="button" data-scenario="taktend">Takten provozieren</button>
+            <button type="button" data-scenario="kalt-lang">Langer Strang kalt</button>
+            <button type="button" data-scenario="abgleich">Abgleich retten</button>
+            <button type="button" data-scenario="reset">Standard</button>
+          </div>
+        </section>
+
+        <p class="disclaimer">Didaktisches Modell — keine Auslegung nach DIN EN 12831. Zeigt Zusammenhänge, keine Planungsfreigabe.</p>
+      </aside>
+    </main>
+  </div>
+  <script src="sim.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>
