@@ -55,17 +55,19 @@
   }
 
   function readRoom(roomId) {
-    // Hatch-Block hat die vollen Parameter; Main nur Thermostat
-    const hatch = $$(`.hatch .room-ctrl[data-room="${roomId}"]`)[0] || $(`.room-ctrl[data-room="${roomId}"]`);
+    // Revisions-Modal hat die vollen Parameter; Hauptbedienung nur Thermostat
+    const hatch =
+      $(`#modal-revision .room-ctrl[data-room="${roomId}"]`) ||
+      $(`.room-ctrl[data-room="${roomId}"]`);
     const main = $(`.main-ops .room-ctrl[data-room="${roomId}"]`);
-    const tSetEl = main ? $(".tset", main) : $(".tset", hatch);
-    const typeEl = $(".rad-type", hatch);
+    const tSetEl = (main && $(".tset", main)) || (hatch && $(".tset", hatch));
+    const num = (el, fallback) => (el && el.value !== "" ? Number(el.value) : fallback);
     return {
-      tSet: Number(tSetEl.value),
-      loadW: Number($(".load", hatch).value),
-      radType: typeEl ? typeEl.value : "panel22",
-      qn: Number($(".qn", hatch).value),
-      n: Number($(".nexp", hatch).value),
+      tSet: num(tSetEl, 20),
+      loadW: num(hatch && $(".load", hatch), 1000),
+      radType: (hatch && $(".rad-type", hatch)?.value) || "panel22",
+      qn: num(hatch && $(".qn", hatch), 1200),
+      n: num(hatch && $(".nexp", hatch), 1.3),
     };
   }
 
@@ -93,18 +95,26 @@
     });
   }
 
+  function inputNum(id, fallback) {
+    const el = $(id);
+    if (!el || el.value === "") return fallback;
+    const n = Number(el.value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
   function readControlsIntoSim() {
+    const st = sim.getState();
     sim.setControls({
-      brandId: brandSelect.value,
-      hystOverride: Number($("#hysteresis").value),
-      burnerPowerKw: Number($("#burner-power").value),
-      outdoor: Number($("#outdoor").value),
-      slope: Number($("#slope").value),
-      shift: Number($("#shift").value),
-      diameterMm: Number($("#diameter").value),
-      lengthMul: Number($("#length").value),
-      balance: Number($("#balance").value),
-      pumpHeadM: Number($("#pump-head").value),
+      brandId: brandSelect?.value || st.brandId,
+      hystOverride: inputNum("#hysteresis", st.hystOverride ?? 2),
+      burnerPowerKw: inputNum("#burner-power", st.burnerPowerKw),
+      outdoor: inputNum("#outdoor", st.outdoor),
+      slope: inputNum("#slope", st.slope),
+      shift: inputNum("#shift", st.shift),
+      diameterMm: inputNum("#diameter", st.diameterMm),
+      lengthMul: inputNum("#length", st.lengthMul),
+      balance: inputNum("#balance", st.balance),
+      pumpHeadM: inputNum("#pump-head", st.pumpHeadM),
       rooms: {
         living: readRoom("living"),
         bath: readRoom("bath"),
@@ -145,20 +155,27 @@
     $("#brand-hint").textContent = b.hint;
   }
 
+  function setText(id, text) {
+    const el = $(id);
+    if (el) el.textContent = text;
+  }
+
   function syncLabelsFromState(s) {
-    $("#val-power").textContent = `${s.burnerPowerKw} kW`;
-    $("#val-outdoor").textContent = `${s.outdoor} °C`;
-    $("#val-slope").textContent = s.slope.toFixed(1);
-    $("#val-shift").textContent = `${s.shift > 0 ? "+" : ""}${s.shift} K`;
-    $("#val-diameter").textContent = `${s.diameterMm} mm`;
-    $("#val-length").textContent = `${s.lengthMul.toFixed(1)}×`;
-    $("#val-pump").textContent = `${s.pumpHeadM.toFixed(1)} mWS`;
+    setText("#val-power", `${s.burnerPowerKw} kW`);
+    setText("#val-outdoor", `${s.outdoor} °C`);
+    setText("#val-slope", s.slope.toFixed(1));
+    setText("#val-shift", `${s.shift > 0 ? "+" : ""}${s.shift} K`);
+    setText("#val-diameter", `${s.diameterMm} mm`);
+    setText("#val-length", `${s.lengthMul.toFixed(1)}×`);
+    setText("#val-pump", `${Number(s.pumpHeadM || 0).toFixed(1)} mWS`);
     const bal = s.balance;
-    $("#val-balance").textContent =
-      bal < 35 ? `${bal}% offen (schlecht)` : bal < 75 ? `${bal}% teilweise` : `${bal}% ausgeglichen`;
-    $("#val-hyst").textContent = `${s.hysteresis.toFixed(1)} K`;
-    $("#hyst-readout").textContent = `Band ${s.onAt.toFixed(1)}–${s.offAt.toFixed(1)} °C`;
-    $("#brand-hint").textContent = s.brand.hint;
+    setText(
+      "#val-balance",
+      bal < 35 ? `${bal}% offen (schlecht)` : bal < 75 ? `${bal}% teilweise` : `${bal}% ausgeglichen`
+    );
+    setText("#val-hyst", `${s.hysteresis.toFixed(1)} K`);
+    setText("#hyst-readout", `Band ${s.onAt.toFixed(1)}–${s.offAt.toFixed(1)} °C`);
+    setText("#brand-hint", s.brand.hint);
     const badge = $("#physics-badge");
     if (badge) {
       badge.textContent = `${s.physicsNote} · Δp≈${((s.systemDeltaP || 0) / 1000).toFixed(1)} kPa`;
