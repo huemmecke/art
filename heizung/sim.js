@@ -411,11 +411,25 @@
       return { totalLh, flows, tReturn: state.returnHeaderT, heatExtractKw };
     }
 
-    function logCycle(on, power) {
-      const log = state.burner.cycleLog;
+    /**
+     * Ein Protokoll-Eintrag pro Brenner-Modus (off | igniting | on).
+     * Leistungswechsel während „on“ ändern nur power/tEnd — keine Schein-Zyklen.
+     */
+    function syncCycleLog() {
+      const br = state.burner;
+      const mode = br.mode;
+      const firing = mode === "on";
+      const power = firing ? br.powerFrac : 0;
+      const log = br.cycleLog;
       const last = log[log.length - 1];
-      if (!last || last.on !== on || Math.abs((last.power || 0) - power) > 0.08) {
-        log.push({ t: state.simTime, on, power });
+      if (!last || last.mode !== mode) {
+        log.push({
+          t: state.simTime,
+          tEnd: state.simTime,
+          mode,
+          on: firing,
+          power,
+        });
       } else {
         last.power = power;
         last.tEnd = state.simTime;
@@ -445,13 +459,13 @@
       if (br.mode === "igniting") {
         br.igniteLeft -= dt;
         br.powerFrac = 0;
-        logCycle(false, 0);
         if (br.igniteLeft <= 0) {
           br.mode = "on";
           br.runTime = 0;
           // Start: bei Unterlast sofort auf Mindestleistung (nicht „sanft darunter“)
           br.powerFrac = b.modulating ? (cannotShed ? b.minMod : Math.max(b.minMod, loadKw / maxKw)) : 1;
         }
+        syncCycleLog();
         return { onAt, offAt };
       }
 
@@ -474,25 +488,24 @@
         br.powerFrac = lerp(br.powerFrac, want, clamp(b.ramp * (dt / 10), 0.05, 1));
         // Nie unter Mindestmodulation (außer Aus)
         if (b.modulating) br.powerFrac = Math.max(br.powerFrac, b.minMod);
-        logCycle(true, br.powerFrac);
 
         // Abschalten: Soll+Hysterese — bei Pmin-Überschuss typisches Vitodens-Takten
         if (br.runTime >= b.minRun && state.boilerT >= offAt) {
           br.mode = "off";
           br.powerFrac = 0;
           br.lockLeft = b.lockout;
-          logCycle(false, 0);
         }
+        syncCycleLog();
         return { onAt, offAt };
       }
 
       br.powerFrac = 0;
-      logCycle(false, 0);
       if (state.boilerT <= onAt && br.lockLeft <= 0) {
         br.mode = "igniting";
         br.igniteLeft = b.ignition;
         br.starts.push(state.simTime);
       }
+      syncCycleLog();
       return { onAt, offAt };
     }
 
@@ -525,8 +538,14 @@
       state.boilerT = clamp(next, state.outdoor + 1, 88);
     }
 
+    function isFireMode(modeOrEntry) {
+      const m = typeof modeOrEntry === "string" ? modeOrEntry : modeOrEntry?.mode;
+      if (m) return m === "on";
+      return !!(modeOrEntry && modeOrEntry.on);
+    }
+
     /**
-     * Gemessene Taktung aus den letzten vollständigen Zyklen (cycleLog).
+     * Gemessene Taktung aus Modus-Wechseln (on ↔ nicht-on) im cycleLog.
      * Nur die jüngsten Perioden — sonst bleibt nach Hysterese-Änderung die alte Rate kleben.
      */
     function measureRecentCycling() {
@@ -535,20 +554,20 @@
       if (!log.length) return null;
 
       const offEdges = [];
-      const onEdges = [];
       let tonSamples = [];
       let toffSamples = [];
       for (let i = 1; i < log.length; i++) {
         const prev = log[i - 1];
         const cur = log[i];
+        const prevFire = isFireMode(prev);
+        const curFire = isFireMode(cur);
         const dur = cur.t - prev.t;
         if (dur <= 0 || dur > 1800) continue;
-        if (prev.on && !cur.on) {
+        if (prevFire && !curFire) {
           offEdges.push(cur.t);
           tonSamples.push(dur);
         }
-        if (!prev.on && cur.on) {
-          onEdges.push(cur.t);
+        if (!prevFire && curFire) {
           toffSamples.push(dur);
         }
       }
@@ -556,7 +575,6 @@
       const avg = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
       const lastN = (arr, n) => arr.slice(Math.max(0, arr.length - n));
 
-      // Perioden = Abstand zwischen Ausschaltpunkten (ein voller Takt)
       const periods = [];
       for (let i = 1; i < offEdges.length; i++) {
         periods.push(offEdges[i] - offEdges[i - 1]);
@@ -573,7 +591,6 @@
         };
       }
 
-      // Fallback: letzte Starts
       const starts = state.burner.starts.filter((t) => tNow - t < 600);
       if (starts.length >= 2) {
         const recent = lastN(starts, 4);
@@ -588,6 +605,59 @@
         };
       }
       return null;
+    }
+
+    /** Messwerte zur Selbstprüfung: Log ↔ Brennerzustand, Starts, Band */
+    function buildDiagnostics(hyd, onAt, offAt, flowSet, pred) {
+      const br = state.burner;
+      const log = br.cycleLog;
+      const last = log[log.length - 1] || null;
+      const mode = br.mode;
+      const logMatchesMode = !last || last.mode === mode;
+      const logOnMatchesFire = !last || last.on === (mode === "on");
+      let firePhases = 0;
+      for (let i = 1; i < log.length; i++) {
+        if (isFireMode(log[i]) && !isFireMode(log[i - 1])) firePhases += 1;
+      }
+      if (log.length && isFireMode(log[0])) firePhases += 1;
+      const mismatches = [];
+      if (!logMatchesMode) mismatches.push("log.mode≠burner.mode");
+      if (!logOnMatchesFire) mismatches.push("log.on≠(mode===on)");
+      if (mode === "on" && br.powerFrac <= 0) mismatches.push("on but power=0");
+      if (mode === "off" && br.powerFrac > 0) mismatches.push("off but power>0");
+      if (pred?.kind === "hold" && br.starts.length >= 3) mismatches.push("pred=hold but starts≥3");
+
+      return {
+        ok: mismatches.length === 0,
+        mismatches,
+        simTime: state.simTime,
+        mode,
+        modeLabel:
+          mode === "igniting" ? "ZÜNDET" : mode === "on" ? (br.powerFrac < 0.95 ? "MODULIERT" : "BRENNT") : "AUS",
+        powerFrac: br.powerFrac,
+        boilerT: state.boilerT,
+        returnT: state.returnHeaderT,
+        flowSet,
+        onAt,
+        offAt,
+        bandK: Math.max(offAt - onAt, 0),
+        loadKw: state.lastLoadKw,
+        minKw: state.lastMinKw,
+        extractKw: hyd?.heatExtractKw || 0,
+        minPowerCycling: state.minPowerCycling,
+        dtScale: state.dtScale,
+        dtScaleBoost: state.dtScaleBoost,
+        startsHour: br.starts.length,
+        logLen: log.length,
+        logLast: last
+          ? { t: last.t, tEnd: last.tEnd, mode: last.mode, on: last.on, power: last.power }
+          : null,
+        firePhases,
+        predKind: pred?.kind || null,
+        predSource: pred?.source || null,
+        predStarts: pred?.startsPerHour ?? null,
+        predLabel: pred?.label || null,
+      };
     }
 
     function taktLabel(startsPerHour) {
@@ -801,7 +871,9 @@
       const { onAt, offAt } = updateBurner(dt, flowSet, hyd.heatExtractKw);
       updateBoiler(dt, hyd.totalLh, hyd.heatExtractKw);
       buildTips(hyd, onAt, offAt, flowSet);
-      return snapshot(hyd, onAt, offAt, flowSet, predictCycling(hyd, onAt, offAt, flowSet));
+      const pred = predictCycling(hyd, onAt, offAt, flowSet);
+      state.diagnostics = buildDiagnostics(hyd, onAt, offAt, flowSet, pred);
+      return snapshot(hyd, onAt, offAt, flowSet, pred);
     }
 
     function snapshot(hyd, onAt, offAt, flowSet, cyclingPred) {
@@ -814,6 +886,9 @@
       const pred =
         cyclingPred ||
         predictCycling(hyd || { heatExtractKw: 0, flows: {} }, onAt, offAt, flowSet);
+      const diag =
+        state.diagnostics ||
+        buildDiagnostics(hyd || { heatExtractKw: 0 }, onAt, offAt, flowSet, pred);
 
       return {
         outdoor: state.outdoor,
@@ -836,6 +911,7 @@
         circuitVolumeL: state.circuitVolumeL || circuitVolumeLiters(),
         systemDeltaP: state.systemDeltaP,
         burnerMode: modeLabel,
+        burnerRawMode: br.mode,
         burnerFrac: br.powerFrac,
         startsHour: br.starts.length,
         cyclingPred: pred,
@@ -843,6 +919,7 @@
         lastLoadKw: state.lastLoadKw,
         lastMinKw: state.lastMinKw,
         cycleLog: br.cycleLog.slice(),
+        diagnostics: diag,
         simTime: state.simTime,
         physicsNote: state.physicsNote,
         rooms: {
@@ -937,9 +1014,18 @@
           runTime: 60,
           lockLeft: 0,
           starts: [state.simTime],
-          cycleLog: [{ t: state.simTime - 40, on: true, power: 0.2 }],
+          cycleLog: [
+            {
+              t: state.simTime - 40,
+              tEnd: state.simTime,
+              mode: "on",
+              on: true,
+              power: 0.2,
+            },
+          ],
         };
         state.minPowerCycling = true;
+        syncCycleLog();
       } else if (id === "kalt-lang") {
         setControls({
           brandId: "viessmann",

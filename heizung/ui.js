@@ -337,19 +337,24 @@
     ctx.lineTo(cssW, baseY);
     ctx.stroke();
 
-    const events = log.length ? log.slice() : [{ t: t0, on: false, power: 0 }];
-    let onCount = 0;
+    const events = log.length
+      ? log.slice()
+      : [{ t: t0, tEnd: tNow, mode: "off", on: false, power: 0 }];
+    let firePhases = 0;
     for (let i = 0; i < events.length; i++) {
       const ev = events[i];
+      const mode = ev.mode || (ev.on ? "on" : "off");
       const tStart = Math.max(ev.t, t0);
-      const tEnd = i + 1 < events.length ? events[i + 1].t : tNow;
+      const tEndRaw = i + 1 < events.length ? events[i + 1].t : Math.max(ev.tEnd || tNow, tNow);
+      const tEnd = Math.min(tEndRaw, tNow);
       if (tEnd <= t0) continue;
       const x1 = 36 + ((tStart - t0) / windowSec) * (cssW - 40);
-      const x2 = 36 + ((Math.min(tEnd, tNow) - t0) / windowSec) * (cssW - 40);
+      const x2 = 36 + ((tEnd - t0) / windowSec) * (cssW - 40);
       const w = Math.max(x2 - x1, 2);
-      if (ev.on) {
-        onCount += 1;
-        const power = clamp(ev.power || 1, 0.05, 1);
+
+      if (mode === "on") {
+        if (i === 0 || !(events[i - 1].mode === "on" || events[i - 1].on)) firePhases += 1;
+        const power = clamp(ev.power || 0.2, 0.05, 1);
         const h = 8 + power * (baseY - 16);
         const y = baseY - h;
         const grad = ctx.createLinearGradient(0, y, 0, baseY);
@@ -362,6 +367,9 @@
         }
         ctx.fillStyle = grad;
         ctx.fillRect(x1, y, w, h);
+      } else if (mode === "igniting") {
+        ctx.fillStyle = "#f0b429";
+        ctx.fillRect(x1, baseY - 10, w, 10);
       } else {
         ctx.fillStyle = "#5b6f82";
         ctx.fillRect(x1, baseY - 3, w, 3);
@@ -379,10 +387,38 @@
     ctx.fillText("jetzt", cssW - 36, 14);
 
     const plain = burnerPlain(s);
-    $("#cycle-caption").textContent =
-      plain.state === "AUS"
-        ? `Gerade AUS · ${onCount} Feuerphase(n) im Fenster`
-        : `Gerade ${plain.short} · ${Math.round(s.burnerFrac * 100)} % Gas`;
+    const last = log[log.length - 1];
+    const lastMode = last?.mode || (last?.on ? "on" : "off") || "—";
+    const match =
+      (plain.state === "AUS" && lastMode === "off") ||
+      (plain.state === "ZÜNDET" && lastMode === "igniting") ||
+      ((plain.state === "MODULIERT" || plain.state === "BRENNT") && lastMode === "on");
+    $("#cycle-caption").textContent = match
+      ? `Jetzt ${plain.short} · Log=${lastMode} · ${firePhases} Feuerphase(n)`
+      : `⚠ Jetzt ${plain.short} ≠ Log ${lastMode} · ${firePhases} Feuerphase(n)`;
+
+    const metricsEl = $("#cycle-metrics");
+    const d = s.diagnostics;
+    if (metricsEl && d) {
+      metricsEl.dataset.ok = d.ok ? "1" : "0";
+      metricsEl.textContent = [
+        `ok=${d.ok ? "ja" : "NEIN"}`,
+        d.mismatches?.length ? `err=${d.mismatches.join(",")}` : null,
+        `mode=${d.mode}/${d.modeLabel}`,
+        `P=${(d.powerFrac * 100).toFixed(0)}%`,
+        `T=${d.boilerT.toFixed(1)}`,
+        `Band=${d.onAt.toFixed(1)}–${d.offAt.toFixed(1)} (${d.bandK.toFixed(1)}K)`,
+        `Last=${d.loadKw.toFixed(2)}/Pmin=${d.minKw.toFixed(2)}`,
+        `Starts/h=${d.startsHour}`,
+        `Log=${d.logLen} last=${d.logLast ? `${d.logLast.mode}@${d.logLast.power.toFixed(2)}` : "—"}`,
+        `Feuerphasen=${d.firePhases}`,
+        `Pred=${d.predKind}/${d.predSource}/${d.predLabel || "—"}`,
+        d.predStarts != null ? `PredStarts=${d.predStarts.toFixed(1)}` : null,
+        `dt×=${d.dtScale}×${d.dtScaleBoost}`,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    }
   }
 
   function radShortName(typeId) {
@@ -654,6 +690,20 @@
     readControlsIntoSim();
     const snap = sim.step(dt);
     renderFull.lastSnap = snap;
+    // Messwerte für Agent/Konsole: window.__heizungDiag
+    window.__heizungDiag = snap.diagnostics;
+    window.__heizungSnap = {
+      burnerMode: snap.burnerMode,
+      burnerRawMode: snap.burnerRawMode,
+      burnerFrac: snap.burnerFrac,
+      boilerT: snap.boilerT,
+      onAt: snap.onAt,
+      offAt: snap.offAt,
+      cycleLog: snap.cycleLog,
+      cyclingPred: snap.cyclingPred,
+      diagnostics: snap.diagnostics,
+      simTime: snap.simTime,
+    };
     renderFull(snap);
     requestAnimationFrame(frame);
   }
