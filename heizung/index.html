@@ -28,7 +28,6 @@
           <span class="live-chip-pred" id="takt-pred-chip">Takt-Prognose: —</span>
         </span>
       </button>
-      <div id="takt-toast" class="takt-toast" hidden role="status" aria-live="assertive"></div>
       <p class="fire-explain-sr" id="fire-explain" hidden>Kein Gas — Kessel kühlt bzw. hält nur Restwärme.</p>
       <nav class="top-tools" aria-label="Werkzeuge">
         <a class="rail-tool" href="#expert-panel">Experten</a>
@@ -64,16 +63,14 @@
       </div>
     </nav>
 
+    <div id="takt-toast" class="takt-toast" hidden role="status" aria-live="assertive"></div>
+
     <main class="info-stage" aria-label="Heizkreislauf-Infografik">
       <section class="infographic-panel">
-        <svg class="house house-infographic" viewBox="0 0 920 560" role="img" aria-label="Heizkreislauf-Infografik">
+                        <svg class="house house-infographic" viewBox="0 0 1000 640" role="img" aria-label="Heizkreislauf-Infografik">
         <defs>
-          <linearGradient id="floorGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#1a242e"/>
-            <stop offset="100%" stop-color="#121920"/>
-          </linearGradient>
           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2.5" result="b"/>
+            <feGaussianBlur stdDeviation="2" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
           <linearGradient id="radGrad-living" x1="0" y1="0" x2="0" y2="1">
@@ -90,118 +87,113 @@
           </linearGradient>
         </defs>
 
-        <rect class="shell" x="40" y="40" width="840" height="480" rx="18"/>
-        <text class="room-title" x="70" y="78">Technikraum</text>
-        <text class="room-title" x="320" y="78">Wohnzimmer</text>
-        <text class="room-title" x="620" y="78">Bad</text>
-        <text class="room-title" x="320" y="300">Schlafzimmer</text>
+        <!-- Technik volle Höhe; rechts oben Wohn+Bad, unten Schlafen — 16px Luft -->
+        <rect class="room" id="room-tech" x="36" y="36" width="248" height="568" rx="14"/>
+        <rect class="room" id="room-living" x="300" y="36" width="328" height="268" rx="14"/>
+        <rect class="room" id="room-bath" x="644" y="36" width="320" height="268" rx="14"/>
+        <rect class="room" id="room-bed" x="300" y="320" width="664" height="284" rx="14"/>
 
-        <rect class="room" id="room-tech" x="56" y="90" width="220" height="180" rx="12"/>
-        <rect class="room" id="room-living" x="290" y="90" width="280" height="180" rx="12"/>
-        <rect class="room" id="room-bath" x="586" y="90" width="278" height="180" rx="12"/>
-        <rect class="room" id="room-bed" x="290" y="310" width="574" height="190" rx="12"/>
+        <rect class="heat-fill" id="heat-living" x="300" y="36" width="328" height="268" rx="14"/>
+        <rect class="heat-fill" id="heat-bath" x="644" y="36" width="320" height="268" rx="14"/>
+        <rect class="heat-fill" id="heat-bed" x="300" y="320" width="664" height="284" rx="14"/>
 
-        <rect class="heat-fill" id="heat-living" x="290" y="90" width="280" height="180" rx="12"/>
-        <rect class="heat-fill" id="heat-bath" x="586" y="90" width="278" height="180" rx="12"/>
-        <rect class="heat-fill" id="heat-bed" x="290" y="310" width="574" height="190" rx="12"/>
+        <text class="room-title" x="160" y="60" text-anchor="middle">Technikraum</text>
 
-        <g id="boiler-group" transform="translate(88,120)">
-          <rect class="boiler-body" id="boiler-body" x="0" y="0" width="100" height="140" rx="10"/>
-          <text class="boiler-label" x="50" y="18" text-anchor="middle">THERME / BRENNER</text>
-          <text class="probe-label" x="50" y="34" text-anchor="middle">Kesselwasser</text>
-          <text class="boiler-temp-svg" id="boiler-svg-temp" x="50" y="56" text-anchor="middle">40.0 °C</text>
-          <g id="flame-group" class="flame-group" transform="translate(23,62)">
-            <rect class="boiler-flame" id="boiler-flame" x="0" y="18" width="54" height="28" rx="6"/>
-            <path id="flame-shape" class="flame-shape" d="M27 46 C10 28 16 8 27 0 C38 8 44 28 27 46 Z"/>
-            <text id="flame-label" class="flame-label" x="27" y="58" text-anchor="middle">AUS</text>
+        <g id="boiler-group" transform="translate(74,84)">
+          <rect class="boiler-body" id="boiler-body" x="0" y="0" width="124" height="168" rx="12"/>
+          <text class="boiler-label" x="62" y="24" text-anchor="middle">THERME</text>
+          <text class="probe-label" x="62" y="44" text-anchor="middle">Kesselwasser</text>
+          <text class="boiler-temp-svg" id="boiler-svg-temp" x="62" y="72" text-anchor="middle">40.0 °C</text>
+          <g id="flame-group" class="flame-group" transform="translate(35,88)">
+            <rect class="boiler-flame" id="boiler-flame" x="0" y="14" width="54" height="26" rx="6"/>
+            <path id="flame-shape" class="flame-shape" d="M27 40 C10 26 16 8 27 0 C38 8 44 26 27 40 Z"/>
+            <text id="flame-label" class="flame-label" x="27" y="52" text-anchor="middle">AUS</text>
           </g>
           <g id="takt-badge" visibility="hidden">
-            <rect x="6" y="-22" width="88" height="18" rx="4" class="takt-badge-bg"/>
-            <text id="takt-badge-text" class="takt-badge-text" x="50" y="-9" text-anchor="middle">TAKTET</text>
+            <rect x="18" y="148" width="88" height="16" rx="4" class="takt-badge-bg"/>
+            <text id="takt-badge-text" class="takt-badge-text" x="62" y="160" text-anchor="middle">TAKTET</text>
           </g>
-          <text class="boiler-vol" x="50" y="132" text-anchor="middle">Sensor im Kessel · ~7 L</text>
+          <text class="boiler-vol" x="62" y="150" text-anchor="middle">~7 L Sensor</text>
         </g>
 
-        <!-- Pumpe auf Vorlauf: Therme → Pumpe → VL-Verteiler -->
-        <g id="pump-group" transform="translate(198,148)">
-          <circle class="pump" id="pump-disc" cx="18" cy="18" r="16"/>
-          <path id="pump-blade" class="pump-blade" d="M18 8 L21 18 L18 28 L15 18 Z" />
-          <text class="tiny" x="18" y="44" text-anchor="middle">Pumpe (VL)</text>
-          <rect class="probe-chip" id="pump-chip" x="-10" y="50" width="56" height="32" rx="6"/>
-          <text class="probe-label" x="18" y="63" text-anchor="middle">VL an Pumpe</text>
-          <text class="probe-temp" id="pump-temp" x="18" y="78" text-anchor="middle">40 °C</text>
+        <g id="pump-group" transform="translate(88,280)">
+          <circle class="pump" id="pump-disc" cx="28" cy="18" r="16"/>
+          <path id="pump-blade" class="pump-blade" d="M28 7 L31 18 L28 29 L25 18 Z"/>
+          <text class="tiny" x="28" y="46" text-anchor="middle">Pumpe</text>
+        </g>
+        <g transform="translate(148,280)">
+          <rect class="probe-chip" id="pump-chip" x="0" y="4" width="100" height="40" rx="8"/>
+          <text class="probe-label" x="50" y="20" text-anchor="middle">VL Pumpe</text>
+          <text class="probe-temp" id="pump-temp" x="50" y="36" text-anchor="middle">40 °C</text>
         </g>
 
-        <!-- Zwei getrennte Verteilerbalken: oben VL, unten RL -->
-        <g id="manifold-supply" transform="translate(248,138)">
-          <rect class="manifold manifold-vl" id="manifold-body" x="0" y="0" width="28" height="52" rx="5"/>
-          <text class="tiny" x="14" y="-6" text-anchor="middle">VL-Verteiler</text>
-          <text class="probe-temp tiny-temp" id="manifold-temp" x="14" y="30" text-anchor="middle">—°</text>
+        <g id="manifold-supply" transform="translate(240,100)">
+          <rect class="manifold manifold-vl" id="manifold-body" x="0" y="0" width="26" height="100" rx="6"/>
+          <text class="tiny" x="13" y="-8" text-anchor="middle">VL</text>
+          <text class="probe-temp tiny-temp" id="manifold-temp" x="13" y="54" text-anchor="middle">—°</text>
         </g>
-        <g id="manifold-return" transform="translate(248,218)">
-          <rect class="manifold manifold-rl" id="manifold-return-body" x="0" y="0" width="28" height="52" rx="5"/>
-          <text class="tiny" x="14" y="68" text-anchor="middle">RL-Verteiler</text>
-          <text class="probe-temp tiny-temp" id="manifold-return-temp" x="14" y="30" text-anchor="middle">—°</text>
-        </g>
-
-        <g id="return-probe" transform="translate(95,268)">
-          <rect class="probe-chip" id="return-chip" x="0" y="0" width="86" height="34" rx="6"/>
-          <text class="probe-label" x="43" y="14" text-anchor="middle">RL zurück in Therme</text>
-          <text class="probe-temp" id="boiler-return-temp" x="43" y="30" text-anchor="middle">36 °C</text>
+        <g id="manifold-return" transform="translate(240,360)">
+          <rect class="manifold manifold-rl" id="manifold-return-body" x="0" y="0" width="26" height="90" rx="6"/>
+          <text class="tiny" x="13" y="108" text-anchor="middle">RL</text>
+          <text class="probe-temp tiny-temp" id="manifold-return-temp" x="13" y="50" text-anchor="middle">—°</text>
         </g>
 
-        <!-- Vorlauf: Therme → Pumpe → VL-Verteiler -->
-        <path id="pipe-boiler-to-pump" class="pipe supply" d="M188 155 H198"/>
-        <path id="pipe-supply-main" class="pipe supply" d="M234 166 H248"/>
-        <path id="pipe-pump-to-manifold" class="pipe supply" d="M216 166 H248"/>
-        <!-- Rücklauf: RL-Verteiler → Therme (eigener Weg, nicht in VL!) -->
-        <path id="pipe-return-main" class="pipe return" d="M248 244 H188 V268"/>
-
-        <!-- Stränge: VL vom oberen Verteiler, RL zum unteren Verteiler -->
-                <!-- Stränge: Schacht/Verteiler → Unterkante der Räume → HK -->
-        <path id="pipe-living-s" class="pipe supply flowable" d="M276 250 H360 V248"/>
-        <path id="pipe-living-r" class="pipe return flowable" d="M360 248 H286 V255 H276"/>
-
-        <path id="pipe-bath-s" class="pipe supply flowable" d="M276 250 H700 V248"/>
-        <path id="pipe-bath-r" class="pipe return flowable" d="M700 248 H286 V255 H276"/>
-
-        <path id="pipe-bed-s" class="pipe supply flowable" d="M276 255 V460 H500 V460"/>
-        <path id="pipe-bed-r" class="pipe return flowable" d="M500 460 H286 V255"/>
-<rect class="radiator" id="rad-living" x="338" y="188" width="44" height="60" rx="6" fill="url(#radGrad-living)"/>
-        <text class="rad-vl" id="vl-living" x="360" y="206" text-anchor="middle">VL —</text>
-        <text class="rad-rl" id="rl-living" x="360" y="236" text-anchor="middle">RL —</text>
-
-        <rect class="radiator" id="rad-bath" x="678" y="188" width="44" height="60" rx="6" fill="url(#radGrad-bath)"/>
-        <text class="rad-vl" id="vl-bath" x="700" y="206" text-anchor="middle">VL —</text>
-        <text class="rad-rl" id="rl-bath" x="700" y="236" text-anchor="middle">RL —</text>
-
-        <rect class="radiator" id="rad-bed" x="478" y="388" width="44" height="72" rx="6" fill="url(#radGrad-bed)"/>
-        <text class="rad-vl" id="vl-bed" x="500" y="410" text-anchor="middle">VL —</text>
-        <text class="rad-rl" id="rl-bed" x="500" y="444" text-anchor="middle">RL —</text>
-
-                <g class="room-stats stats-card" id="stats-living" transform="translate(305,115)">
-          <rect class="stats-bg" x="-8" y="-14" width="220" height="88" rx="8"/>
-          <text class="stat-name" x="0" y="0">Wohnzimmer · kurz</text>
-          <text class="stat-temp" id="temp-living" x="0" y="20">Ist 20.0 · Soll 21</text>
-          <text class="stat-valve" id="valve-living" x="0" y="38">Ventil — %</text>
-          <text class="stat-flow" id="flow-living" x="0" y="56">ΔT — · 0 L/h</text>
-          <text class="stat-power" id="power-living" x="0" y="72">HK — W</text>
+        <g id="return-probe" transform="translate(60,520)">
+          <rect class="probe-chip" id="return-chip" x="0" y="0" width="188" height="44" rx="8"/>
+          <text class="probe-label" x="94" y="18" text-anchor="middle">RL zurück in Therme</text>
+          <text class="probe-temp" id="boiler-return-temp" x="94" y="35" text-anchor="middle">36 °C</text>
         </g>
-        <g class="room-stats stats-card" id="stats-bath" transform="translate(600,115)">
-          <rect class="stats-bg" x="-8" y="-14" width="200" height="88" rx="8"/>
-          <text class="stat-name" x="0" y="0">Bad · mittel</text>
-          <text class="stat-temp" id="temp-bath" x="0" y="20">Ist 20.0 · Soll 24</text>
-          <text class="stat-valve" id="valve-bath" x="0" y="38">Ventil — %</text>
-          <text class="stat-flow" id="flow-bath" x="0" y="56">ΔT — · 0 L/h</text>
-          <text class="stat-power" id="power-bath" x="0" y="72">HK — W</text>
+
+        <path id="pipe-boiler-to-pump" class="pipe supply" d="M136 252 V280"/>
+        <path id="pipe-pump-to-manifold" class="pipe supply" d="M144 298 H240"/>
+        <path id="pipe-supply-main" class="pipe supply" d="M253 100 V88"/>
+        <path id="pipe-return-main" class="pipe return" d="M240 420 H180 V542 H154"/>
+
+        <!-- Gasse x≈284; Leitungen unter den Infokarten -->
+        <path id="pipe-living-s" class="pipe supply flowable" d="M266 140 H284 V255 H580"/>
+        <path id="pipe-living-r" class="pipe return flowable" d="M580 275 H284 V380 H266"/>
+
+        <path id="pipe-bath-s" class="pipe supply flowable" d="M266 130 H284 V255 H890"/>
+        <path id="pipe-bath-r" class="pipe return flowable" d="M890 275 H284 V380 H266"/>
+
+        <path id="pipe-bed-s" class="pipe supply flowable" d="M266 200 V555 H880"/>
+        <path id="pipe-bed-r" class="pipe return flowable" d="M880 575 H284 V450 H266"/>
+
+        <rect class="radiator" id="rad-living" x="568" y="214" width="52" height="66" rx="8" fill="url(#radGrad-living)"/>
+        <text class="rad-vl" id="vl-living" x="594" y="200" text-anchor="middle">VL —</text>
+        <text class="rad-rl" id="rl-living" x="542" y="256" text-anchor="end">RL —</text>
+
+        <rect class="radiator" id="rad-bath" x="878" y="214" width="52" height="66" rx="8" fill="url(#radGrad-bath)"/>
+        <text class="rad-vl" id="vl-bath" x="904" y="200" text-anchor="middle">VL —</text>
+        <text class="rad-rl" id="rl-bath" x="860" y="256" text-anchor="end">RL —</text>
+
+        <rect class="radiator" id="rad-bed" x="866" y="502" width="56" height="72" rx="8" fill="url(#radGrad-bed)"/>
+        <text class="rad-vl" id="vl-bed" x="894" y="488" text-anchor="middle">VL —</text>
+        <text class="rad-rl" id="rl-bed" x="848" y="540" text-anchor="end">RL —</text>
+
+        <g class="room-stats stats-card" id="stats-living" transform="translate(318,56)">
+          <rect class="stats-bg" x="0" y="0" width="220" height="118" rx="10"/>
+          <text class="stat-name" x="14" y="24">Wohnzimmer · kurz</text>
+          <text class="stat-temp" id="temp-living" x="14" y="48">Ist 20.0 · Soll 21</text>
+          <text class="stat-valve" id="valve-living" x="14" y="70">Ventil — %</text>
+          <text class="stat-flow" id="flow-living" x="14" y="90">ΔT — · 0 L/h</text>
+          <text class="stat-power" id="power-living" x="14" y="108">HK — W</text>
         </g>
-        <g class="room-stats stats-card" id="stats-bed" transform="translate(305,335)">
-          <rect class="stats-bg" x="-8" y="-14" width="260" height="88" rx="8"/>
-          <text class="stat-name" x="0" y="0">Schlafzimmer · lang</text>
-          <text class="stat-temp" id="temp-bed" x="0" y="20">Ist 20.0 · Soll 18</text>
-          <text class="stat-valve" id="valve-bed" x="0" y="38">Ventil — %</text>
-          <text class="stat-flow" id="flow-bed" x="0" y="56">ΔT — · 0 L/h</text>
-          <text class="stat-power" id="power-bed" x="0" y="72">HK — W</text>
+        <g class="room-stats stats-card" id="stats-bath" transform="translate(662,56)">
+          <rect class="stats-bg" x="0" y="0" width="188" height="118" rx="10"/>
+          <text class="stat-name" x="14" y="24">Bad · mittel</text>
+          <text class="stat-temp" id="temp-bath" x="14" y="48">Ist 20.0 · Soll 24</text>
+          <text class="stat-valve" id="valve-bath" x="14" y="70">Ventil — %</text>
+          <text class="stat-flow" id="flow-bath" x="14" y="90">ΔT — · 0 L/h</text>
+          <text class="stat-power" id="power-bath" x="14" y="108">HK — W</text>
+        </g>
+        <g class="room-stats stats-card" id="stats-bed" transform="translate(318,342)">
+          <rect class="stats-bg" x="0" y="0" width="250" height="118" rx="10"/>
+          <text class="stat-name" x="14" y="24">Schlafzimmer · lang</text>
+          <text class="stat-temp" id="temp-bed" x="14" y="48">Ist 20.0 · Soll 18</text>
+          <text class="stat-valve" id="valve-bed" x="14" y="70">Ventil — %</text>
+          <text class="stat-flow" id="flow-bed" x="14" y="90">ΔT — · 0 L/h</text>
+          <text class="stat-power" id="power-bed" x="14" y="108">HK — W</text>
         </g>
         <g id="callouts"></g>
       </svg>
