@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heizkreislauf-Trainer — Infografik</title>
+  <meta name="description" content="Interaktive Heizkreislauf-Infografik für Azubis: Szenarien, Zusammenhänge, Messwerte.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="infographic-mode">
+  <div class="app app-infographic">
+    <header class="info-top">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <p class="brand-kicker">Heizkreislauf-Trainer</p>
+          <h1>Infografik</h1>
+        </div>
+      </div>
+      <button type="button" class="live-chip" id="fire-banner" data-state="AUS" data-open-modal="modal-status" aria-live="polite">
+        <span class="fire-icon" aria-hidden="true"></span>
+        <span class="live-chip-text">
+          <strong id="fire-title">Brenner AUS</strong>
+          <em id="fire-power-val">0 %</em>
+          <span class="live-chip-pred" id="takt-pred-chip">Takt-Prognose: —</span>
+        </span>
+      </button>
+      <p class="fire-explain-sr" id="fire-explain" hidden>Kein Gas — Kessel kühlt bzw. hält nur Restwärme.</p>
+      <nav class="top-tools" aria-label="Werkzeuge">
+        <a class="rail-tool" href="#expert-panel">Experten</a>
+        <button type="button" class="rail-tool" data-open-modal="modal-cycles">Zyklen</button>
+        <button type="button" class="rail-tool" data-open-modal="modal-legend">Legende</button>
+        <button type="button" class="rail-tool" data-open-modal="modal-status">Status</button>
+      </nav>
+    </header>
+
+    <nav class="scenario-strip" aria-label="Szenarien">
+      <p class="rail-label">Szenario</p>
+      <div class="scenario-strip-row">
+        <button type="button" class="scenario-pick is-active" data-scenario="taktend" aria-current="true">
+          <strong>Takten</strong>
+          <span>unter Pmin</span>
+        </button>
+        <button type="button" class="scenario-pick" data-scenario="kalt-lang">
+          <strong>Langer Strang</strong>
+          <span>kalt / spät</span>
+        </button>
+        <button type="button" class="scenario-pick" data-scenario="abgleich">
+          <strong>Abgleich</strong>
+          <span>fair teilen</span>
+        </button>
+        <button type="button" class="scenario-pick" data-scenario="fussboden">
+          <strong>Fußboden</strong>
+          <span>niedrige VL</span>
+        </button>
+        <button type="button" class="scenario-pick" data-scenario="reset">
+          <strong>Standard</strong>
+          <span>Ausgang</span>
+        </button>
+      </div>
+    </nav>
+
+    <div id="takt-toast" class="takt-toast" hidden role="status" aria-live="assertive"></div>
+
+    <main class="info-stage" aria-label="Heizkreislauf-Infografik">
+      <section class="infographic-panel">
+                        <svg class="house house-infographic" viewBox="0 0 1000 640" role="img" aria-label="Heizkreislauf-Infografik">
+        <defs>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="radGrad-living" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e24a2b"/>
+            <stop offset="100%" stop-color="#2a6f9e"/>
+          </linearGradient>
+          <linearGradient id="radGrad-bath" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e24a2b"/>
+            <stop offset="100%" stop-color="#2a6f9e"/>
+          </linearGradient>
+          <linearGradient id="radGrad-bed" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e24a2b"/>
+            <stop offset="100%" stop-color="#2a6f9e"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Technik volle Höhe; rechts oben Wohn+Bad, unten Schlafen — 16px Luft -->
+        <rect class="room" id="room-tech" x="36" y="36" width="248" height="568" rx="14"/>
+        <rect class="room" id="room-living" x="300" y="36" width="328" height="268" rx="14"/>
+        <rect class="room" id="room-bath" x="644" y="36" width="320" height="268" rx="14"/>
+        <rect class="room" id="room-bed" x="300" y="320" width="664" height="284" rx="14"/>
+
+        <rect class="heat-fill" id="heat-living" x="300" y="36" width="328" height="268" rx="14"/>
+        <rect class="heat-fill" id="heat-bath" x="644" y="36" width="320" height="268" rx="14"/>
+        <rect class="heat-fill" id="heat-bed" x="300" y="320" width="664" height="284" rx="14"/>
+
+        <text class="room-title" x="160" y="60" text-anchor="middle">Technikraum</text>
+
+        <g id="boiler-group" transform="translate(74,84)">
+          <rect class="boiler-body" id="boiler-body" x="0" y="0" width="124" height="168" rx="12"/>
+          <text class="boiler-label" x="62" y="22" text-anchor="middle">THERME</text>
+          <text class="probe-label" x="62" y="40" text-anchor="middle">Kesselwasser</text>
+          <text class="boiler-temp-svg" id="boiler-svg-temp" x="62" y="68" text-anchor="middle">40.0 °C</text>
+          <g id="flame-group" class="flame-group" transform="translate(35,82)">
+            <rect class="boiler-flame" id="boiler-flame" x="0" y="14" width="54" height="26" rx="6"/>
+            <path id="flame-shape" class="flame-shape" d="M27 40 C10 26 16 8 27 0 C38 8 44 26 27 40 Z"/>
+            <text id="flame-label" class="flame-label" x="27" y="52" text-anchor="middle">AUS</text>
+          </g>
+          <text class="boiler-vol" x="62" y="152" text-anchor="middle">~7 L Sensor</text>
+          <g id="takt-badge" visibility="hidden">
+            <rect x="14" y="-28" width="96" height="18" rx="5" class="takt-badge-bg"/>
+            <text id="takt-badge-text" class="takt-badge-text" x="62" y="-15" text-anchor="middle">TAKTET</text>
+          </g>
+        </g>
+
+        <g id="pump-group" transform="translate(88,280)">
+          <circle class="pump" id="pump-disc" cx="28" cy="18" r="16"/>
+          <path id="pump-blade" class="pump-blade" d="M28 7 L31 18 L28 29 L25 18 Z"/>
+          <text class="tiny" x="28" y="46" text-anchor="middle">Pumpe</text>
+        </g>
+        <g transform="translate(148,280)">
+          <rect class="probe-chip" id="pump-chip" x="0" y="4" width="100" height="40" rx="8"/>
+          <text class="probe-label" x="50" y="20" text-anchor="middle">VL Pumpe</text>
+          <text class="probe-temp" id="pump-temp" x="50" y="36" text-anchor="middle">40 °C</text>
+        </g>
+
+        <g id="manifold-supply" transform="translate(240,100)">
+          <rect class="manifold manifold-vl" id="manifold-body" x="0" y="0" width="26" height="100" rx="6"/>
+          <text class="tiny" x="13" y="-8" text-anchor="middle">VL</text>
+          <text class="probe-temp tiny-temp" id="manifold-temp" x="13" y="54" text-anchor="middle">—°</text>
+        </g>
+        <g id="manifold-return" transform="translate(240,360)">
+          <rect class="manifold manifold-rl" id="manifold-return-body" x="0" y="0" width="26" height="90" rx="6"/>
+          <text class="tiny" x="13" y="108" text-anchor="middle">RL</text>
+          <text class="probe-temp tiny-temp" id="manifold-return-temp" x="13" y="50" text-anchor="middle">—°</text>
+        </g>
+
+        <g id="return-probe" transform="translate(60,520)">
+          <rect class="probe-chip" id="return-chip" x="0" y="0" width="188" height="44" rx="8"/>
+          <text class="probe-label" x="94" y="18" text-anchor="middle">RL zurück in Therme</text>
+          <text class="probe-temp" id="boiler-return-temp" x="94" y="35" text-anchor="middle">36 °C</text>
+        </g>
+
+        <path id="pipe-boiler-to-pump" class="pipe supply" d="M136 252 V280"/>
+        <path id="pipe-pump-to-manifold" class="pipe supply" d="M144 298 H240"/>
+        <path id="pipe-supply-main" class="pipe supply" d="M253 100 V88"/>
+        <path id="pipe-return-main" class="pipe return" d="M240 420 H180 V542 H154"/>
+
+        <!-- Gasse x≈284; Leitungen unter den Infokarten -->
+        <path id="pipe-living-s" class="pipe supply flowable" d="M266 140 H284 V255 H580"/>
+        <path id="pipe-living-r" class="pipe return flowable" d="M580 275 H284 V380 H266"/>
+
+        <path id="pipe-bath-s" class="pipe supply flowable" d="M266 130 H284 V255 H890"/>
+        <path id="pipe-bath-r" class="pipe return flowable" d="M890 275 H284 V380 H266"/>
+
+        <path id="pipe-bed-s" class="pipe supply flowable" d="M266 200 V555 H880"/>
+        <path id="pipe-bed-r" class="pipe return flowable" d="M880 575 H284 V450 H266"/>
+
+        <rect class="radiator" id="rad-living" x="568" y="214" width="52" height="66" rx="8" fill="url(#radGrad-living)"/>
+        <text class="rad-vl" id="vl-living" x="594" y="200" text-anchor="middle">VL —</text>
+        <text class="rad-rl" id="rl-living" x="542" y="256" text-anchor="end">RL —</text>
+
+        <rect class="radiator" id="rad-bath" x="878" y="214" width="52" height="66" rx="8" fill="url(#radGrad-bath)"/>
+        <text class="rad-vl" id="vl-bath" x="904" y="200" text-anchor="middle">VL —</text>
+        <text class="rad-rl" id="rl-bath" x="860" y="256" text-anchor="end">RL —</text>
+
+        <rect class="radiator" id="rad-bed" x="866" y="502" width="56" height="72" rx="8" fill="url(#radGrad-bed)"/>
+        <text class="rad-vl" id="vl-bed" x="894" y="488" text-anchor="middle">VL —</text>
+        <text class="rad-rl" id="rl-bed" x="848" y="540" text-anchor="end">RL —</text>
+
+        <g class="room-stats stats-card" id="stats-living" transform="translate(318,56)">
+          <rect class="stats-bg" x="0" y="0" width="220" height="118" rx="10"/>
+          <text class="stat-name" x="14" y="24">Wohnzimmer · kurz</text>
+          <text class="stat-temp" id="temp-living" x="14" y="48">Ist 20.0 · Soll 21</text>
+          <text class="stat-valve" id="valve-living" x="14" y="70">Ventil — %</text>
+          <text class="stat-flow" id="flow-living" x="14" y="90">ΔT — · 0 L/h</text>
+          <text class="stat-power" id="power-living" x="14" y="108">HK — W</text>
+        </g>
+        <g class="room-stats stats-card" id="stats-bath" transform="translate(662,56)">
+          <rect class="stats-bg" x="0" y="0" width="188" height="118" rx="10"/>
+          <text class="stat-name" x="14" y="24">Bad · mittel</text>
+          <text class="stat-temp" id="temp-bath" x="14" y="48">Ist 20.0 · Soll 24</text>
+          <text class="stat-valve" id="valve-bath" x="14" y="70">Ventil — %</text>
+          <text class="stat-flow" id="flow-bath" x="14" y="90">ΔT — · 0 L/h</text>
+          <text class="stat-power" id="power-bath" x="14" y="108">HK — W</text>
+        </g>
+        <g class="room-stats stats-card" id="stats-bed" transform="translate(318,342)">
+          <rect class="stats-bg" x="0" y="0" width="250" height="118" rx="10"/>
+          <text class="stat-name" x="14" y="24">Schlafzimmer · lang</text>
+          <text class="stat-temp" id="temp-bed" x="14" y="48">Ist 20.0 · Soll 18</text>
+          <text class="stat-valve" id="valve-bed" x="14" y="70">Ventil — %</text>
+          <text class="stat-flow" id="flow-bed" x="14" y="90">ΔT — · 0 L/h</text>
+          <text class="stat-power" id="power-bed" x="14" y="108">HK — W</text>
+        </g>
+        <g id="callouts"></g>
+      </svg>
+        <div class="spectrum-mini on-graphic" aria-hidden="true">
+          <span>20°</span>
+          <div class="spectrum-bar"></div>
+          <span>75°</span>
+        </div>
+      </section>
+
+      <section class="scenario-explain below-graphic" aria-label="Infotext zum Szenario">
+        <header class="explain-head">
+          <p class="scenario-eyebrow">Aktives Szenario</p>
+          <h2 id="scenario-title">Takten provozieren</h2>
+          <p class="scenario-lead" id="scenario-lead">—</p>
+        </header>
+        <div class="explain-grid">
+          <article class="explain-card">
+            <h3>Was passiert?</h3>
+            <p id="scenario-what">—</p>
+          </article>
+          <article class="explain-card">
+            <h3>Zusammenhänge</h3>
+            <ul id="scenario-links"></ul>
+          </article>
+          <article class="explain-card">
+            <h3>Worauf achten?</h3>
+            <p id="scenario-watch">—</p>
+          </article>
+        </div>
+        <aside class="live-insights" aria-live="polite">
+          <h3>Live aus der Anlage</h3>
+          <ul id="tips-list"></ul>
+        </aside>
+      </section>
+    </main>
+
+    <section class="expert-panel" id="expert-panel" aria-label="Experten-Einstellungen">
+      <header class="expert-head">
+        <div>
+          <p class="rail-label">Experten-Einstellungen</p>
+          <h2>Bedienung &amp; Revision</h2>
+          <p class="expert-lead">Hier drehst du die Hebel, die das aktive Szenario beeinflusst — Heizkurve, Hysterese, Abgleich, Heizkörper.</p>
+        </div>
+        <p class="physics-badge" id="physics-badge">Physik: EN-442-Exponent + Darcy-Weisbach</p>
+      </header>
+
+      <div class="expert-grid controls">
+        <section class="ctrl-block main-ops">
+          <h2>Hauptbedienung</h2>
+          <label class="field">
+            <span>Außentemperatur <em id="val-outdoor">0 °C</em></span>
+            <input type="range" id="outdoor" min="-15" max="20" step="1" value="0">
+          </label>
+          <label class="field">
+            <span>Brenner / Marke</span>
+            <select id="burner-brand"></select>
+          </label>
+          <p class="hint" id="brand-hint"></p>
+          <label class="field">
+            <span>Hydraulischer Abgleich <em id="val-balance">offen (schlecht)</em></span>
+            <input type="range" id="balance" min="0" max="100" step="5" value="20">
+          </label>
+          <div class="room-ctrl compact" data-room="living">
+            <strong>Wohnzimmer Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
+          </div>
+          <div class="room-ctrl compact" data-room="bath">
+            <strong>Bad Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
+          </div>
+          <div class="room-ctrl compact" data-room="bed">
+            <strong>Schlafzimmer Soll</strong>
+            <label>Thermostat <input type="range" class="tset main-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
+          </div>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Brenner fein</h2>
+          <label class="field">
+            <span>Max. Leistung <em id="val-power">18 kW</em></span>
+            <input type="range" id="burner-power" min="8" max="35" step="1" value="18">
+          </label>
+          <label class="field">
+            <span>Hysterese <em id="val-hyst">2.0 K</em></span>
+            <input type="range" id="hysteresis" min="0.5" max="12" step="0.5" value="2">
+          </label>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Heizkurve fein</h2>
+          <label class="field">
+            <span>Steigung <em id="val-slope">1.4</em></span>
+            <input type="range" id="slope" min="0.6" max="2.4" step="0.1" value="1.4">
+          </label>
+          <label class="field">
+            <span>Parallelverschiebung <em id="val-shift">0 K</em></span>
+            <input type="range" id="shift" min="-8" max="8" step="0.5" value="0">
+          </label>
+        </section>
+
+        <section class="ctrl-block">
+          <h2>Hydraulik fein</h2>
+          <label class="field">
+            <span>Rohrdurchmesser <em id="val-diameter">15 mm</em></span>
+            <input type="range" id="diameter" min="10" max="22" step="1" value="15">
+          </label>
+          <label class="field">
+            <span>Kreislauflänge-Faktor <em id="val-length">1.0×</em></span>
+            <input type="range" id="length" min="0.6" max="2.2" step="0.1" value="1.0">
+          </label>
+          <label class="field">
+            <span>Pumpen-Förderhöhe <em id="val-pump">5.5 mWS</em></span>
+            <input type="range" id="pump-head" min="2" max="8" step="0.5" value="5.5">
+          </label>
+          <p class="hint tiny-hint">Δp nach Darcy-Weisbach · Durchfluss teilt sich nach Widerständen</p>
+        </section>
+
+        <section class="ctrl-block expert-rooms" id="panel-revision">
+          <h2>Heizkörper je Raum</h2>
+          <p class="hint">Qn bei Norm 75/65/20 · Q = Qn · (ΔTm/50)^n</p>
+          <div class="room-ctrl" data-room="living">
+            <strong>Wohnzimmer</strong>
+            <label class="stack">Typ <select class="rad-type"></select></label>
+            <label>Qn / Größe <input type="range" class="qn" min="400" max="4000" step="50" value="1800"><em class="qn-val">1800 W</em></label>
+            <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
+            <label>Heizlast <input type="range" class="load" min="800" max="3500" step="100" value="1800"><em class="load-val">1800 W</em></label>
+            <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="21"><em class="tset-val">21 °C</em></label>
+          </div>
+          <div class="room-ctrl" data-room="bath">
+            <strong>Bad</strong>
+            <label class="stack">Typ <select class="rad-type"></select></label>
+            <label>Qn / Größe <input type="range" class="qn" min="300" max="2500" step="50" value="800"><em class="qn-val">800 W</em></label>
+            <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.25"><em class="nexp-val">1.25</em></label>
+            <label>Heizlast <input type="range" class="load" min="400" max="2000" step="50" value="900"><em class="load-val">900 W</em></label>
+            <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="26" step="0.5" value="24"><em class="tset-val">24 °C</em></label>
+          </div>
+          <div class="room-ctrl" data-room="bed">
+            <strong>Schlafzimmer</strong>
+            <label class="stack">Typ <select class="rad-type"></select></label>
+            <label>Qn / Größe <input type="range" class="qn" min="400" max="3500" step="50" value="1200"><em class="qn-val">1200 W</em></label>
+            <label>Exponent n <input type="range" class="nexp" min="1.05" max="1.45" step="0.01" value="1.30"><em class="nexp-val">1.30</em></label>
+            <label>Heizlast <input type="range" class="load" min="600" max="3000" step="100" value="1400"><em class="load-val">1400 W</em></label>
+            <label class="hatch-only-tset">Soll <input type="range" class="tset hatch-tset" min="16" max="24" step="0.5" value="18"><em class="tset-val">18 °C</em></label>
+          </div>
+        </section>
+      </div>
+      <p class="disclaimer">Lernmodell mit Praxisformeln — keine DIN-EN-12831-Auslegung.</p>
+    </section>
+
+    <div class="modal-root" id="modal-root" hidden>
+      <div class="modal-backdrop" data-close-modal></div>
+
+      <div class="modal" id="modal-status" role="dialog" aria-modal="true" aria-labelledby="status-heading" hidden>
+        <header class="modal-head">
+          <h2 id="status-heading">Brenner &amp; Anlage</h2>
+          <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
+        </header>
+        <div class="modal-body">
+          <div class="hud">
+            <div class="hud-card" id="hud-burner">
+              <span class="hud-label">Brennerzustand</span>
+              <strong id="burner-state">AUS</strong>
+              <span class="hud-sub" id="burner-power-hud">0 % Gas</span>
+            </div>
+            <div class="hud-card" id="hud-boiler">
+              <span class="hud-label">Kessel (nur ~7 L)</span>
+              <strong><span id="boiler-temp">40.0</span> °C</strong>
+              <span class="hud-sub">Soll <span id="boiler-set">45.0</span> °C</span>
+            </div>
+            <div class="hud-card" id="hud-volumes">
+              <span class="hud-label">Volumen</span>
+              <strong><span id="vol-boiler">7</span> L → <span id="vol-circuit">80</span> L</strong>
+              <span class="hud-sub">Rücklauf <span id="return-temp">36</span> °C</span>
+            </div>
+            <div class="hud-card">
+              <span class="hud-label">Gemessen Starts / h</span>
+              <strong id="starts-hour">0</strong>
+              <span class="hud-sub" id="hyst-readout">Hysterese ±2 K</span>
+            </div>
+          </div>
+
+          <div class="takt-pred" id="takt-pred-card" data-level="ok">
+            <div class="takt-pred-head">
+              <strong>Takt-Prognose</strong>
+              <span id="takt-pred-label">—</span>
+            </div>
+            <div class="takt-pred-metrics">
+              <div><span>Starts/h</span><em id="takt-pred-starts">—</em></div>
+              <div><span>An-Zeit</span><em id="takt-pred-ton">—</em></div>
+              <div><span>Aus-Zeit</span><em id="takt-pred-toff">—</em></div>
+              <div><span>Zyklus</span><em id="takt-pred-period">—</em></div>
+            </div>
+            <p class="hint" id="takt-pred-detail">—</p>
+          </div>
+
+          <p class="hint" id="status-explain">—</p>
+          <div class="hysteresis-band" aria-hidden="true">
+            <div class="hyst-track">
+              <div class="hyst-fill" id="hyst-fill"></div>
+              <div class="hyst-marker on" id="hyst-on" title="Einschalten"></div>
+              <div class="hyst-marker off" id="hyst-off" title="Ausschalten"></div>
+              <div class="hyst-needle" id="hyst-needle"></div>
+            </div>
+            <div class="hyst-labels">
+              <span>kalt</span>
+              <span>Hysterese-Band (Kessel)</span>
+              <span>heiß</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal modal-wide" id="modal-cycles" role="dialog" aria-modal="true" aria-labelledby="cycles-heading" hidden>
+        <header class="modal-head">
+          <h2 id="cycles-heading">Wann hat der Brenner gefeuert?</h2>
+          <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
+        </header>
+        <div class="modal-body">
+          <div class="takt-pred" id="takt-pred-card-cycles" data-level="ok">
+            <div class="takt-pred-head">
+              <strong>Aktuelle Takt-Prognose</strong>
+              <span id="takt-pred-label-cycles">—</span>
+            </div>
+            <div class="takt-pred-metrics">
+              <div><span>progn. Starts/h</span><em id="takt-pred-starts-cycles">—</em></div>
+              <div><span>An</span><em id="takt-pred-ton-cycles">—</em></div>
+              <div><span>Aus</span><em id="takt-pred-toff-cycles">—</em></div>
+              <div><span>Zyklus</span><em id="takt-pred-period-cycles">—</em></div>
+            </div>
+            <p class="hint" id="takt-pred-detail-cycles">—</p>
+          </div>
+
+          <div class="cycle-strip">
+            <div class="cycle-head">
+              <strong>Gemessenes Protokoll</strong>
+              <span id="cycle-caption">Zeitachse → rechts = jetzt</span>
+            </div>
+            <p class="cycle-explain" id="cycle-explain">
+              Protokoll über bis zu <strong>~2 h Simulationszeit</strong> (links früher, rechts jetzt).
+              <strong>Orange/rot = Brenner an</strong>, <strong>gelb = zündet</strong>, <strong>grau = aus</strong>.
+              <strong>Blaue Linie = Hysterese geändert</strong> — links dichtere Takte, rechts nach größerem Band längere Pausen.
+            </p>
+            <div class="cycle-legend">
+              <span><i class="leg-on"></i> Feuert (Gas an)</span>
+              <span><i class="leg-mod"></i> Moduliert = gedrosselt</span>
+              <span><i class="leg-ign"></i> Zündet</span>
+              <span><i class="leg-off"></i> Aus</span>
+              <span><i class="leg-now"></i> Jetzt</span>
+            </div>
+            <canvas id="cycle-canvas" width="900" height="100"></canvas>
+            <div class="cycle-axis"><span>← Verlauf</span><span>jetzt →</span></div>
+            <pre class="cycle-metrics" id="cycle-metrics" aria-live="polite">Messwerte …</pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal" id="modal-legend" role="dialog" aria-modal="true" aria-labelledby="legend-heading" hidden>
+        <header class="modal-head">
+          <h2 id="legend-heading">Legende</h2>
+          <button type="button" class="modal-close" data-close-modal aria-label="Schließen">×</button>
+        </header>
+        <div class="modal-body">
+          <div class="spectrum-legend">
+            <span>20 °C</span>
+            <div class="spectrum-bar"></div>
+            <span>75 °C</span>
+            <em>Spektrum = Wassertemperatur</em>
+          </div>
+          <ul class="legend-list">
+            <li><strong>VL-Verteiler</strong> — heißes Wasser zu den Heizkörpern</li>
+            <li><strong>RL-Verteiler</strong> — abgekühltes Wasser zurück zur Therme (getrennt!)</li>
+            <li><strong>Kreislauf</strong> — Therme → Pumpe → VL → HK → RL → Therme</li>
+            <li><strong>ΔT</strong> — Spreizung VL−RL (Wärmeabgabe)</li>
+            <li><strong>Moduliert</strong> — Flamme an, aber gedrosselt (nicht Vollast)</li>
+            <li><strong>Vitodens 100 / Pmin</strong> — unter der Mindestleistung kann sie nicht weiter drosseln → Takten</li>
+          </ul>
+          <p class="brand-kicker">Heizkreislauf-Trainer · Lernsimulation</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="sim.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>
