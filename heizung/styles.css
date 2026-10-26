@@ -584,11 +584,6 @@ h1 {
 .boiler-temp-svg { font-size: 16px; font-weight: 700; fill: #f4f7fa; }
 .boiler-vol { font-size: 9px; fill: #9bb0c2; }
 
-.boiler-body {
-  stroke: #6d8499;
-  stroke-width: 2;
-}
-
 .pump {
   fill: #243140;
   stroke: #8fa3b5;
