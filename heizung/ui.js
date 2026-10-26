@@ -676,7 +676,9 @@
     const manRet = $("#manifold-return-temp");
     if (pumpTemp) pumpTemp.style.fill = spectrumColor(s.boilerT);
     if (boilerRet) boilerRet.style.fill = spectrumColor(s.returnHeaderT);
-    if (boilerSvg) boilerSvg.style.fill = spectrumColor(Math.min(s.boilerT + 5, 75));
+    // Kontrast auf dem Kesselkörper: feste helle Schrift, Farbe nur am Gehäuse
+    if (boilerSvg) boilerSvg.style.fill = "#f4f7fa";
+    if (boilerBody) boilerBody.style.stroke = spectrumColor(s.boilerT, 20, 70);
     if (manRet) manRet.style.fill = spectrumColor(s.returnHeaderT);
 
     const lo = 20;
