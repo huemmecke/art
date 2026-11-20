@@ -2,7 +2,18 @@
 
 3D-Library-Objekt nach der technischen Zeichnung (Left / Right Side, Front, Rear View).
 
-## Dateien
+## Web-Vorschau
+
+Interaktive Three.js-Ansicht (Orbit + Orthogonale wie in der Zeichnung):
+
+**[preview.html öffnen](./preview.html)**
+
+| Datei | Rolle |
+|-------|--------|
+| `preview.html` | Viewer (OrbitControls, Ansichten, Linienmodus) |
+| `ship.js` | Geometrie 1:1 zu den GDL-Maßen |
+
+## Dateien (ArchiCAD)
 
 | Datei | ArchiCAD-Tab |
 |-------|----------------|
