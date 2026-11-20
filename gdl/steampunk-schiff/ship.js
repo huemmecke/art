@@ -26,20 +26,20 @@ DIM.finH = DIM.hullDepth * 0.35;
 DIM.finL = DIM.A * 0.12;
 
 const COL = {
-  ink: 0x1c2226,
-  plate: 0x2a3238,
-  cabin: 0x3a454c,
-  glass: 0x6a8a9a,
-  detail: 0x4a5560,
+  ink: 0x5a6570,
+  plate: 0x8a939a,
+  cabin: 0x6e7a82,
+  glass: 0x9eb8c6,
+  detail: 0x4f5b66,
   flag: 0x3f6a80,
-  figure: 0x5b656b,
+  figure: 0x7a848c,
 };
 
 function mat(color, opts = {}) {
   return new THREE.MeshStandardMaterial({
     color,
-    roughness: 0.72,
-    metalness: 0.35,
+    roughness: 0.58,
+    metalness: 0.28,
     flatShading: false,
     ...opts,
   });

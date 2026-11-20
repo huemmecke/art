@@ -206,14 +206,17 @@
     controls.maxDistance = 14;
     controls.maxPolarAngle = Math.PI * 0.92;
 
-    const hemi = new THREE.HemisphereLight(0xf5f2ea, 0x6a7a82, 1.05);
+    const hemi = new THREE.HemisphereLight(0xfff8f0, 0x8a9aa4, 1.35);
     scene.add(hemi);
-    const key = new THREE.DirectionalLight(0xffffff, 1.15);
+    const key = new THREE.DirectionalLight(0xffffff, 1.55);
     key.position.set(4, 8, 3);
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xb8c8d0, 0.45);
+    const fill = new THREE.DirectionalLight(0xd0dde4, 0.75);
     fill.position.set(-5, 2, -3);
     scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.4);
+    rim.position.set(-2, 4, 6);
+    scene.add(rim);
 
     // leichte Boden-Ellipse als Maßstabshinweis
     const ground = new THREE.Mesh(
