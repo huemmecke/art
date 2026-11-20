@@ -1,0 +1,22 @@
+! =====================================================================
+! SteampunkSchiff — Parameter Script
+! ArchiCAD GDL · aus der technischen 4-Ansicht-Zeichnung abgeleitet
+! Massstab: Figur ≈ 1,70 m → Schiff Länge ≈ 4,20 m, Breite ≈ 2,40 m
+! =====================================================================
+
+values "gs_detlevel" "Einfach", "Mittel", "Hoch"
+
+values "matHull"     "Metall - Stahl"
+values "matPlate"    "Metall - Stahl"
+values "matCabin"    "Holz - Lackiert"
+values "matGlass"    "Glas"
+values "matDetail"   "Metall - Messing"
+values "matFlag"     "Stoff"
+values "matFigure"   "Kunststoff"
+
+! Hotspots fuer Platzierung (zusaetzlich zu A/B-Ecken)
+hotspot2 0, 0
+hotspot2 A, 0
+hotspot2 0, B
+hotspot2 A, B
+hotspot2 A/2, B/2
