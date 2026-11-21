@@ -97,14 +97,18 @@ new GLTFLoader().load('inselhaus.json',g=>{
   // Propeller-Blätter langsam drehen (um Nabe)
   const prop=root.getObjectByName('Propeller');
   if(prop){
-    const hub=new THREE.Vector3(-0.85,6.70,3.55);
+    const hub=new THREE.Vector3(0.0,5.60,3.70);
     propellerPivot=new THREE.Group();
     propellerPivot.position.copy(hub);
     prop.add(propellerPivot);
-    const spinParts=['Propeller_Blatt_1','Propeller_Blatt_2','Propeller_Blatt_3','Propeller_Blatt_4','Propeller_Nabe','Propeller_Spinner'];
-    for(const n of spinParts){
-      const o=prop.getObjectByName(n);
-      if(!o) continue;
+    const spinNames=[];
+    prop.traverse(o=>{
+      if(!o.name) return;
+      if(o.name.startsWith('Propeller_Blatt_') || o.name==='Propeller_Nabe' || o.name==='Propeller_Spinner'){
+        spinNames.push(o);
+      }
+    });
+    for(const o of spinNames){
       o.traverse(m=>{
         if(m.isMesh && m.geometry && !m.geometry.userData._hubShifted){
           m.geometry=m.geometry.clone();

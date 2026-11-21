@@ -2,9 +2,11 @@
 
 Konstruktionszeichnung *Fliegendes Inselhaus mit Luftboot* als glTF mit Bauteil-Semantik.
 
-## Korrektur
+## Korrekturen zur Konstruktionszeichnung
 
-Die fälschlich modellierte **Rakete** an der Südfassade wurde durch einen **großen Propeller** ersetzt (Nabe, Spinner, 4 Blätter, Welle, Lager, Halter, Ring).
+- **Rakete → großer Propeller** an der Südfassade (≈ 6,3 m Durchmesser), **rot/weiß gestreift**
+- **Wurzeln unter der Insel → herabhängende Leitern**
+- **Lanzen/Pfeile auf dem Ausleger → spitze Bäume**
 
 ## Vorschau
 
