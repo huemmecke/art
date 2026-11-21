@@ -1,0 +1,38 @@
+! =====================================================================
+! SteampunkSchiff — Master Script
+! Gemeinsame Ableitungen fuer 2D- und 3D-Script
+! =====================================================================
+
+! Standardmasse (m) — Figur ~1,70 m als Massstab aus der Zeichnung
+if A < 1.0 then A = 4.20
+if B < 0.8 then B = 2.40
+if ZZYZX < 1.0 then ZZYZX = 3.20
+
+if gs_detlevel <> "Einfach" & gs_detlevel <> "Mittel" & gs_detlevel <> "Hoch" then
+	gs_detlevel = "Mittel"
+endif
+
+! ---- Abgeleitete Masse (m) — an die Orthogonale angepasst -----------
+! Rumpf: abgerundete Schuessel, in Front/Rear nahezu kreisfoermig
+hullLen     = A * 0.92
+hullRad     = B * 0.48
+hullDepth   = ZZYZX * 0.42
+
+deckZ       = 0
+cabinW      = B * 0.42
+cabinL      = A * 0.28
+cabinH      = ZZYZX * 0.22
+cabinX      = -A * 0.05
+
+mastH       = ZZYZX * 0.72
+mastX       = A * 0.28
+mastRake    = 4
+
+megaLen     = A * 0.12
+megaX       = A * 0.46
+
+finH        = hullDepth * 0.35
+finL        = A * 0.12
+
+rivetStep   = 0.08
+rivetR      = 0.012

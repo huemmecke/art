@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steampunk-Schiff · 3D-Vorschau — Martin Hümmecke</title>
+  <meta name="description" content="Interaktive 3D-Vorschau des Steampunk-Schiffs nach der technischen Zeichnung (GDL → Three.js).">
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../../styles.css">
+  <style>
+    :root {
+      --paper: #f3f1ec;
+      --paper-2: #e8e4dc;
+      --ink: #1c2226;
+      --accent: #3f6a80;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(120% 80% at 70% 10%, rgba(63, 106, 128, 0.08), transparent 55%),
+        linear-gradient(165deg, var(--paper) 0%, var(--paper-2) 100%);
+      color: var(--ink);
+      overflow: hidden;
+    }
+    .stage {
+      position: fixed;
+      inset: 0;
+    }
+    #c {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    .chrome {
+      position: fixed;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .chrome * { pointer-events: auto; }
+    .topbar {
+      top: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(to bottom, rgba(243, 241, 236, 0.92), transparent);
+    }
+    .brand {
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand span {
+      display: block;
+      font-weight: 400;
+      font-size: 0.78rem;
+      color: var(--ink-soft, #5b656b);
+      margin-top: 0.15rem;
+    }
+    .views {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: flex-end;
+    }
+    .views button,
+    .hud button {
+      appearance: none;
+      border: 1px solid rgba(28, 34, 38, 0.18);
+      background: rgba(255, 255, 255, 0.72);
+      color: inherit;
+      padding: 0.45rem 0.75rem;
+      font: 500 0.78rem/1 "Space Grotesk", sans-serif;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .views button:hover,
+    .hud button:hover {
+      border-color: var(--accent);
+      background: #fff;
+    }
+    .views button.is-active {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+    .hud {
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.25rem 1.25rem;
+      background: linear-gradient(to top, rgba(243, 241, 236, 0.95), transparent);
+    }
+    .hint {
+      max-width: 28rem;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: var(--ink-soft, #5b656b);
+    }
+    .hint strong { color: var(--ink); font-weight: 600; }
+    .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .ref {
+      position: fixed;
+      right: 1rem;
+      bottom: 5.5rem;
+      width: min(220px, 38vw);
+      border: 1px solid rgba(28, 34, 38, 0.15);
+      background: rgba(255, 255, 255, 0.85);
+      padding: 0.4rem;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.35s, transform 0.35s;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .ref.is-open {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+    .ref img { width: 100%; height: auto; display: block; }
+    .ref figcaption {
+      font-size: 0.68rem;
+      color: #5b656b;
+      padding: 0.35rem 0.15rem 0.1rem;
+    }
+    @media (max-width: 640px) {
+      .brand span { display: none; }
+      .hint { font-size: 0.78rem; }
+      .ref { bottom: 7.5rem; }
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header class="chrome topbar">
+    <a class="brand" href="../../index.html">
+      Martin Hümmecke
+      <span>Steampunk-Schiff · 3D-Vorschau (GDL)</span>
+    </a>
+    <div class="views" role="group" aria-label="Orthogonale Ansichten">
+      <button type="button" data-view="orbit" class="is-active">Orbit</button>
+      <button type="button" data-view="left">Left Side</button>
+      <button type="button" data-view="right">Right Side</button>
+      <button type="button" data-view="front">Front</button>
+      <button type="button" data-view="rear">Rear</button>
+    </div>
+  </header>
+
+  <div class="stage" aria-label="3D-Modell">
+    <canvas id="c"></canvas>
+  </div>
+
+  <figure class="ref" id="ref">
+    <img src="referenz-zeichnung.jpg" alt="Technische Zeichnung: vier Ansichten des Schiffs" width="1376" height="768">
+    <figcaption>Referenz · Orthogonale</figcaption>
+  </figure>
+
+  <footer class="chrome hud">
+    <p class="hint">
+      <strong>Drehen</strong> ziehen · <strong>Zoomen</strong> Scroll/Pinch ·
+      Ansichten wie in der Zeichnung. Maße: 4,20 × 2,40 × 3,20&nbsp;m.
+    </p>
+    <div class="actions">
+      <button type="button" id="toggle-ref">Zeichnung</button>
+      <button type="button" id="toggle-edges">Linien</button>
+      <a class="views" style="display:contents" href="README.md"><button type="button">GDL-README</button></a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { createShip, DIM } from "./ship.js";
+
+    const canvas = document.getElementById("c");
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 80);
+    camera.position.set(5.2, 2.8, 4.6);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 0.35, 0);
+    controls.minDistance = 2.2;
+    controls.maxDistance = 14;
+    controls.maxPolarAngle = Math.PI * 0.92;
+
+    const hemi = new THREE.HemisphereLight(0xfff8f0, 0x8a9aa4, 1.35);
+    scene.add(hemi);
+    const key = new THREE.DirectionalLight(0xffffff, 1.55);
+    key.position.set(4, 8, 3);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xd0dde4, 0.75);
+    fill.position.set(-5, 2, -3);
+    scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.4);
+    rim.position.set(-2, 4, 6);
+    scene.add(rim);
+
+    // leichte Boden-Ellipse als Maßstabshinweis
+    const ground = new THREE.Mesh(
+      new THREE.CircleGeometry(3.2, 64),
+      new THREE.MeshBasicMaterial({ color: 0x1c2226, transparent: true, opacity: 0.04 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -DIM.hullDepth - 0.02;
+    scene.add(ground);
+
+    const ship = createShip({ detail: "Hoch" });
+    scene.add(ship);
+
+    // sanfte Idle-Rotation nur im Orbit-Modus
+    let autoSpin = true;
+    let edgesOnly = false;
+    const clock = new THREE.Clock();
+
+    function resize() {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (canvas.width !== w || canvas.height !== h) {
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+    }
+
+    function setView(name) {
+      autoSpin = name === "orbit";
+      const dist = 6.2;
+      const y = 1.1;
+      const map = {
+        orbit: new THREE.Vector3(5.2, 2.8, 4.6),
+        left: new THREE.Vector3(0, y, dist),
+        right: new THREE.Vector3(0, y, -dist),
+        front: new THREE.Vector3(dist, y, 0),
+        rear: new THREE.Vector3(-dist, y, 0),
+      };
+      const p = map[name] || map.orbit;
+      camera.position.copy(p);
+      controls.target.set(0, 0.35, 0);
+      controls.update();
+      document.querySelectorAll(".views [data-view]").forEach((b) => {
+        b.classList.toggle("is-active", b.dataset.view === name);
+      });
+    }
+
+    document.querySelectorAll(".views [data-view]").forEach((btn) => {
+      btn.addEventListener("click", () => setView(btn.dataset.view));
+    });
+
+    controls.addEventListener("start", () => {
+      autoSpin = false;
+      document.querySelectorAll(".views [data-view]").forEach((b) => {
+        b.classList.toggle("is-active", b.dataset.view === "orbit");
+      });
+    });
+
+    const ref = document.getElementById("ref");
+    document.getElementById("toggle-ref").addEventListener("click", () => {
+      ref.classList.toggle("is-open");
+    });
+
+    document.getElementById("toggle-edges").addEventListener("click", () => {
+      edgesOnly = !edgesOnly;
+      ship.traverse((obj) => {
+        if (obj.isMesh) {
+          obj.material.colorWrite = !edgesOnly;
+          obj.material.opacity = edgesOnly ? 0 : (obj.material.transparent ? obj.material.opacity : 1);
+          if (!obj.material.transparent) obj.material.transparent = edgesOnly;
+        }
+        if (obj.isLineSegments) {
+          obj.material.opacity = edgesOnly ? 1 : 0.85;
+        }
+      });
+    });
+
+    function frame() {
+      resize();
+      const dt = clock.getDelta();
+      if (autoSpin) ship.rotation.y += dt * 0.18;
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(frame);
+    }
+    frame();
+  </script>
+</body>
+</html>

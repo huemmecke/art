@@ -1,0 +1,784 @@
+! =====================================================================
+! SteampunkSchiff — 3D Script
+! Koordinatensystem: Ursprung = Decmitte
+!   +X = Bug (vorne)   −X = Heck   +Y = Backbord   Z = oben
+! Proportionen aus Left/Right Side, Front und Rear View
+! =====================================================================
+
+pen 1
+
+! ---- Platzierung: Objekt-Ursprung in Planmitte, Z = Deck -------------
+addx -A/2
+addy -B/2
+addx A/2
+addy B/2
+
+gosub "Hull"
+gosub "ArmorPlates"
+gosub "BottomFin"
+gosub "SideFins"
+gosub "Thrusters"
+gosub "Cabin"
+gosub "CabinRoofGear"
+gosub "MastAndRigging"
+gosub "Megaphone"
+gosub "Railings"
+gosub "GasCanisters"
+gosub "Anchor"
+gosub "BowTanks"
+gosub "Steering"
+if gs_detlevel = "Hoch" then gosub "Rivets"
+if gs_detlevel <> "Einfach" then gosub "ScaleFigure"
+
+end
+
+
+! =====================================================================
+! RUMPF — abgerundete Schüssel (Front/Rear ≈ Kreis, Seite ≈ Ellipse)
+! =====================================================================
+"Hull":
+	material matHull
+
+	! Schuesselfoermiger Rumpf: REVOLVE um Y, danach ROTX -90 → Z oben.
+	! Anschliessend MULX fuer laengliche Side-View-Silhouette.
+	rotx -90
+		mulx hullLen / (2 * hullRad)
+		mulz 1
+			! Profil: x = Radius, y = Hoehe (Deck bei y=0, Kiel negativ)
+			revolve 7, 360, 1+2+4+16+32,
+				0,            0,                 1,
+				hullRad*0.15, 0,                 1,
+				hullRad*0.55, -hullDepth*0.35,   1,
+				hullRad*0.95, -hullDepth*0.70,   1,
+				hullRad*1.00, -hullDepth*0.92,   1,
+				hullRad*0.70, -hullDepth*1.00,   1,
+				0,            -hullDepth*1.00,   1
+		del 2
+	del 1
+
+	! Deckplatte (leicht oval)
+	material matPlate
+	addz -0.015
+		ellips 0.035, hullLen * 0.48, hullRad * 0.98
+	del 1
+
+	! Deck-Randwulst Bug / Heck
+	material matHull
+	addx  hullLen * 0.42
+		roty -90
+		cylind 0.04, hullRad * 0.55
+		del 1
+	del 1
+	addx -hullLen * 0.42
+		roty -90
+		cylind 0.04, hullRad * 0.55
+		del 1
+	del 1
+return
+
+
+! =====================================================================
+! PANZERPLATTEN — überlappende Bleche inkl. „15“ und „6“
+! =====================================================================
+"ArmorPlates":
+	material matPlate
+	define style "plateNum" "Arial", 0.12, 0
+	set style "plateNum"
+
+	! Platte 15 — vorderer seitlicher Schild (Backbord + Steuerbord)
+	for side = -1 to 1 step 2
+		addx A * 0.18
+		addy side * (hullRad * 0.72)
+		addz -hullDepth * 0.18
+			rotx side * 8
+			rotz side * (-12)
+				! trapezfoermige Platte als duennes Prisma
+				prism_ 4, 0.025,
+					-0.28, -0.22, 15,
+					 0.32, -0.18, 15,
+					 0.28,  0.26, 15,
+					-0.32,  0.22, 15
+				! Nummer 15 wie in der Zeichnung
+				addx -0.05
+				addy side * 0.02
+				addz 0.03
+					text3 1, 0, "15"
+				del 3
+			del 2
+		del 3
+
+		! Platte 6 — untere Mittelplatte
+		addx A * 0.02
+		addy side * (hullRad * 0.85)
+		addz -hullDepth * 0.48
+			rotx side * 18
+				prism_ 4, 0.022,
+					-0.35, -0.16, 15,
+					 0.38, -0.14, 15,
+					 0.36,  0.18, 15,
+					-0.38,  0.16, 15
+				addx -0.05
+				addy side * 0.02
+				addz 0.03
+					text3 1, 0, "6"
+				del 3
+			del 1
+		del 3
+
+		! zusätzliche Bugplatte
+		addx A * 0.32
+		addy side * (hullRad * 0.55)
+		addz -hullDepth * 0.35
+			rotx side * 25
+			rotz side * 20
+				prism_ 4, 0.018,
+					-0.18, -0.12, 15,
+					 0.22, -0.10, 15,
+					 0.20,  0.14, 15,
+					-0.20,  0.12, 15
+			del 2
+		del 3
+
+		! Heckplatte / Seitenschild neben Kabine
+		addx -A * 0.18
+		addy side * (cabinW * 0.62)
+		addz cabinH * 0.15
+			rotx side * 4
+				prism_ 4, 0.02,
+					-0.22, -0.08, 15,
+					 0.26, -0.08, 15,
+					 0.26,  0.42, 15,
+					-0.22,  0.42, 15
+			del 1
+		del 3
+	next side
+
+	! untere Bauchplatte (zentral)
+	addz -hullDepth * 0.78
+		roty 0
+		prism_ 4, 0.02,
+			-0.45, -0.20, 15,
+			 0.45, -0.20, 15,
+			 0.40,  0.20, 15,
+			-0.40,  0.20, 15
+	del 1
+return
+
+
+! =====================================================================
+! KIELFLOSSE / RUDER (Bottom Center)
+! =====================================================================
+"BottomFin":
+	material matDetail
+	addz -hullDepth - finH * 0.15
+		! vertikale Flosse
+		prism_ 4, 0.04,
+			-finL * 0.35, 0, 15,
+			 finL * 0.55, 0, 15,
+			 finL * 0.45, -finH, 15,
+			-finL * 0.25, -finH, 15
+		! kleines Propeller-/Lagergehäuse oberhalb
+		addz finH * 0.55
+		addx finL * 0.15
+			roty 90
+			cylind 0.06, 0.05
+			del 1
+		del 2
+		! Öse / Towing eye vor dem Ruder
+		addx -finL * 0.45
+		addz finH * 0.15
+			roty 90
+			cylind 0.03, 0.025
+			del 1
+		del 2
+	del 1
+return
+
+
+! =====================================================================
+! SEITLICHE STABILISATOREN (Front/Rear sichtbar)
+! =====================================================================
+"SideFins":
+	material matPlate
+	for side = -1 to 1 step 2
+		addy side * hullRad * 0.95
+		addz -hullDepth * 0.55
+		addx A * 0.05
+			rotx side * (-12)
+			prism_ 4, 0.03,
+				-0.18, 0, 15,
+				 0.22, 0, 15,
+				 0.18, side * 0.28, 15,
+				-0.14, side * 0.25, 15
+			del 1
+		del 3
+	next side
+return
+
+
+! =====================================================================
+! SCHUBDÜSEN / AUSLÄSSE am Unterschiff
+! =====================================================================
+"Thrusters":
+	material matDetail
+	for side = -1 to 1 step 2
+		for i = 0 to 1
+			addx -A * 0.08 - i * 0.12
+			addy side * hullRad * 0.35
+			addz -hullDepth * 0.72
+				roty 55
+				cylind 0.10, 0.045
+				del 1
+			del 3
+		next i
+	next side
+
+	! Bug-Einlässe / rechteckige Ports (Front View)
+	for side = -1 to 1 step 2
+		addx A * 0.28
+		addy side * 0.18
+		addz -hullDepth * 0.62
+			roty 20
+			prism_ 4, 0.04,
+				-0.06, -0.05, 15,
+				 0.06, -0.05, 15,
+				 0.06,  0.05, 15,
+				-0.06,  0.05, 15
+			del 1
+		del 3
+	next side
+return
+
+
+! =====================================================================
+! KABINE / WHEELHOUSE
+! =====================================================================
+"Cabin":
+	material matCabin
+	addx cabinX
+	addz 0
+		! Korpus mit leicht ausgestelltem Dach
+		prism_ 8, cabinH,
+			-cabinL/2,          -cabinW/2 + 0.06, 15,
+			-cabinL/2 + 0.06,   -cabinW/2,        15,
+			 cabinL/2 - 0.06,   -cabinW/2,        15,
+			 cabinL/2,          -cabinW/2 + 0.06, 15,
+			 cabinL/2,           cabinW/2 - 0.06, 15,
+			 cabinL/2 - 0.06,    cabinW/2,        15,
+			-cabinL/2 + 0.06,    cabinW/2,        15,
+			-cabinL/2,           cabinW/2 - 0.06, 15
+
+		! Dachüberstand
+		addz cabinH
+			prism_ 4, 0.04,
+				-cabinL/2 - 0.04, -cabinW/2 - 0.04, 15,
+				 cabinL/2 + 0.04, -cabinW/2 - 0.04, 15,
+				 cabinL/2 + 0.04,  cabinW/2 + 0.04, 15,
+				-cabinL/2 - 0.04,  cabinW/2 + 0.04, 15
+		del 1
+
+		! Frontscheibe
+		material matGlass
+		addx cabinL/2 - 0.01
+		addz cabinH * 0.22
+			roty 8
+			prism_ 4, 0.02,
+				0, -cabinW * 0.32, 15,
+				0.02, -cabinW * 0.32, 15,
+				0.02,  cabinW * 0.32, 15,
+				0,  cabinW * 0.32, 15
+			! Höhe der Scheibe
+			addz cabinH * 0.38
+				! Rahmen oben
+				material matDetail
+				cylind 0.01, cabinW * 0.33
+			del 1
+			del 1
+		del 2
+
+		! Seitenscheiben
+		material matGlass
+		for side = -1 to 1 step 2
+			addy side * (cabinW/2 - 0.01)
+			addz cabinH * 0.35
+			addx cabinL * 0.05
+				rotx side * 90
+				prism_ 4, 0.015,
+					-0.10, 0, 15,
+					 0.12, 0, 15,
+					 0.12, cabinH * 0.32, 15,
+					-0.10, cabinH * 0.32, 15
+				del 1
+			del 3
+		next side
+
+		! Heck-Tür mit Fenster (Rear View)
+		material matCabin
+		addx -cabinL/2 + 0.01
+		addz 0.02
+			prism_ 4, 0.03,
+				0, -0.18, 15,
+				0.04, -0.18, 15,
+				0.04,  0.18, 15,
+				0,  0.18, 15
+			addz cabinH * 0.55
+			addy 0
+				material matGlass
+				prism_ 4, 0.02,
+					0.02, -0.08, 15,
+					0.035, -0.08, 15,
+					0.035,  0.08, 15,
+					0.02,  0.08, 15
+			del 1
+			! Türgriff
+			material matDetail
+			addy 0.14
+			addz cabinH * 0.35
+			addx 0.05
+				sphere 0.025
+			del 3
+		del 2
+
+		! horizontale Lamellen an Kabinenseite
+		material matPlate
+		for side = -1 to 1 step 2
+			for i = 0 to 3
+				addy side * (cabinW/2 + 0.01)
+				addz 0.08 + i * 0.07
+				addx -cabinL * 0.05
+					rotx side * 90
+					cylind cabinL * 0.35, 0.012
+					del 1
+				del 3
+			next i
+		next side
+	del 2
+return
+
+
+! =====================================================================
+! DACHAUSSTATTUNG — Radar, Schornstein, Antennen
+! =====================================================================
+"CabinRoofGear":
+	material matDetail
+	addx cabinX
+	addz cabinH + 0.04
+		! Radar / Sensor auf Stiel
+		addx cabinL * 0.15
+			cylind 0.12, 0.025
+			addz 0.12
+				cylind 0.04, 0.06
+				! T-Kopf / flache Antenne
+				addz 0.04
+					roty 90
+					cylind 0.16, 0.015
+					del 1
+					rotz 90
+					cylind 0.10, 0.012
+					del 1
+				del 1
+			del 1
+		del 1
+
+		! Schornstein / Auspuff
+		material matHull
+		addx -cabinL * 0.2
+		addy 0.12
+			cylind 0.28, 0.04
+			addz 0.28
+				cone 0.04, 0.04, 0.055, 90
+			del 1
+		del 2
+
+		! Peitschenantennen
+		material matDetail
+		for i = 0 to 2
+			addx -cabinL * 0.05 + i * 0.08
+			addy -0.15 + i * 0.05
+				cylind 0.35 + i * 0.08, 0.008
+			del 2
+		next i
+	del 2
+return
+
+
+! =====================================================================
+! MAST, FLAGGE, TAKELAGE
+! =====================================================================
+"MastAndRigging":
+	material matDetail
+	addx mastX
+	addz 0
+		roty -mastRake
+			! Mast in Segmenten (leicht verjüngt)
+			cylind mastH * 0.55, 0.035
+			addz mastH * 0.55
+				cylind mastH * 0.30, 0.025
+				addz mastH * 0.30
+					cylind mastH * 0.15, 0.015
+					! Kugel-Finial
+					addz mastH * 0.15
+						sphere 0.03
+						! Wimpel nach achtern
+						material matFlag
+						addx -0.02
+							roty 90
+							! dreieckige Flagge
+							prism_ 3, 0.008,
+								0, 0, 15,
+								0.55, 0.04, 15,
+								0, 0.10, 15
+							del 1
+						del 1
+					del 1
+				del 1
+			del 1
+		del 1
+
+		! zweite dünne Antenne neben Mast
+		material matDetail
+		addx -0.08
+		addy 0.06
+			cylind mastH * 0.4, 0.008
+		del 2
+	del 2
+
+	! Stagen / Wanten (dünne Zylinder als Seile)
+	material matDetail
+	! Mastkopf → Kabinendach
+	gosub "Stay_MastToCabin"
+	! Mast → Bug
+	gosub "Stay_MastToBow"
+	! Mast → Heckschiene
+	gosub "Stay_MastToStern"
+return
+
+
+"Stay_MastToCabin":
+	! Stage Mast → Kabinendach (in XZ-Ebene)
+	x1 = mastX : z1 = mastH * 0.75
+	x2 = cabinX : z2 = cabinH + 0.05
+	dx = x2 - x1 : dz = z2 - z1
+	len = sqr(dx*dx + dz*dz)
+	if len < 0.01 then return
+	if abs(dz) < 0.001 then
+		ang = 90
+		if dx < 0 then ang = -90
+	else
+		ang = atn(dx / dz)
+		if dz > 0 then ang = ang + 180
+	endif
+	addx x1
+	addz z1
+		roty ang
+		cylind len, 0.006
+		del 1
+	del 2
+return
+
+
+"Stay_MastToBow":
+	x1 = mastX : z1 = mastH * 0.65
+	x2 = A * 0.45 : z2 = 0.15
+	dx = x2 - x1 : dz = z2 - z1
+	len = sqr(dx*dx + dz*dz)
+	if len < 0.01 then return
+	if abs(dz) < 0.001 then
+		ang = 90
+		if dx < 0 then ang = -90
+	else
+		ang = atn(dx / dz)
+		if dz > 0 then ang = ang + 180
+	endif
+	addx x1
+	addz z1
+		roty ang
+		cylind len, 0.005
+		del 1
+	del 2
+return
+
+
+"Stay_MastToStern":
+	x1 = mastX : z1 = mastH * 0.55
+	x2 = -A * 0.35 : z2 = 0.55
+	dx = x2 - x1 : dz = z2 - z1
+	len = sqr(dx*dx + dz*dz)
+	if len < 0.01 then return
+	if abs(dz) < 0.001 then
+		ang = 90
+		if dx < 0 then ang = -90
+	else
+		ang = atn(dx / dz)
+		if dz > 0 then ang = ang + 180
+	endif
+	addx x1
+	addz z1
+		roty ang
+		cylind len, 0.005
+		del 1
+	del 2
+return
+
+
+! =====================================================================
+! MEGAPHON / HORN am Bug
+! =====================================================================
+"Megaphone":
+	material matDetail
+	addx megaX
+	addz 0.35
+		roty -90
+			! Trichter (unten eng → vorne weit)
+			cone megaLen, 0.04, 0.16, 90
+			! Halterung / Stativ
+			addz -0.05
+				rotx 90
+				cylind 0.25, 0.015
+				del 1
+				rotx -90
+				cylind 0.25, 0.015
+				del 1
+			del 1
+		del 1
+		! Sockel auf Deck
+		addz -0.35
+			cylind 0.12, 0.04
+		del 1
+	del 2
+return
+
+
+! =====================================================================
+! RELING — Bug und Heck
+! =====================================================================
+"Railings":
+	material matDetail
+	rH = 0.45
+	rR = 0.012
+
+	! Bugreling (gebogen, nach außen)
+	for side = -1 to 1 step 2
+		for i = 0 to 4
+			t = i / 4
+			px = A * 0.22 + t * A * 0.22
+			py = side * (0.15 + t * hullRad * 0.55)
+			addx px
+			addy py
+				cylind rH, rR
+			del 2
+		next i
+		! oberer Holm
+		addz rH
+			addx A * 0.22
+			addy side * 0.15
+				roty 90
+				! genähert als Serie kurzer Zylinder
+				for i = 0 to 3
+					cylind A * 0.06, rR
+					addz A * 0.055
+				next i
+				del 4
+				del 1
+			del 2
+		del 1
+	next side
+
+	! Heckreling
+	for side = -1 to 1 step 2
+		for i = 0 to 3
+			t = i / 3
+			px = -A * 0.18 - t * A * 0.22
+			py = side * (cabinW * 0.35 + t * 0.15)
+			addx px
+			addy py
+				cylind rH * 0.9, rR
+			del 2
+		next i
+	next side
+
+	! Querbalken Heck
+	addx -A * 0.40
+	addz rH * 0.9
+		rotx 90
+		cylind B * 0.35, rR
+		del 1
+	del 2
+return
+
+
+! =====================================================================
+! GASFLASCHEN am Heck (Rear: Gruppe an Steuerbord/Backbord)
+! =====================================================================
+"GasCanisters":
+	material matDetail
+	! vier Flaschen am Heck (2×2), außermittig wie in Rear View
+	for row = 0 to 1
+		for col = 0 to 1
+			addx -A * 0.38 + col * 0.10
+			addy -0.22 + row * 0.18
+			addz 0.02
+				cylind 0.55, 0.055
+				addz 0.55
+					sphere 0.055
+					addz 0.05
+						cylind 0.06, 0.015
+					del 1
+				del 1
+			del 3
+		next col
+	next row
+return
+
+
+! =====================================================================
+! BUG-TANKS (drei Zylinder hinter Bugreling, Side View)
+! =====================================================================
+"BowTanks":
+	material matDetail
+	for i = 0 to 2
+		addx A * 0.30 - i * 0.02
+		addy -0.12 + i * 0.12
+		addz 0.02
+			cylind 0.42, 0.045
+			addz 0.42
+				sphere 0.045
+			del 1
+		del 3
+	next i
+return
+
+
+! =====================================================================
+! ANKER am Heck (hängt an Seil/Kette)
+! =====================================================================
+"Anchor":
+	material matDetail
+	addx -A * 0.42
+	addy 0.28
+	addz 0.55
+		! Seil
+		cylind 0.55, 0.008
+		addz -0.55
+			! Ankerschaft
+			cylind 0.18, 0.02
+			addz -0.02
+				! Querbalken
+				rotx 90
+				cylind 0.16, 0.015
+				del 1
+				! Flunken (vereinfacht als zwei Prismen)
+				roty 35
+				prism_ 3, 0.02,
+					0, 0, 15,
+					0.12, -0.08, 15,
+					0.02, -0.10, 15
+				del 1
+				roty -35
+				prism_ 3, 0.02,
+					0, 0, 15,
+					-0.12, -0.08, 15,
+					-0.02, -0.10, 15
+				del 1
+			del 1
+		del 1
+	del 3
+return
+
+
+! =====================================================================
+! STEUERRAD / KONSOLE vor der Kabine
+! =====================================================================
+"Steering":
+	material matDetail
+	addx A * 0.12
+	addz 0.05
+		cylind 0.55, 0.04
+		addz 0.55
+			! Rad
+			roty 90
+			cylind 0.02, 0.14
+			del 1
+			! Speichen angedeutet
+			for a = 0 to 150 step 45
+				rotz a
+					roty 90
+					cylind 0.12, 0.008
+					del 1
+				del 1
+			next a
+		del 1
+	del 2
+return
+
+
+! =====================================================================
+! NIETEN (Detailstufe Hoch) — charakteristische Nietreihen
+! =====================================================================
+"Rivets":
+	material matDetail
+	! entlang Platte 15 (beide Seiten)
+	for side = -1 to 1 step 2
+		for i = 0 to 6
+			addx A * 0.08 + i * 0.07
+			addy side * (hullRad * 0.78)
+			addz -hullDepth * 0.05
+				sphere rivetR
+			del 3
+		next i
+		for i = 0 to 5
+			addx A * 0.05 + i * 0.08
+			addy side * (hullRad * 0.90)
+			addz -hullDepth * 0.40
+				sphere rivetR
+			del 3
+		next i
+		! Deck-Rand
+		for i = 0 to 10
+			ang = -60 + i * 12
+			addx cos(ang) * hullLen * 0.42
+			addy side * sin(abs(ang)) * hullRad * 0.9
+			addz 0.01
+				sphere rivetR * 0.9
+			del 3
+		next i
+	next side
+return
+
+
+! =====================================================================
+! MAßSTABSFIGUR (~1,70 m) — wie in der Zeichnung am Bug/Deck
+! =====================================================================
+"ScaleFigure":
+	material matFigure
+	addx A * 0.22
+	addy 0.08
+	addz 0
+		! Beine
+		addy -0.06
+			cylind 0.75, 0.04
+		del 1
+		addy 0.06
+			cylind 0.75, 0.04
+		del 1
+		! Rumpf
+		addz 0.75
+			cylind 0.55, 0.10
+			! Arme am Mast
+			addy 0.12
+			addz 0.35
+				rotx -40
+				cylind 0.35, 0.03
+				del 1
+			del 2
+			! Kopf / Kapuze
+			addz 0.55
+				sphere 0.11
+				addz 0.08
+					! Kapuzenvolumen
+					sphere 0.13
+				del 1
+			del 1
+		del 1
+	del 3
+return
