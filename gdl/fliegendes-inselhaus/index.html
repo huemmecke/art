@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fliegendes Inselhaus – semantisches 3D-Modell (Propeller)</title>
+<style>
+  :root{--bg:#e9e6df;--ink:#2b2924;--muted:#7a756b;--line:#d3cec4;--acc:#b5482f}
+  html,body{margin:0;height:100%;background:var(--bg);font-family:system-ui,-apple-system,sans-serif;color:var(--ink);overflow:hidden}
+  canvas{display:block;touch-action:none}
+  #panel{position:fixed;top:10px;right:10px;width:250px;max-height:calc(100% - 90px);overflow:auto;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+  #panel.zu .inhalt{display:none}
+  #panel h1{font-size:14px;margin:0;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  #panel h1 span{color:var(--muted);font-weight:400;font-size:12px}
+  .grp{margin-top:8px;border-top:1px solid var(--line);padding-top:6px}
+  .grp label{display:flex;gap:6px;align-items:center;font-weight:600;cursor:pointer}
+  .grp ul{list-style:none;margin:4px 0 0 20px;padding:0;display:none}
+  .grp.offen ul{display:block}
+  .grp li{padding:2px 4px;border-radius:5px;cursor:pointer;color:#444}
+  .grp li:hover,.grp li.sel{background:#f2e3dc;color:var(--acc)}
+  .grp .pfeil{margin-left:auto;color:var(--muted);font-weight:400;cursor:pointer;padding:0 4px}
+  #info{position:fixed;left:10px;top:10px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:13px;max-width:230px;display:none}
+  #info b{display:block;font-size:14px}
+  #info small{color:var(--muted)}
+  #ui{position:fixed;left:10px;bottom:10px;display:flex;gap:6px;flex-wrap:wrap}
+  button{border:1px solid #bbb;background:#fff;border-radius:8px;padding:7px 11px;font-size:13px;cursor:pointer;color:var(--ink)}
+  button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+  @media (max-width:600px){#panel{width:200px;font-size:12px}#panel:not(.offen-mobil){}}
+</style>
+</head>
+<body>
+<div id="load">Modell wird geladen …</div>
+<div id="info"></div>
+<div id="panel"><h1 id="ph">Bauteile <span id="cnt"></span></h1><div class="inhalt" id="list"></div></div>
+<div id="ui">
+  <button id="rot">Auto-Drehen</button>
+  <button id="explode">Explosion</button>
+  <button id="reset">Alles zeigen</button>
+</div>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+
+const GRUPPEN={Insel:'Insel',Turm:'Turm',Anbau_Ost:'Erker Ost',Anbau_Nord:'Treppenhaus Nord',Eingangstreppe:'Eingangstreppe',Bootssteg:'Bootssteg',Ausleger_West:'Ausleger West',Beiboot:'Beiboot',Takelage:'Takelage',Ballon:'Ballon',Propeller:'Propeller'};
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.shadowMap.enabled=true;
+document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xe9e6df);
+scene.environment=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),0.04).texture;
+const sun=new THREE.DirectionalLight(0xfff4e6,2.2);sun.position.set(12,25,14);scene.add(sun);
+const camera=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,0.1,500);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.autoRotateSpeed=1.0;
+
+const parts=[];          // {obj, name, semantik, bauteil, home:Vector3, dir:Vector3}
+const groups={};         // bauteil -> {parts, li elements}
+let selected=null, exploded=false, explodeT=0;
+const hl=new THREE.Color(0xd8583a);
+
+function setHighlight(p,on){
+  p.obj.traverse(m=>{ if(m.isMesh){ if(on){m.userData._e=m.material.emissive?.clone();m.material=m.material.clone();m.material.emissive=hl;m.material.emissiveIntensity=0.55;} else if(m.userData._orig){m.material=m.userData._orig;} }});
+}
+function select(p){
+  if(selected){ setHighlight(selected,false); selected.li?.classList.remove('sel'); }
+  selected=p;
+  const info=document.getElementById('info');
+  if(!p){info.style.display='none';return;}
+  setHighlight(p,true); p.li?.classList.add('sel');
+  info.style.display='block';
+  info.innerHTML=`<b>${p.name.replaceAll('_',' ')}</b>${p.semantik}<br><small>Baugruppe: ${GRUPPEN[p.bauteil]||p.bauteil}</small>`;
+}
+
+let propellerPivot=null;
+new GLTFLoader().load('inselhaus.json',g=>{
+  const root=g.scene; scene.add(root);
+  root.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(root), c=box.getCenter(new THREE.Vector3()), size=box.getSize(new THREE.Vector3()).length();
+  root.traverse(o=>{
+    if(o.isMesh){o.userData._orig=o.material; o.material.side=THREE.DoubleSide;}
+    // extras aus dem glTF landen in userData
+    const bauteil=o.userData?.bauteil;
+    if(bauteil){
+      const p={obj:o,name:o.name,semantik:o.userData.semantik||'',bauteil};
+      parts.push(p); (groups[p.bauteil]??=[]).push(p);
+    }
+  });
+  // Propeller-Blätter langsam drehen (um Nabe)
+  const prop=root.getObjectByName('Propeller');
+  if(prop){
+    const hub=new THREE.Vector3(-0.85,6.70,3.55);
+    propellerPivot=new THREE.Group();
+    propellerPivot.position.copy(hub);
+    prop.add(propellerPivot);
+    const spinParts=['Propeller_Blatt_1','Propeller_Blatt_2','Propeller_Blatt_3','Propeller_Blatt_4','Propeller_Nabe','Propeller_Spinner'];
+    for(const n of spinParts){
+      const o=prop.getObjectByName(n);
+      if(!o) continue;
+      o.traverse(m=>{
+        if(m.isMesh && m.geometry && !m.geometry.userData._hubShifted){
+          m.geometry=m.geometry.clone();
+          m.geometry.translate(-hub.x,-hub.y,-hub.z);
+          m.geometry.userData._hubShifted=true;
+        }
+      });
+      propellerPivot.add(o);
+    }
+  }
+  camera.position.set(c.x+size*0.75,c.y+size*0.25,c.z+size*0.85); controls.target.copy(c); controls.update();
+  buildList(); document.getElementById('load').remove();
+},undefined,e=>{document.getElementById('load').textContent='Fehler beim Laden: '+e.message});
+
+function buildList(){
+  const list=document.getElementById('list'); document.getElementById('cnt').textContent=parts.length+' Teile';
+  const order=Object.keys(GRUPPEN).filter(k=>groups[k]).concat(Object.keys(groups).filter(k=>!GRUPPEN[k]));
+  for(const k of order){
+    const arr=groups[k], div=document.createElement('div'); div.className='grp';
+    div.innerHTML=`<label><input type="checkbox" checked> ${GRUPPEN[k]||k} <span style="color:#999;font-weight:400">(${arr.length})</span><span class="pfeil">▸</span></label><ul></ul>`;
+    const cb=div.querySelector('input'); cb.onchange=()=>arr.forEach(p=>p.obj.visible=cb.checked);
+    div.querySelector('.pfeil').onclick=e=>{e.preventDefault();div.classList.toggle('offen');e.target.textContent=div.classList.contains('offen')?'▾':'▸';};
+    const ul=div.querySelector('ul');
+    arr.sort((a,b)=>a.name.localeCompare(b.name,'de')).forEach(p=>{const li=document.createElement('li');li.textContent=p.name.replaceAll('_',' ');li.title=p.semantik;li.onclick=()=>select(selected===p?null:p);p.li=li;ul.appendChild(li);});
+    list.appendChild(div);
+  }
+  if(innerWidth<600) document.getElementById('panel').classList.add('zu');
+}
+document.getElementById('ph').onclick=()=>document.getElementById('panel').classList.toggle('zu');
+
+// Klick ins Modell wählt ein Bauteil
+const ray=new THREE.Raycaster(), ptr=new THREE.Vector2(); let down=null;
+renderer.domElement.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5) return;
+  ptr.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(ptr,camera);
+  const hit=ray.intersectObjects(scene.children,true).find(h=>h.object.visible);
+  if(!hit){select(null);return;}
+  let o=hit.object; while(o&&!o.userData?.bauteil) o=o.parent;
+  const p=parts.find(q=>q.obj===o); select(p&&p!==selected?p:null);
+});
+
+const tog=(id,fn)=>{const b=document.getElementById(id);b.onclick=()=>{b.classList.toggle('on');fn(b.classList.contains('on'));}};
+tog('rot',v=>controls.autoRotate=v);
+tog('explode',v=>exploded=v);
+document.getElementById('reset').onclick=()=>{parts.forEach(p=>p.obj.visible=true);document.querySelectorAll('.grp input').forEach(c=>c.checked=true);select(null);};
+
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+renderer.setAnimationLoop(()=>{
+  explodeT+=((exploded?1:0)-explodeT)*0.08;
+  applyExplode();
+  if(propellerPivot) propellerPivot.rotation.z += 0.012;
+  controls.update();renderer.render(scene,camera);
+});
+// Explosion: Baugruppen-Knoten (Empties) verschieben
+const groupNodes=[]; let gnReady=false;
+function applyExplode(){
+  if(!gnReady && parts.length){
+    const c=new THREE.Box3().setFromObject(scene).getCenter(new THREE.Vector3());
+    scene.traverse(o=>{ if(!o.isMesh && o.userData?.semantik && !o.userData?.bauteil && o.children.length && o.name!=='Inselhaus'){
+      const wc=new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3());
+      const d=wc.sub(c); d.y*=0.5; if(o.name==='Takelage') d.set(0,3.5,0); if(o.name==='Dach') d.set(0,2.5,0);
+      groupNodes.push({o,home:o.position.clone(),d:d.multiplyScalar(0.45)});
+    }});
+    gnReady=true;
+  }
+  groupNodes.forEach(g=>{ const local=g.d.clone().applyQuaternion(g.o.parent.getWorldQuaternion(new THREE.Quaternion()).invert()); g.o.position.copy(g.home).addScaledVector(local,explodeT); });
+}
+</script>
+</body>
+</html>
